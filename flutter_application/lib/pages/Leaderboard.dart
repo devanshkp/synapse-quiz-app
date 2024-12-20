@@ -10,6 +10,7 @@ class LeaderboardPage extends StatelessWidget {
         'Leaderboard Page',
         style: TextStyle(
           fontSize: 24,
+          color: Colors.white,
           fontWeight: FontWeight.bold
           ),
       ),

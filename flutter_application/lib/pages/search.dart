@@ -10,6 +10,7 @@ class SearchPage extends StatelessWidget {
         'Search Page',
         style: TextStyle(
           fontSize: 24,
+          color: Colors.white,
           fontWeight: FontWeight.bold
           ),
       ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/pages/Leaderboard.dart';
-import 'package:flutter_application/pages/Trivia.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
 import 'pages/profile.dart';
+import 'pages/leaderboard.dart';
+import 'pages/trivia.dart';
+import 'utility/constants.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'Bottom Navbar Example',
       theme: ThemeData(
         fontFamily: 'Poppins',
+        scaffoldBackgroundColor: backgroundPageColor,
         splashFactory: NoSplash.splashFactory, // Removes click effect
         highlightColor: Colors.transparent, // Removes highlight color
       ),
@@ -49,11 +51,26 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   // List of icon paths (for filled and outlined versions)
   final List<Map<String, String>> _icons = [
-    {'filled': 'assets/icons/navbar/Home_Filled.svg', 'outline': 'assets/icons/navbar/Home.svg'},
-    {'filled': 'assets/icons/navbar/Discover_Filled.svg', 'outline': 'assets/icons/navbar/Discover.svg'},
-    {'filled': 'assets/icons/navbar/Scroll_Filled.svg', 'outline': 'assets/icons/navbar/Scroll.svg'},
-    {'filled': 'assets/icons/navbar/Leaderboard_Filled.svg', 'outline': 'assets/icons/navbar/Leaderboard.svg'},
-    {'filled': 'assets/icons/navbar/Profile_Filled.svg', 'outline': 'assets/icons/navbar/Profile.svg'},
+    {
+      'filled': 'assets/icons/navbar/Home_Filled.svg',
+      'outline': 'assets/icons/navbar/Home.svg'
+    },
+    {
+      'filled': 'assets/icons/navbar/Discover_Filled.svg',
+      'outline': 'assets/icons/navbar/Discover.svg'
+    },
+    {
+      'filled': 'assets/icons/navbar/Scroll_Filled.svg',
+      'outline': 'assets/icons/navbar/Scroll.svg'
+    },
+    {
+      'filled': 'assets/icons/navbar/Leaderboard_Filled.svg',
+      'outline': 'assets/icons/navbar/Leaderboard.svg'
+    },
+    {
+      'filled': 'assets/icons/navbar/Profile_Filled.svg',
+      'outline': 'assets/icons/navbar/Profile.svg'
+    },
   ];
 
   // Function to update the selected index
@@ -68,7 +85,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return Scaffold(
       body: _screens[_currentIndex], // Display the current page
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF0D0D0F),
+        backgroundColor: navbarColor,
         currentIndex: _currentIndex,
         onTap: _onTap,
         items: List.generate(5, (index) {
@@ -80,7 +97,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
               width: 24, // Set icon size
               height: 24,
             ),
-            label: ['Home', 'Search', 'Trivia', 'Leaderboard', 'Profile'][index], // Labels
+            label: [
+              'Home',
+              'Search',
+              'Trivia',
+              'Leaderboard',
+              'Profile'
+            ][index], // Labels
           );
         }),
         showUnselectedLabels: false,

@@ -10,6 +10,7 @@ class ProfilePage extends StatelessWidget {
         'Profile Page',
         style: TextStyle(
           fontSize: 24,
+          color: Colors.white,
           fontWeight: FontWeight.bold
           ),
       ),
