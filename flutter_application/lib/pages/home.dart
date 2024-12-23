@@ -23,52 +23,57 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       body: Padding(
-        padding:
-            const EdgeInsets.only(top: 45, left: 18, right: 18, bottom: 45),
-        child: Column(
-          children: [topPortion(), middlePortion()],
+        padding: const EdgeInsets.only(top: 45, left: 18, right: 18),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [topPortion(), middlePortion(), bottomPortion()],
+          ),
         ),
       ),
     );
   }
 
-  Row topPortion() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Expanded(
-          // Ensure the Column takes the available space
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Greeting Text
-              Text(
-                'Hi, Devansh',
-                style: TextStyle(
-                  color: Colors.white70, // Subdued color for greeting
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
+  Widget topPortion() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 5, right: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            // Ensure the Column takes the available space
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Greeting Text
+                Text(
+                  'Hi, Devansh',
+                  style: TextStyle(
+                    color: Colors.white70, // Subdued color for greeting
+                    fontSize: 18,
+                    fontWeight: FontWeight.normal,
+                  ),
                 ),
-              ),
-              Text(
-                'Let’s play!',
-                style: TextStyle(
-                  color: Colors.white, // Bright color for emphasis
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
+                Text(
+                  'Let’s play!',
+                  style: TextStyle(
+                    color: Colors.white, // Bright color for emphasis
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20), // Space between greeting and content
-            ],
+                SizedBox(height: 20), // Space between greeting and content
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: GestureDetector(
-              onTap: () => (print("Notification button pressed")),
-              child: SvgPicture.asset('assets/icons/home/Bolt.svg')),
-        )
-      ],
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: GestureDetector(
+                onTap: () => (print("Notification button pressed")),
+                child: SvgPicture.asset('assets/icons/home/Bolt.svg')),
+          )
+        ],
+      ),
     );
   }
 
@@ -77,7 +82,7 @@ class HomePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(bottom: 15),
           child: DailyTaskCard(),
         ),
         Row(
@@ -91,7 +96,7 @@ class HomePage extends StatelessWidget {
                   onTap: () => (print("Categories button pressed.")),
                   child: categoriesButton()),
             ),
-            const SizedBox(width: 10), // Space between the two columns
+            const SizedBox(width: 15), // Space between the two columns
             Expanded(
               flex: 4,
               child: GestureDetector(
@@ -101,7 +106,7 @@ class HomePage extends StatelessWidget {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.only(top: 15),
           child: GestureDetector(
               onTap: () => (print("Quick play button pressed.")),
               child: quickPlayButton()),
@@ -110,9 +115,98 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget bottomPortion() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40, left: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Categories >',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              )),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            children: [
+              customCategoryButton(
+                  title: 'Foundational Math',
+                  titleFontSize: 11,
+                  iconName: 'math.png',
+                  iconSize: 60,
+                  onTap: () => (print('Foudational math pressed.')),
+                  spacing: 10),
+              customCategoryButton(
+                  title: 'Sorting Algorithms',
+                  titleFontSize: 11,
+                  iconName: 'sort.png',
+                  iconSize: 70,
+                  onTap: () => (print('Sorting Algorithms pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Neural Networks',
+                  titleFontSize: 11,
+                  iconName: 'neural_network.png',
+                  iconSize: 70,
+                  onTap: () => (print('Neural networks pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Machine Learning',
+                  titleFontSize: 11,
+                  iconName: 'machine_learning.png',
+                  iconSize: 70,
+                  onTap: () => (print('Machine learning pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Data Structures',
+                  titleFontSize: 11,
+                  iconName: 'brace.png',
+                  iconSize: 70,
+                  onTap: () => (print('Data structures pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Programming Basics',
+                  titleFontSize: 11,
+                  iconName: 'programming.png',
+                  iconSize: 70,
+                  onTap: () => (print('Programming basics pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Popular Algorithms',
+                  titleFontSize: 11,
+                  iconName: 'algorithm.png',
+                  iconSize: 70,
+                  onTap: () => (print('Popular algorithms pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'Database',
+                  titleFontSize: 11,
+                  iconName: 'database.png',
+                  iconSize: 70,
+                  onTap: () => (print('Database pressed.')),
+                  spacing: 5),
+              customCategoryButton(
+                  title: 'SWE Fundamentals',
+                  titleFontSize: 11,
+                  iconName: 'swe.png',
+                  iconSize: 70,
+                  onTap: () => (print('SWE fundamentals pressedd.')),
+                  spacing: 5),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
   Widget historyButton() {
     return SizedBox(
-        height: 80,
+        height: 72,
         child: customHomeButton(
           title: 'Session History',
           titleFontSize: 16,
@@ -121,14 +215,14 @@ class HomePage extends StatelessWidget {
           iconPath: 'assets/icons/home/History.svg',
           iconSize: 25,
           onTap: () => print('History button tapped'),
-          textPadding: const EdgeInsets.only(left: 15, right: 11),
+          textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),
           iconPadding: const EdgeInsets.only(bottom: 20),
         ));
   }
 
   Widget categoriesButton() {
     return SizedBox(
-        height: 80,
+        height: 72,
         child: customHomeButton(
           title: 'Select Categories',
           titleFontSize: 16,
@@ -136,13 +230,13 @@ class HomePage extends StatelessWidget {
           iconSize: 15,
           onTap: () => print('History button tapped'),
           textPadding: const EdgeInsets.only(left: 15, right: 11),
-          iconPadding: const EdgeInsets.only(bottom: 20),
+          iconPadding: const EdgeInsets.only(bottom: 25),
         ));
   }
 
   Widget quickPlayButton() {
     return SizedBox(
-        height: 92,
+        height: 82,
         child: customHomeButton(
           title: 'QUICK PLAY',
           titleFontSize: 28,
@@ -152,7 +246,7 @@ class HomePage extends StatelessWidget {
           iconPath: 'assets/icons/home/Play.svg',
           iconSize: 22,
           onTap: () => print('History button tapped'),
-          textPadding: const EdgeInsets.only(left: 17, right: 12),
+          textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
           iconPadding: const EdgeInsets.only(bottom: 20),
         ));
   }
