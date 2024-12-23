@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utility/constants.dart';
-import '../utility/buttons.dart';
+import '../utility/custom_buttons.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
