@@ -76,7 +76,7 @@ Container customHomeButton({
   );
 }
 
-Container customCategoryButton({
+Widget customCategoryButton({
   required String title,
   required double titleFontSize,
   required String iconName,
@@ -84,29 +84,32 @@ Container customCategoryButton({
   required VoidCallback onTap,
   required double spacing,
 }) {
-  return Container(
-      height: double.infinity,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: buttonColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: buttonStrokeColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/images/shadow_categories/$iconName',
-              width: iconSize, height: iconSize),
-          SizedBox(height: spacing),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 8.5,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          )
-        ],
-      ));
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: buttonColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: buttonStrokeColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/shadow_categories/$iconName',
+                width: iconSize, height: iconSize),
+            SizedBox(height: spacing),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 8.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            )
+          ],
+        )),
+  );
 }

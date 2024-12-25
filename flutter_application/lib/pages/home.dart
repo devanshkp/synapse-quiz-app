@@ -8,27 +8,21 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<List<Map<String, String>>> rows = [
-      [
-        {"title": "Daily Task", "icon": "assets/icons/task.svg"}
-      ], // Row with 1 tile
-      [
-        {"title": "Choose Categories", "icon": "assets/icons/Edit.svg"},
-        {"title": "Session History", "icon": "assets/icons/History.svg"},
-      ], // Row with 2 tiles
-      [
-        {"title": "Quick Play", "icon": "assets/icons/Play.svg"}
-      ],
+    // List of widgets to be displayed
+    final List<Widget> sections = [
+      topPortion(),
+      middlePortion(),
+      bottomPortion(),
     ];
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.only(top: 45, left: 18, right: 18),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [topPortion(), middlePortion(), bottomPortion()],
-          ),
+        padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
+        child: ListView.builder(
+          itemCount: sections.length,
+          itemBuilder: (context, index) {
+            return sections[index];
+          },
         ),
       ),
     );
@@ -127,6 +121,7 @@ class HomePage extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               )),
+          const SizedBox(height: 15),
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -138,7 +133,7 @@ class HomePage extends StatelessWidget {
                   title: 'Foundational Math',
                   titleFontSize: 11,
                   iconName: 'math.png',
-                  iconSize: 60,
+                  iconSize: 65,
                   onTap: () => (print('Foudational math pressed.')),
                   spacing: 10),
               customCategoryButton(
@@ -198,7 +193,8 @@ class HomePage extends StatelessWidget {
                   onTap: () => (print('SWE fundamentals pressedd.')),
                   spacing: 5),
             ],
-          )
+          ),
+          const SizedBox(height: 15,)
         ],
       ),
     );
@@ -228,7 +224,7 @@ class HomePage extends StatelessWidget {
           titleFontSize: 16,
           iconPath: 'assets/icons/home/Edit.svg',
           iconSize: 15,
-          onTap: () => print('History button tapped'),
+          onTap: () => print('Categories button tapped'),
           textPadding: const EdgeInsets.only(left: 15, right: 11),
           iconPadding: const EdgeInsets.only(bottom: 25),
         ));
@@ -245,7 +241,7 @@ class HomePage extends StatelessWidget {
           subtitleFontSize: 11,
           iconPath: 'assets/icons/home/Play.svg',
           iconSize: 22,
-          onTap: () => print('History button tapped'),
+          onTap: () => print('Quick play button tapped'),
           textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
           iconPadding: const EdgeInsets.only(bottom: 20),
         ));
