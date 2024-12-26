@@ -1,134 +1,191 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/utility/constants.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  double avatarTopOffset = 100.0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SingleChildScrollView(
-        child: Column(
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (scrollNotification) {
+          if (scrollNotification is ScrollUpdateNotification) {
+            setState(() {
+              // Adjust avatar's position based on scroll offset
+              avatarTopOffset = (100 - scrollNotification.metrics.pixels)
+                  .clamp(-100.0, 100.0);
+            });
+          }
+          return true;
+        },
+        child: Stack(
           children: [
-            // Top Section
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              child: Column(
-                children: [
-                  // Icons Row
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(Icons.person_add, color: Colors.white, size: 28),
-                      Icon(Icons.settings, color: Colors.white, size: 28),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // Profile Picture
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage(
-                        'assets/images/avatar.jpg'), // Replace with your image
-                  ),
-                  const SizedBox(height: 12),
-                  // Username and Friends Count
-                  const Text(
-                    'pathnem',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Text(
-                    'Devansh Kapoor • 54 Friends',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Stats Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatCard('STREAK', '15 Days', Icons.whatshot),
-                      _buildStatCard('RANK', '#264', Icons.language),
-                      _buildStatCard('SOLVED', '56/800', Icons.check_circle),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Tabs Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildTab('Rankings', false),
-                _buildTab('Stats', true),
-                _buildTab('Friends', false),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Content Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Member Since',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Jan, 2022',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Longest Streak',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '124 Days',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  // Chart Section Placeholder
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Top Performance by Category (Chart Placeholder)',
-                        style: TextStyle(color: Colors.white70),
+            CustomScrollView(
+              slivers: [
+                // Gradient Background
+                SliverAppBar(
+                  expandedHeight: 125.0,
+                  pinned: true,
+                  backgroundColor: backgroundPageColor,
+                  surfaceTintColor: Colors.transparent, 
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        color: backgroundPageColor,
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/mesh.png'),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
-                ],
+                ),
+
+                // Scrollable Content
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 110),
+                      _buildHorizontalDivider(
+                          70), // Placeholder for the avatar overlap
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.135,
+                        margin: const EdgeInsets.symmetric(horizontal: 30),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xff353535), Color(0xff242424)],
+                            stops: [0.1, 0.9],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildStatCard('STREAK', '15 Days', Icons.whatshot),
+                            _buildVerticalDivider(),
+                            _buildStatCard('RANK', '#264', Icons.language),
+                            _buildVerticalDivider(),
+                            _buildStatCard(
+                                'SOLVED', '56/800', Icons.check_circle),
+                          ],
+                        ),
+                      ),
+                      _buildHorizontalDivider(50),
+                      const SizedBox(height: 10),
+
+                      // Tabs Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildTab('Rankings', false),
+                          _buildTab('Stats', true),
+                          _buildTab('Friends', false),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Stats Section
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Member Since',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Jan, 2022',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Longest Streak',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '124 Days',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Placeholder for a chart or additional information
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[900],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Top Performance by Category (Chart Placeholder)',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Avatar and User Details
+            Positioned(
+              top: avatarTopOffset,
+              left: 0,
+              right: 0,
+              child: const Opacity(
+                opacity: 1.0, // Fade out when off-screen
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: AssetImage('assets/images/avatar.jpg'),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'pathnem',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Devansh Kapoor • 54 Friends',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -138,27 +195,21 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildStatCard(String title, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 24),
+        const SizedBox(height: 7.5),
+        Text(
+          value,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 2.5),
+        Text(
+          title,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
     );
   }
 
@@ -181,6 +232,25 @@ class ProfilePage extends StatelessWidget {
             color: Colors.purpleAccent,
           ),
       ],
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: double.infinity,
+      width: 1,
+      color: Colors.white54,
+    );
+  }
+
+  Widget _buildHorizontalDivider(double horizontalPadding) {
+    return Padding(
+      padding:
+          EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 10),
+      child: const Divider(
+        color: Colors.white38,
+        thickness: 1.25,
+      ),
     );
   }
 }

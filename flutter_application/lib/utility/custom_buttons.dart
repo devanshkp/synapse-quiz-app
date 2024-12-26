@@ -103,8 +103,8 @@ Widget customCategoryButton({
             SizedBox(height: spacing),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 8.5,
+              style: TextStyle(
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../utility/constants.dart';
 import '../utility/custom_buttons.dart';
 
 class HomePage extends StatelessWidget {
@@ -131,70 +130,72 @@ class HomePage extends StatelessWidget {
             children: [
               customCategoryButton(
                   title: 'Foundational Math',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'math.png',
-                  iconSize: 65,
+                  iconSize: 70,
                   onTap: () => (print('Foudational math pressed.')),
-                  spacing: 10),
+                  spacing: 5),
               customCategoryButton(
                   title: 'Sorting Algorithms',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'sort.png',
                   iconSize: 70,
                   onTap: () => (print('Sorting Algorithms pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Neural Networks',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'neural_network.png',
                   iconSize: 70,
                   onTap: () => (print('Neural networks pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Machine Learning',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'machine_learning.png',
                   iconSize: 70,
                   onTap: () => (print('Machine learning pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Data Structures',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'brace.png',
                   iconSize: 70,
                   onTap: () => (print('Data structures pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Programming Basics',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'programming.png',
                   iconSize: 70,
                   onTap: () => (print('Programming basics pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Popular Algorithms',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'algorithm.png',
                   iconSize: 70,
                   onTap: () => (print('Popular algorithms pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'Database',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'database.png',
                   iconSize: 70,
                   onTap: () => (print('Database pressed.')),
                   spacing: 5),
               customCategoryButton(
                   title: 'SWE Fundamentals',
-                  titleFontSize: 11,
+                  titleFontSize: 9,
                   iconName: 'swe.png',
                   iconSize: 70,
                   onTap: () => (print('SWE fundamentals pressedd.')),
                   spacing: 5),
             ],
           ),
-          const SizedBox(height: 15,)
+          const SizedBox(
+            height: 15,
+          )
         ],
       ),
     );
