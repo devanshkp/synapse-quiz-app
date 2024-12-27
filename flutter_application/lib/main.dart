@@ -108,6 +108,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         }),
         showUnselectedLabels: false,
         showSelectedLabels: false,
+        iconSize: 0.0,
         type: BottomNavigationBarType.fixed, // Ensures all 5 items are visible
       ),
     );

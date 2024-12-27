@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utility/custom_buttons.dart';
+import '../utility/constants.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -254,6 +256,8 @@ class DailyTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 4, bottom: 4, left: 4, right: 15),
