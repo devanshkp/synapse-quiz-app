@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Bottom Navbar Example',
+      title: 'Quiz App',
       theme: ThemeData(
         fontFamily: 'Poppins',
         scaffoldBackgroundColor: backgroundPageColor,
