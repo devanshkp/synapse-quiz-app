@@ -90,12 +90,15 @@ class _BottomNavBarState extends State<BottomNavBar> {
         onTap: _onTap,
         items: List.generate(5, (index) {
           return BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              _currentIndex == index
-                  ? _icons[index]['filled']! // Filled version of the icon
-                  : _icons[index]['outline']!, // Outline version
-              width: 24, // Set icon size
-              height: 24,
+            icon: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SvgPicture.asset(
+                _currentIndex == index
+                    ? _icons[index]['filled']! // Filled version of the icon
+                    : _icons[index]['outline']!, // Outline version
+                width: 24, // Set icon size
+                height: 24,
+              ),
             ),
             label: [
               'Home',

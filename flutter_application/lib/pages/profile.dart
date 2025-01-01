@@ -14,17 +14,29 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with SingleTickerProviderStateMixin {
   final GlobalKey _statsKey =
       GlobalKey(); // Key for capturing the stats section
-  Uint8List? _statsImage; // Stores the captured stats section as an image
+  static Uint8List?
+      _statsImage; // Stores the captured stats section as an image
+  late TabController _tabController;
+  double avatarRadius = 55.0;
 
   @override
   void initState() {
     super.initState();
+    _tabController =
+        TabController(length: 2, vsync: this); // Initialize TabController
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _captureStatsSection(); // Capture stats section after the page is built
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose(); // Dispose the TabController
+    super.dispose();
   }
 
   Future<void> _captureStatsSection() async {
@@ -33,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
           as RenderRepaintBoundary?;
       if (boundary != null) {
         final image = await boundary.toImage(
-            pixelRatio: 5.0); // Higher pixel ratio for better quality
+            pixelRatio: 2.0); // Higher pixel ratio for better quality
         final byteData = await image.toByteData(format: ImageByteFormat.png);
         setState(() {
           _statsImage = byteData?.buffer.asUint8List();
@@ -46,6 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    double expandedHeight = 110;
     SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
     return Scaffold(
@@ -53,7 +66,7 @@ class _ProfilePageState extends State<ProfilePage> {
         slivers: [
           SliverStack(children: [
             SliverAppBar(
-                expandedHeight: 110.0,
+                expandedHeight: expandedHeight,
                 pinned: false,
                 elevation: 0.0,
                 backgroundColor: backgroundPageColor,
@@ -101,12 +114,12 @@ class _ProfilePageState extends State<ProfilePage> {
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  const SizedBox(height: 65),
+                  SizedBox(height: expandedHeight - 45),
                   userProfile(),
                   _buildHorizontalDivider(70),
                   Container(
-                    height: 105,
-                    margin: const EdgeInsets.symmetric(horizontal: 30),
+                    height: 100,
+                    margin: const EdgeInsets.symmetric(horizontal: 27.5),
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
@@ -122,30 +135,60 @@ class _ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         _buildMainStatCard('STREAK', '15 Days', Icons.whatshot),
-                        _buildVerticalDivider(),
+                        _buildVerticalDivider(Colors.white),
                         _buildMainStatCard('RANK', '#264', Icons.language),
-                        _buildVerticalDivider(),
-                        _buildMainStatCard(
-                            'SOLVED', '56/800', Icons.check_circle),
+                        _buildVerticalDivider(Colors.white),
+                        _buildMainStatCard('SOLVED', '56/800',
+                            Icons.check_circle_outline_outlined),
                       ],
                     ),
                   ),
                   _buildHorizontalDivider(50),
-                  const SizedBox(height: 10),
 
                   // Tabs Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildTab('Stats', true),
-                      _buildTab('Badges', false),
+                  TabBar(
+                    controller: _tabController,
+                    onTap: (index) {
+                      setState(() {}); // Trigger rebuild to update text color
+                    },
+                    tabs: const [
+                      Tab(text: 'Stats', height: 30.0),
+                      Tab(text: 'Badges', height: 30.0),
                     ],
+                    unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontFamily: 'Poppins',
+                        fontSize: 16),
+                    labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+                    labelColor: Colors.purpleAccent[700],
+                    dividerColor: Colors.transparent,
+                    indicatorColor:
+                        Colors.purpleAccent[700], // Optional: Indicator color
                   ),
-                  const SizedBox(height: 20),
 
+                  const SizedBox(height: 15),
                   // Stats Section as Image
-                  _statsSectionWrapper(),
+                  SizedBox(
+                    height: 515,
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _statsSectionWrapper(), // Content for "Stats" tab
+                        _buildBadgesSection(), // Content for "Badges" tab
+                      ],
+                    ),
+                  ),
 
+                  const SizedBox(height: 20),
+                  Container(
+                    width: 350,
+                    height: 300,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: buttonColor),
+                    padding: const EdgeInsets.all(8.0),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -164,12 +207,12 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(100),
               border:
-                  Border.all(width: 3, color: Colors.white.withOpacity(0.5))),
-          child: const Padding(
-            padding: EdgeInsets.all(4.0),
+                  Border.all(width: 1.5, color: Colors.white.withOpacity(0.2))),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
             child: CircleAvatar(
-              radius: 55,
-              backgroundImage: AssetImage('assets/images/avatar.jpg'),
+              radius: avatarRadius,
+              backgroundImage: const AssetImage('assets/images/avatar.jpg'),
             ),
           ),
         ),
@@ -232,49 +275,27 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildMainStatCard(String title, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white, size: 23),
+        Icon(icon, color: Colors.white, size: 21),
         const SizedBox(height: 7.5),
         Text(
           value,
           style: const TextStyle(
-              color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+              color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 2.5),
         Text(
           title,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
       ],
     );
   }
 
-  Widget _buildTab(String title, bool isActive) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: isActive ? Colors.purpleAccent : Colors.white70,
-            fontSize: 16,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (isActive)
-          Container(
-            height: 2,
-            width: 20,
-            color: Colors.purpleAccent,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildVerticalDivider() {
+  Widget _buildVerticalDivider(Color color) {
     return Container(
       height: double.infinity,
       width: 1,
-      color: Colors.white54,
+      color: color,
     );
   }
 
@@ -298,7 +319,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStatsSection() {
     double statsSpacing = 12.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 8.0),
       child: Container(
         padding: EdgeInsets.all(statsSpacing),
         decoration: BoxDecoration(
@@ -312,9 +333,9 @@ class _ProfilePageState extends State<ProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatCardItem('Member Since', 'Jan, 2022'),
+                _buildStatCard('Member Since', 'Jan, 2022'),
                 SizedBox(width: statsSpacing),
-                _buildStatCardItem('Longest Streak', '124 Days',
+                _buildStatCard('Longest Streak', '124 Days',
                     isHighlighted: true),
               ],
             ),
@@ -326,19 +347,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 'label': 'Data Structures',
                 'answered': 42,
                 'total': 80,
-                'color': Colors.pinkAccent,
+                'color': const Color(0xffFFD6DD),
               },
               {
                 'label': 'Time Complexity',
                 'answered': 7,
                 'total': 10,
-                'color': Colors.lightBlueAccent,
+                'color': const Color(0xffC4D0FB),
               },
               {
                 'label': 'Search Algorithms',
                 'answered': 3,
                 'total': 15,
-                'color': Colors.purpleAccent,
+                'color': const Color(0xffA9ADF3),
               },
             ]),
           ],
@@ -348,11 +369,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Helper function for Stat Cards
-  Widget _buildStatCardItem(String title, String value,
+  Widget _buildStatCard(String title, String value,
       {bool isHighlighted = false}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
         decoration: BoxDecoration(
           color: backgroundPageColor,
           borderRadius: BorderRadius.circular(12.0),
@@ -364,16 +385,58 @@ class _ProfilePageState extends State<ProfilePage> {
               title,
               style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 14,
+                fontSize: 11,
               ),
             ),
-            const SizedBox(height: 8.0),
-            Text(
-              value,
-              style: TextStyle(
-                color: isHighlighted ? Colors.purpleAccent : Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 5.0),
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(fontFamily: 'Poppins'),
+                children: [
+                  if (isHighlighted)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 5.0),
+                        child: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [
+                              Colors.purpleAccent,
+                              Colors.deepPurpleAccent
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ).createShader(bounds),
+                          child: Text(
+                            value.split(' ').first,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white, // Fallback color
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    TextSpan(
+                      text: '${value.split(' ').first} ',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value.split(' ').sublist(1).join(' '),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -385,7 +448,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // Helper function to build the performance chart
   Widget _buildPerformanceChart(List<Map<String, dynamic>> topics) {
     return Container(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: backgroundPageColor,
         borderRadius: BorderRadius.circular(12.0),
@@ -393,25 +456,32 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
+              const Flexible(
                 child: Text(
                   'Top performance by category',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.clip,
                 ),
               ),
-              Icon(Icons.bar_chart, color: Colors.white70),
+              Container(
+                  decoration: BoxDecoration(
+                      color: buttonColor,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(12.0)),
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Icon(Icons.bar_chart_outlined,
+                      color: Colors.white)),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           Wrap(
               alignment: WrapAlignment.start,
               spacing: 15.0,
@@ -435,13 +505,13 @@ class _ProfilePageState extends State<ProfilePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 10),
+          _buildHorizontalDivider(50),
           const Text(
             'Questions Answered',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 14,
+              fontSize: 12,
             ),
           ),
         ],
@@ -482,8 +552,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStatTopic(Color colour, String topic) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Container(
-        width: 10,
-        height: 10,
+        width: 9,
+        height: 9,
         decoration: BoxDecoration(
             color: colour, borderRadius: BorderRadius.circular(100)),
       ),
@@ -491,7 +561,7 @@ class _ProfilePageState extends State<ProfilePage> {
       Text(
         topic,
         style: const TextStyle(
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: FontWeight.w400,
           color: Colors.white,
         ),
