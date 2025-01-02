@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:sliver_tools/sliver_tools.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -54,111 +53,92 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
     return Scaffold(
-      drawer: _buildLeftDrawer(),
-      endDrawer: _buildRightDrawer(),
-      body: CustomScrollView(
-        slivers: [
-          _buildUpperSection(),
-          _buildLowerSection(),
-        ],
-      ),
-    );
-  }
-
-  // Upper Section: App Bar and User Profile
-  Widget _buildUpperSection() {
-    return SliverStack(
-      children: [
-        SliverAppBar(
-          automaticallyImplyLeading:
-              false, // Hides hamburger button for left drawer
-          actions: <Widget>[
-            Container()
-          ], // Hides hamburger button for right drawer
-          expandedHeight: expandedHeight,
-          pinned: false,
-          elevation: 0.0,
-          backgroundColor: backgroundPageColor,
-          surfaceTintColor: Colors.transparent,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Stack(
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    color: backgroundPageColor,
-                    image: DecorationImage(
-                      alignment: Alignment.topCenter,
-                      image: AssetImage('assets/images/mesh_alt.png'),
-                      fit: BoxFit.cover,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4), // Shadow color
+                blurRadius: 10, // Spread of the shadow
+                offset: const Offset(0, 8), // Positioning of the shadow
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30.0),
+              bottomRight: Radius.circular(30.0),
+            ),
+            child: AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF131313),
+                      Color(0xFF1D1D1D),
+                      Color(0xFF272727),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+              leading: Builder(
+                builder: (context) => GestureDetector(
+                  onTap: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.only(left: 30.0),
+                    child: Icon(
+                      Icons.people_rounded,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
                 ),
-                _buildAppBarIcons(), // Icons for left and Right drawers
+              ),
+              actions: [
+                Builder(
+                  builder: (context) => GestureDetector(
+                    onTap: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                    child: const Padding(
+                        padding: EdgeInsets.only(right: 30.0),
+                        child: Icon(Icons.settings, color: Colors.white)),
+                  ),
+                ),
               ],
             ),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(0.0),
-            child: Transform.translate(
-              offset: const Offset(0, 30),
-              child: Container(
-                height: 50,
-                decoration: const BoxDecoration(
-                  color: backgroundPageColor,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                ),
-              ),
-            ),
-          ),
         ),
-        SliverToBoxAdapter(
-          child: Column(
+      ),
+      drawer: _buildLeftDrawer(),
+      endDrawer: _buildRightDrawer(),
+      body: ListView.builder(
+        itemCount: 1, // Update based on sections
+        itemBuilder: (context, index) {
+          return Column(
             children: [
-              SizedBox(height: expandedHeight - 45),
-              _buildUserProfile(), // User Profile: Avatar, Full Name, Friend Count
+              const SizedBox(height: 20),
+              _buildUserProfile(),
               _buildHorizontalDivider(70),
+              _buildMainStatCards(),
+              _buildHorizontalDivider(50),
+              _buildTabs(),
+              const SizedBox(height: 10),
+              _buildTabContent(),
+              const SizedBox(height: 20),
+              _buildExtraContent(),
+              const SizedBox(height: 40),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAppBarIcons() {
-    return Positioned(
-      top: 70.0,
-      left: 33.0,
-      right: 33.0,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Scaffold.of(context).openDrawer();
-              },
-              child: const Icon(
-                Icons.people_outline_rounded,
-                color: Colors.white,
-                size: 25,
-              ),
-            ),
-          ),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-              child: SvgPicture.asset(
-                'assets/icons/profile/settings.svg',
-                height: 23,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -200,24 +180,6 @@ class _ProfilePageState extends State<ProfilePage>
           ),
         ),
       ],
-    );
-  }
-
-  // Lower Section: Tabs and Content
-  Widget _buildLowerSection() {
-    return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          _buildMainStatCards(), // Main Stats : Current Streak, Global Rank, and Total questions solved
-          _buildHorizontalDivider(50),
-          _buildTabs(), // Tabs : Stats, Badges
-          const SizedBox(height: 10),
-          _buildTabContent(),
-          const SizedBox(height: 20),
-          _buildExtraContent(),
-          const SizedBox(height: 40),
-        ],
-      ),
     );
   }
 
@@ -321,9 +283,10 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 40),
           // Drawer Heading
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
             child: Text(
               'Friends',
               style: TextStyle(
@@ -394,6 +357,7 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 40),
           // Drawer Heading
           Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
