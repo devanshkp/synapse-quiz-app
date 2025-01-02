@@ -302,9 +302,9 @@ class _ProfilePageState extends State<ProfilePage>
             child: TextField(
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Search',
+                hintText: 'Add Friend',
                 hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                prefixIcon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white54),
                 filled: true,
                 fillColor: Colors.white12,
                 border: OutlineInputBorder(

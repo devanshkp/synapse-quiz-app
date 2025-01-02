@@ -18,9 +18,22 @@ Container customHomeButton({
     height: double.infinity,
     padding: textPadding,
     decoration: BoxDecoration(
-      color: buttonColor,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3), // Shadow color
+          blurRadius: 10, // Spread of the shadow
+          offset: const Offset(0, 5), // Positioning of the shadow
+        ),
+      ],
+      gradient: const LinearGradient(
+        colors: [
+          Color.fromARGB(255, 48, 48, 48),
+          buttonColor,
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: buttonStrokeColor),
     ),
     child: InkWell(
       onTap: onTap,
@@ -90,9 +103,22 @@ Widget customCategoryButton({
         height: double.infinity,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: buttonColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3), // Shadow color
+              blurRadius: 10, // Spread of the shadow
+              offset: const Offset(0, 5), // Positioning of the shadow
+            ),
+          ],
+          gradient: const LinearGradient(
+            colors: [
+              Color.fromARGB(255, 48, 48, 48),
+              buttonColor,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: buttonStrokeColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
