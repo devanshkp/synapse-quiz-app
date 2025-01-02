@@ -19,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage>
   static Uint8List? _statsImage;
   late TabController _tabController;
   double avatarRadius = 55.0;
-  final double expandedHeight = 135.0;
+  final double expandedHeight = 110.0;
 
   @override
   void initState() {
@@ -55,18 +55,15 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-    return SafeArea(
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        drawer: _buildLeftDrawer(),
-        endDrawer: _buildRightDrawer(),
-        body: CustomScrollView(
-          slivers: [
-            _buildUpperSection(),
-            _buildLowerSection(),
-          ],
-        ),
+        const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
+    return Scaffold(
+      drawer: _buildLeftDrawer(),
+      endDrawer: _buildRightDrawer(),
+      body: CustomScrollView(
+        slivers: [
+          _buildUpperSection(),
+          _buildLowerSection(),
+        ],
       ),
     );
   }
@@ -120,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage>
         SliverToBoxAdapter(
           child: Column(
             children: [
-              SizedBox(height: expandedHeight - avatarRadius - 20),
+              SizedBox(height: expandedHeight - 45),
               _buildUserProfile(), // User Profile: Avatar, Full Name, Friend Count
               _buildHorizontalDivider(70),
             ],
