@@ -19,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage>
   static Uint8List? _statsImage;
   late TabController _tabController;
   double avatarRadius = 55.0;
-  final double expandedHeight = 110.0;
+  final double expandedHeight = 135.0;
 
   @override
   void initState() {
@@ -55,15 +55,18 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
-    return Scaffold(
-      drawer: _buildLeftDrawer(),
-      endDrawer: _buildRightDrawer(),
-      body: CustomScrollView(
-        slivers: [
-          _buildUpperSection(),
-          _buildLowerSection(),
-        ],
+        const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+    return SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        drawer: _buildLeftDrawer(),
+        endDrawer: _buildRightDrawer(),
+        body: CustomScrollView(
+          slivers: [
+            _buildUpperSection(),
+            _buildLowerSection(),
+          ],
+        ),
       ),
     );
   }
@@ -117,7 +120,7 @@ class _ProfilePageState extends State<ProfilePage>
         SliverToBoxAdapter(
           child: Column(
             children: [
-              SizedBox(height: expandedHeight - 45),
+              SizedBox(height: expandedHeight - avatarRadius - 20),
               _buildUserProfile(), // User Profile: Avatar, Full Name, Friend Count
               _buildHorizontalDivider(70),
             ],
@@ -317,37 +320,135 @@ class _ProfilePageState extends State<ProfilePage>
   // Drawers
   Widget _buildLeftDrawer() {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: const [
-          DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text('Left Drawer Header',
-                style: TextStyle(color: Colors.white)),
+      backgroundColor: backgroundPageColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drawer Heading
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            child: Text(
+              'Friends',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          ListTile(leading: Icon(Icons.home), title: Text('Home')),
-          ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search',
+                hintStyle: const TextStyle(color: Colors.white54),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          // Friends List
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                // Online Section
+                const Text(
+                  'Active',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                ..._buildFriendList(['Alice', 'Bob', 'Charlie'], online: true),
+                const SizedBox(height: 16.0),
+                // Offline Section
+                const Text(
+                  'Offline',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                ..._buildFriendList(['Dave', 'Eve'], online: false),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // Settings
   Widget _buildRightDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: const [
-          DrawerHeader(
-            decoration: BoxDecoration(color: Colors.green),
-            child: Text('Right Drawer Header',
-                style: TextStyle(color: Colors.white)),
+    return const Drawer(
+      backgroundColor: backgroundPageColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drawer Heading
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            child: Text(
+              'Settings',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          ListTile(leading: Icon(Icons.account_circle), title: Text('Profile')),
-          ListTile(leading: Icon(Icons.help), title: Text('Help')),
+          // Empty Content
+          Expanded(
+            child: Center(
+              child: Text(
+                'No settings available',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+// Helper: Build Friend List Items
+  List<Widget> _buildFriendList(List<String> friends, {required bool online}) {
+    return friends
+        .map(
+          (friend) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: online ? Colors.green : Colors.grey,
+                  child: const Icon(Icons.person, color: Colors.white),
+                ),
+                const SizedBox(width: 12.0),
+                Text(
+                  friend,
+                  style: TextStyle(
+                    color: online ? Colors.white : Colors.white54,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .toList();
   }
 
   // Reusable Widgets (Dividers)
@@ -608,7 +709,7 @@ class _ProfilePageState extends State<ProfilePage>
       ],
     );
   }
-  
+
   // Helper function to display the different stat topics in a list view
   Widget _buildStatTopic(Color colour, String topic) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
