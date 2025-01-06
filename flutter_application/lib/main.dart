@@ -6,7 +6,7 @@ import 'pages/search.dart';
 import 'pages/profile.dart';
 import 'pages/leaderboard.dart';
 import 'pages/trivia.dart';
-import 'utility/constants.dart';
+import 'utility/colors.dart';
 
 void main() {
   runApp(const MyApp());

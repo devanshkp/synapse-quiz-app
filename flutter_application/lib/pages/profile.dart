@@ -1,5 +1,5 @@
 import 'dart:ui';
-import '../utility/constants.dart';
+import '../utility/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -171,12 +171,34 @@ class _ProfilePageState extends State<ProfilePage>
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Devansh Kapoor • 54 Friends',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+        RichText(
+          text: const TextSpan(
+            text: 'Devansh Kapoor • ',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              color: Colors.white70,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.4,
+            ),
+            children: [
+              TextSpan(
+                text: '54',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' Friends',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -244,10 +266,10 @@ class _ProfilePageState extends State<ProfilePage>
           fontWeight: FontWeight.normal, fontFamily: 'Poppins', fontSize: 15),
       labelStyle:
           const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
-      labelColor: Colors.purpleAccent[700],
+      labelColor: lightAccentPurple,
       unselectedLabelColor: Colors.white54,
       dividerColor: Colors.transparent,
-      indicatorColor: Colors.purpleAccent[700], // Optional: Indicator color
+      indicatorColor: lightAccentPurple, // Optional: Indicator color
     );
   }
 
@@ -304,7 +326,8 @@ class _ProfilePageState extends State<ProfilePage>
               decoration: InputDecoration(
                 hintText: 'Add Friend',
                 hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white54),
+                prefixIcon: const Icon(Icons.person_add_alt_1_rounded,
+                    color: Colors.white54),
                 filled: true,
                 fillColor: Colors.white12,
                 border: OutlineInputBorder(
@@ -445,7 +468,12 @@ class _ProfilePageState extends State<ProfilePage>
       child: Container(
         padding: EdgeInsets.all(statsSpacing),
         decoration: BoxDecoration(
-          color: buttonColor, // Adjust based on your theme
+          gradient: const LinearGradient(
+            colors: [Color(0xff353535), Color(0xff242424)],
+            stops: [0.1, 0.9],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: BorderRadius.circular(20.0),
         ),
         child: Column(
@@ -523,10 +551,7 @@ class _ProfilePageState extends State<ProfilePage>
                         padding: const EdgeInsets.only(right: 5.0),
                         child: ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
-                            colors: [
-                              Colors.purpleAccent,
-                              Colors.deepPurpleAccent
-                            ],
+                            colors: [accentPink, darkAccentPurple],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ).createShader(bounds),

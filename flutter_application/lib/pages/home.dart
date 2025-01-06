@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utility/custom_buttons.dart';
-import '../utility/constants.dart';
+import '../utility/colors.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -127,66 +127,66 @@ class HomePage extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            crossAxisSpacing: 11,
+            mainAxisSpacing: 11,
             children: [
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Foundational Math',
                   titleFontSize: 9,
                   iconName: 'math.png',
                   iconSize: 70,
                   onTap: () => (print('Foudational math pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Sorting Algorithms',
                   titleFontSize: 9,
                   iconName: 'sort.png',
                   iconSize: 70,
                   onTap: () => (print('Sorting Algorithms pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Neural Networks',
                   titleFontSize: 9,
                   iconName: 'neural_network.png',
                   iconSize: 70,
                   onTap: () => (print('Neural networks pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Machine Learning',
                   titleFontSize: 9,
                   iconName: 'machine_learning.png',
                   iconSize: 70,
                   onTap: () => (print('Machine learning pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Data Structures',
                   titleFontSize: 9,
                   iconName: 'brace.png',
                   iconSize: 70,
                   onTap: () => (print('Data structures pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Programming Basics',
                   titleFontSize: 9,
                   iconName: 'programming.png',
                   iconSize: 70,
                   onTap: () => (print('Programming basics pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Popular Algorithms',
                   titleFontSize: 9,
                   iconName: 'algorithm.png',
                   iconSize: 70,
                   onTap: () => (print('Popular algorithms pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'Database',
                   titleFontSize: 9,
                   iconName: 'database.png',
                   iconSize: 70,
                   onTap: () => (print('Database pressed.')),
                   spacing: 5),
-              customCategoryButton(
+              homeCategoryButton(
                   title: 'SWE Fundamentals',
                   titleFontSize: 9,
                   iconName: 'swe.png',
@@ -262,9 +262,14 @@ class DailyTaskCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.only(top: 4, bottom: 4, left: 4, right: 15),
       decoration: BoxDecoration(
-        color: Colors.purple[00],
-        image: const DecorationImage(
-            image: AssetImage('assets/images/mesh.png'), fit: BoxFit.cover),
+        gradient: const LinearGradient(
+            colors: [accentPurple, darkAccentPurple],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter),
+        color: accentPurple,
+        // image: const DecorationImage(
+        //     image: AssetImage('assets/images/mesh.png'),
+        //     fit: BoxFit.cover),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -299,11 +304,11 @@ class DailyTaskCard extends StatelessWidget {
                 // Title and subtitle
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Daily Task',
                             style: TextStyle(
                               color: Colors.white,
@@ -311,12 +316,12 @@ class DailyTaskCard extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                               height: 2), // Space between title and subtitle
                           Text(
                             '15 Questions',
                             style: TextStyle(
-                              color: Color(0xddFFFFFF),
+                              color: Colors.white.withOpacity(.85),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -324,14 +329,6 @@ class DailyTaskCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: GestureDetector(
-                        onTap: () => (print("Friends button pressed.")),
-                        child: SvgPicture.asset('assets/icons/home/Mask.svg',
-                            width: 30, height: 30),
-                      ),
-                    )
                   ],
                 ),
                 const SizedBox(height: 16), // Space before progress bar
@@ -355,9 +352,9 @@ class DailyTaskCard extends StatelessWidget {
                           height: 9,
                           width: 120, // Placeholder width for progress
                           decoration: BoxDecoration(
-                            color: const Color(0xffEDD9F6),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.black, width: 1),
+                            border: Border.all(color: Colors.white, width: 1),
                           ),
                         ),
                       ],

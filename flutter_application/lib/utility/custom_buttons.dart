@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import './constants.dart';
+import 'colors.dart';
 
 Container customHomeButton({
   required String title,
@@ -89,7 +89,7 @@ Container customHomeButton({
   );
 }
 
-Widget customCategoryButton({
+Widget homeCategoryButton({
   required String title,
   required double titleFontSize,
   required String iconName,
@@ -106,8 +106,8 @@ Widget customCategoryButton({
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.3), // Shadow color
-              blurRadius: 10, // Spread of the shadow
-              offset: const Offset(0, 5), // Positioning of the shadow
+              blurRadius: 8, // Reduced spread for a cleaner look
+              offset: const Offset(0, 8), // Positioning of the shadow
             ),
           ],
           gradient: const LinearGradient(
@@ -137,5 +137,70 @@ Widget customCategoryButton({
             )
           ],
         )),
+  );
+}
+
+Widget searchCategoryButton({
+  required String title,
+  required double titleFontSize,
+  required String iconName,
+  required double iconSize,
+  required VoidCallback onTap,
+  required double spacing,
+  double? buttonWidth, // Added width option
+  double? buttonHeight, // Added height option
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: double.infinity, // Default width if not provided
+      height: double.infinity, // Default height if not provided
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3), // Shadow color
+            blurRadius: 8, // Reduced spread for a cleaner look
+            offset: const Offset(0, 8), // Positioning of the shadow
+          ),
+        ],
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 48, 48, 48),
+            buttonColor,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius:
+            BorderRadius.circular(10), // Reduced for a rectangular design
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 12), // Added horizontal padding
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset(
+              'assets/images/shadow_categories/$iconName',
+              width: iconSize,
+              height: iconSize,
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.left, // Align text to the left for balance
+              ),
+            )
+          ],
+        ),
+      ),
+    ),
   );
 }
