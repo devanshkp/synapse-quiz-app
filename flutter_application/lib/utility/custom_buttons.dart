@@ -21,8 +21,8 @@ Container customHomeButton({
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.3), // Shadow color
-          blurRadius: 10, // Spread of the shadow
-          offset: const Offset(0, 5), // Positioning of the shadow
+          blurRadius: 10, // Reduced spread for a cleaner look
+          offset: const Offset(0, 4), // Positioning of the shadow
         ),
       ],
       gradient: const LinearGradient(
@@ -107,7 +107,7 @@ Widget homeCategoryButton({
             BoxShadow(
               color: Colors.black.withOpacity(0.3), // Shadow color
               blurRadius: 8, // Reduced spread for a cleaner look
-              offset: const Offset(0, 8), // Positioning of the shadow
+              offset: const Offset(0, 6), // Positioning of the shadow
             ),
           ],
           gradient: const LinearGradient(
@@ -160,7 +160,7 @@ Widget searchCategoryButton({
           BoxShadow(
             color: Colors.black.withOpacity(0.3), // Shadow color
             blurRadius: 8, // Reduced spread for a cleaner look
-            offset: const Offset(0, 8), // Positioning of the shadow
+            offset: const Offset(0, 6), // Positioning of the shadow
           ),
         ],
         gradient: const LinearGradient(

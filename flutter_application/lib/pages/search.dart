@@ -8,42 +8,48 @@ class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: backgroundPageColor, // Match background
+        toolbarHeight:
+            90, // Set height for the app bar to accommodate the search bar
+        title: Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    style: TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      hintText: "Search Categories...",
+                      hintStyle: TextStyle(color: Colors.black54),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.search,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
+        padding: const EdgeInsets.only(left: 18, right: 18),
         child: ListView.builder(
           itemCount: 1, // Only one section of content
           itemBuilder: (context, index) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                // Search bar
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(color: Colors.black),
-                          decoration: InputDecoration(
-                            hintText: "Search Categories...",
-                            hintStyle: TextStyle(color: Colors.black54),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      Icon(
-                        Icons.search,
-                        color: Colors.black,
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 30),
                 // Recommended section
                 const Text(
