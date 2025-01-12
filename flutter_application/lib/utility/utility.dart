@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'colors.dart';
+import 'dart:ui';
 
 Container customHomeButton({
   required String title,
@@ -181,5 +182,26 @@ Widget searchCategoryButton({
         ),
       ),
     ),
+  );
+}
+
+Widget backgroundImage() {
+  return Stack(
+    children: [
+      Container(
+          decoration: const BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage('assets/images/mesh.png'),
+                  fit: BoxFit.cover))),
+      Positioned.fill(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+              sigmaX: 10.0, sigmaY: 10.0), // Adjust blur intensity
+          child: Container(
+            color: Colors.black.withOpacity(0.3), // Optional: Add overlay color
+          ),
+        ),
+      ),
+    ],
   );
 }

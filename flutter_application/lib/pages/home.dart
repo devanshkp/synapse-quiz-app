@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../utility/custom_buttons.dart';
+import '../utility/utility.dart';
 import '../utility/colors.dart';
 
 class HomePage extends StatelessWidget {
