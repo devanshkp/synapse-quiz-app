@@ -25,14 +25,7 @@ Container customHomeButton({
           offset: const Offset(0, 4), // Positioning of the shadow
         ),
       ],
-      gradient: const LinearGradient(
-        colors: [
-          Color.fromARGB(255, 48, 48, 48),
-          buttonColor,
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ),
+      gradient: buttonGradient,
       borderRadius: BorderRadius.circular(20),
     ),
     child: InkWell(
@@ -110,14 +103,7 @@ Widget homeCategoryButton({
               offset: const Offset(0, 6), // Positioning of the shadow
             ),
           ],
-          gradient: const LinearGradient(
-            colors: [
-              Color.fromARGB(255, 48, 48, 48),
-              buttonColor,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: buttonGradient,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -163,14 +149,7 @@ Widget searchCategoryButton({
             offset: const Offset(0, 6), // Positioning of the shadow
           ),
         ],
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 48, 48, 48),
-            buttonColor,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        gradient: buttonGradient,
         borderRadius:
             BorderRadius.circular(10), // Reduced for a rectangular design
       ),
