@@ -5,8 +5,8 @@ const Color buttonColor = Color(0xff232323);
 const Color buttonStrokeColor = Color(0xff636363);
 const Color navbarColor = Color(0xff090909);
 
-const Color lBoardBackground = Color.fromARGB(255, 43, 30, 78);
-const Color lBoardLightAccent = Color.fromARGB(255, 169, 155, 238);
+const Color lBoardBackground = Color.fromARGB(255, 37, 26, 67);
+const Color lBoardLightAccent = Color.fromARGB(255, 128, 17, 255);
 const Color lBoardDarkAccent = Color.fromARGB(255, 89, 59, 159);
 
 // Accents
