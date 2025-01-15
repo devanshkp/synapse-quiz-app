@@ -120,23 +120,32 @@ class _ProfilePageState extends State<ProfilePage>
       drawer: _buildLeftDrawer(),
       endDrawer: _buildRightDrawer(),
       body: ListView.builder(
-        itemCount: 1, // Update based on sections
+        itemCount: 6, // Adjust based on your number of sections/items
         itemBuilder: (context, index) {
-          return Column(
-            children: [
-              const SizedBox(height: 20),
-              _buildUserProfile(),
-              _buildHorizontalDivider(70),
-              _buildMainStatCards(),
-              _buildHorizontalDivider(50),
-              _buildTabs(),
-              const SizedBox(height: 10),
-              _buildTabContent(),
-              const SizedBox(height: 20),
-              _buildExtraContent(),
-              const SizedBox(height: 40),
-            ],
-          );
+          if (index == 0) {
+            return Column(
+              children: [
+                const SizedBox(height: 20),
+                _buildUserProfile(),
+              ],
+            );
+          } else if (index == 1) {
+            return _buildHorizontalDivider(70);
+          } else if (index == 2) {
+            return _buildMainStatCards();
+          } else if (index == 3) {
+            return _buildHorizontalDivider(50);
+          } else if (index == 4) {
+            return _buildTabs();
+          } else if (index == 5) {
+            return Column(
+              children: [
+                const SizedBox(height: 10),
+                _buildTabContent(),
+              ],
+            );
+          }
+          return const SizedBox.shrink(); // Fallback for any undefined indices
         },
       ),
     );
@@ -154,9 +163,13 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           child: Padding(
             padding: const EdgeInsets.all(1.0),
-            child: CircleAvatar(
-              radius: avatarRadius,
-              backgroundImage: const AssetImage('assets/images/avatar.jpg'),
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundImage: const AssetImage('assets/images/avatar.jpg'),
+                ),
+              ],
             ),
           ),
         ),
@@ -222,22 +235,47 @@ class _ProfilePageState extends State<ProfilePage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildMainStatCard('STREAK', '15 Days', Icons.whatshot),
-          _buildVerticalDivider(Colors.white),
-          _buildMainStatCard('RANK', '#264', Icons.language),
+          _buildMainStatCard(
+              'STREAK', '15 Days', Icons.whatshot, Colors.orangeAccent),
           _buildVerticalDivider(Colors.white),
           _buildMainStatCard(
-              'SOLVED', '56/800', Icons.check_circle_outline_outlined),
+              'RANK', '#264', Icons.language, Colors.lightBlueAccent),
+          _buildVerticalDivider(Colors.white),
+          _buildMainStatCard(
+              'SOLVED', '56/800', Icons.check_circle, Colors.greenAccent),
         ],
       ),
     );
   }
 
   // Column builder for each main stat
-  Widget _buildMainStatCard(String title, String value, IconData icon) {
+  Widget _buildMainStatCard(
+      String title, String value, IconData icon, Color color) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white, size: 21),
+        // Glow Effect
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Glowing Effect
+            Container(
+              width: 21, // Adjust the size to fit the glow
+              height: 21,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.2), // Glow color
+                    blurRadius: 10, // How much the glow spreads
+                    spreadRadius: 1, // Intensity of the glow
+                  ),
+                ],
+              ),
+            ),
+            // Actual Icon
+            Icon(icon, color: color, size: 21),
+          ],
+        ),
         const SizedBox(height: 7.5),
         Text(
           value,

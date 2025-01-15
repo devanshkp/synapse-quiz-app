@@ -91,7 +91,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            color: const Color.fromARGB(255, 41, 42, 46)),
+            color: const Color.fromARGB(255, 44, 44, 44)),
         child: TabBar(
           controller: _tabController,
           tabs: const [
