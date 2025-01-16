@@ -239,7 +239,7 @@ class _ProfilePageState extends State<ProfilePage>
               'STREAK', '15 Days', Icons.whatshot, Colors.orangeAccent),
           _buildVerticalDivider(Colors.white),
           _buildMainStatCard(
-              'RANK', '#264', Icons.language, Colors.lightBlueAccent),
+              'RANK', '#264', Icons.language, Colors.deepPurpleAccent),
           _buildVerticalDivider(Colors.white),
           _buildMainStatCard(
               'SOLVED', '56/800', Icons.check_circle, Colors.greenAccent),
