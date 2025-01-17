@@ -19,11 +19,20 @@ const Color accentPink = Color.fromARGB(255, 202, 84, 252);
 const LinearGradient buttonGradient = LinearGradient(
   colors: [
     Color.fromARGB(255, 48, 48, 48),
-    buttonColor,
+    Color.fromARGB(255, 30, 30, 30),
   ],
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
 );
+
+const LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color.fromARGB(255, 46, 46, 46),
+      Color.fromARGB(255, 26, 26, 26),
+      Color.fromARGB(255, 20, 20, 20),
+    ]);
 
 BoxShadow buttonDropShadow = BoxShadow(
   color: Colors.black.withOpacity(0.3), // Shadow color

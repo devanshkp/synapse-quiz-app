@@ -85,7 +85,6 @@ Container customHomeButton({
 
 Widget homeCategoryButton({
   required String title,
-  required double titleFontSize,
   required String iconName,
   required double iconSize,
   required VoidCallback onTap,
@@ -116,9 +115,9 @@ Widget homeCategoryButton({
             SizedBox(height: spacing),
             Text(
               title,
-              style: TextStyle(
-                fontSize: titleFontSize,
-                fontWeight: FontWeight.w600,
+              style: const TextStyle(
+                fontSize: 7.5,
+                fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
             )
@@ -172,7 +171,7 @@ Widget searchCategoryButton({
                 title,
                 style: TextStyle(
                   fontSize: titleFontSize,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
                 textAlign: TextAlign.left, // Align text to the left for balance

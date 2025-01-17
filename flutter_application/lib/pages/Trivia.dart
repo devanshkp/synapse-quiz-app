@@ -50,7 +50,7 @@ class _TriviaPageState extends State<TriviaPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/mesh.png'),
+                image: AssetImage('assets/images/trivia_background.jpg'),
                 fit: BoxFit.cover,
               ),
             ),

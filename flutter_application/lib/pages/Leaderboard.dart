@@ -90,7 +90,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(20),
             color: const Color.fromARGB(255, 44, 44, 44)),
         child: TabBar(
           controller: _tabController,
@@ -113,7 +113,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
           indicator: BoxDecoration(
               boxShadow: [buttonDropShadow],
               color: Colors.white, // Oval shape background color
-              borderRadius: const BorderRadius.all(Radius.circular(25))),
+              borderRadius: const BorderRadius.all(Radius.circular(18))),
         ),
       ),
     );

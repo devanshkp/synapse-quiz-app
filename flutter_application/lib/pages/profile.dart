@@ -224,12 +224,7 @@ class _ProfilePageState extends State<ProfilePage>
       margin: const EdgeInsets.symmetric(horizontal: 27.5),
       padding: const EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xff353535), Color(0xff242424)],
-          stops: [0.1, 0.9],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        gradient: buttonGradient,
         borderRadius: BorderRadius.circular(20.0),
       ),
       child: Row(
@@ -238,11 +233,11 @@ class _ProfilePageState extends State<ProfilePage>
           _buildMainStatCard(
               'STREAK', '15 Days', Icons.whatshot, Colors.orangeAccent),
           _buildVerticalDivider(Colors.white),
-          _buildMainStatCard(
-              'RANK', '#264', Icons.language, Colors.deepPurpleAccent),
+          _buildMainStatCard('RANK', '#264', Icons.language,
+              const Color.fromARGB(255, 64, 207, 255)),
           _buildVerticalDivider(Colors.white),
-          _buildMainStatCard(
-              'SOLVED', '56/800', Icons.check_circle, Colors.greenAccent),
+          _buildMainStatCard('SOLVED', '56/800', Icons.check_circle,
+              const Color.fromARGB(255, 105, 240, 130)),
         ],
       ),
     );
@@ -506,8 +501,11 @@ class _ProfilePageState extends State<ProfilePage>
         padding: EdgeInsets.all(statsSpacing),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xff353535), Color(0xff242424)],
-            stops: [0.1, 0.9],
+            colors: [
+              Color.fromARGB(255, 41, 41, 41),
+              Color.fromARGB(255, 34, 34, 34),
+              Color(0xff242424)
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
