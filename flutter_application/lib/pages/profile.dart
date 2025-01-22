@@ -655,7 +655,7 @@ class _ProfilePageState extends State<ProfilePage>
               ),
               Container(
                   decoration: BoxDecoration(
-                      color: buttonColor,
+                      color: const Color(0xff232323),
                       shape: BoxShape.rectangle,
                       borderRadius: BorderRadius.circular(12.0)),
                   padding: const EdgeInsets.all(8.0),

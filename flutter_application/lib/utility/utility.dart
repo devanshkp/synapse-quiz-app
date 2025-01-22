@@ -83,64 +83,23 @@ Container customHomeButton({
   );
 }
 
-Widget homeCategoryButton({
+Widget categoryButton({
   required String title,
   required String iconName,
   required double iconSize,
   required VoidCallback onTap,
   required double spacing,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-        height: double.infinity,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3), // Shadow color
-              blurRadius: 8, // Reduced spread for a cleaner look
-              offset: const Offset(0, 6), // Positioning of the shadow
-            ),
-          ],
-          gradient: buttonGradient,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/shadow_categories/$iconName',
-                width: iconSize, height: iconSize),
-            SizedBox(height: spacing),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 7.5,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            )
-          ],
-        )),
-  );
-}
-
-Widget searchCategoryButton({
-  required String title,
+  required Color color,
   required double titleFontSize,
-  required String iconName,
-  required double iconSize,
-  required VoidCallback onTap,
-  required double spacing,
+  double? radius,
   double? buttonWidth, // Added width option
   double? buttonHeight, // Added height option
 }) {
   return GestureDetector(
     onTap: onTap,
     child: Container(
-      width: double.infinity, // Default width if not provided
-      height: double.infinity, // Default height if not provided
+      width: buttonWidth ?? double.infinity, // Default width if not provided
+      height: buttonHeight ?? double.infinity, // Default height if not provided
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
@@ -149,38 +108,126 @@ Widget searchCategoryButton({
             offset: const Offset(0, 6), // Positioning of the shadow
           ),
         ],
-        gradient: buttonGradient,
-        borderRadius:
-            BorderRadius.circular(10), // Reduced for a rectangular design
+        color: color,
+        borderRadius: BorderRadius.circular(radius ?? 10),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 12), // Added horizontal padding
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset(
-              'assets/images/shadow_categories/$iconName',
-              width: iconSize,
-              height: iconSize,
-            ),
-            SizedBox(width: spacing),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: titleFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.left, // Align text to the left for balance
+      child: Stack(
+        children: [
+          // Positioned image for bottom-right corner
+          Positioned(
+            bottom: -10, // Adjust for better positioning
+            right: -10, // Adjust for better positioning
+            child: Transform.rotate(
+              angle: 0.3, // 45 degrees in radians
+              child: Image.asset(
+                'assets/images/shadow_categories/$iconName',
+                width: iconSize,
+                height: iconSize,
+                fit: BoxFit.cover,
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+          // Positioned text for top-left corner
+          Padding(
+            padding: const EdgeInsets.all(12), // Padding for the text
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 100,
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: radius != null
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: Colors.white,
+                          shadows: <Shadow>[
+                            Shadow(
+                              offset: const Offset(2.0, 2.0),
+                              blurRadius: 10.0,
+                              color: Colors.black.withOpacity(0.05),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.left,
+                        maxLines: 2, // Optional: Limit to 2 lines
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     ),
+  );
+}
+
+Widget altCategoryButton({
+  required String title,
+  required String iconName,
+  required double iconSize,
+  required VoidCallback onTap,
+  required double spacing,
+  required Color color,
+  required double titleFontSize,
+  double? radius,
+  double? buttonWidth, // Added width option
+  double? buttonHeight, // Added height option
+}) {
+  return Column(
+    children: [
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width:
+              buttonWidth ?? double.infinity, // Default width if not provided
+          height:
+              buttonHeight ?? double.infinity, // Default height if not provided
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3), // Shadow color
+                blurRadius: 8, // Reduced spread for a cleaner look
+                offset: const Offset(0, 6), // Positioning of the shadow
+              ),
+            ],
+            color: color,
+            borderRadius: BorderRadius.circular(radius ?? 10),
+          ),
+          child: Image.asset(
+            'assets/images/shadow_categories/$iconName',
+            width: iconSize,
+            height: iconSize,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      Text(
+        title,
+        style: TextStyle(
+          fontSize: titleFontSize,
+          fontWeight: radius != null ? FontWeight.w700 : FontWeight.w600,
+          color: Colors.white,
+          shadows: <Shadow>[
+            Shadow(
+              offset: const Offset(2.0, 2.0),
+              blurRadius: 10.0,
+              color: Colors.black.withOpacity(0.05),
+            ),
+          ],
+        ),
+        textAlign: TextAlign.left,
+        maxLines: 2, // Optional: Limit to 2 lines
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
   );
 }
 
