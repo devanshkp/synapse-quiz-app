@@ -64,7 +64,7 @@ class SearchPage extends StatelessWidget {
                 GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: 1.85,
-                  crossAxisSpacing: 16,
+                  crossAxisSpacing: 12,
                   mainAxisSpacing: 16,
                   shrinkWrap:
                       true, // Allows the GridView to take only the required space
@@ -77,7 +77,6 @@ class SearchPage extends StatelessWidget {
                       iconSize: 70,
                       color: machineLearningColor,
                       onTap: () => (print('Machine learning pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -86,7 +85,6 @@ class SearchPage extends StatelessWidget {
                       iconSize: 70,
                       color: dataStructuresColor,
                       onTap: () => (print('Data structures pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -95,16 +93,14 @@ class SearchPage extends StatelessWidget {
                       iconSize: 65,
                       color: proBasicsColor,
                       onTap: () => (print('Programming basics pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
-                      title: 'Database',
+                      title: 'Database Systems',
                       iconName: 'database.png',
                       iconSize: 70,
                       color: dataBaseColor,
                       onTap: () => (print('Database pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                   ],
@@ -123,7 +119,7 @@ class SearchPage extends StatelessWidget {
                 GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: 1.85,
-                  crossAxisSpacing: 16,
+                  crossAxisSpacing: 12,
                   mainAxisSpacing: 16,
                   shrinkWrap:
                       true, // Allows the GridView to take only the required space
@@ -136,7 +132,6 @@ class SearchPage extends StatelessWidget {
                       iconSize: 70,
                       color: popularAlgColor,
                       onTap: () => (print('Popular algorithms pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -145,7 +140,6 @@ class SearchPage extends StatelessWidget {
                       iconSize: 70,
                       color: sweFundColor,
                       onTap: () => (print('SWE fundamentals pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -154,7 +148,6 @@ class SearchPage extends StatelessWidget {
                       iconSize: 70,
                       color: foundMathColor,
                       onTap: () => (print('Foundational math pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -163,25 +156,47 @@ class SearchPage extends StatelessWidget {
                       iconSize: 72,
                       color: sortingAlgColor,
                       onTap: () => (print('Sorting Algorithms pressed.')),
-                      spacing: 5,
                       titleFontSize: 13,
                     ),
                     categoryButton(
                       title: 'Neural Networks',
                       iconName: 'neural_network.png',
-                      iconSize: 75,
+                      iconSize: 80,
                       color: neuralNetworksColor,
                       onTap: () => (print('Neural networks pressed.')),
-                      spacing: 5,
+                      bottomOffset: -15,
                       titleFontSize: 13,
                     ),
                     categoryButton(
-                      title: 'Foundational Math',
-                      iconName: 'math.png',
+                      title: 'Programming Basics',
+                      iconName: 'programming.png',
+                      iconSize: 65,
+                      color: proBasicsColor,
+                      onTap: () => (print('Programming basics pressed.')),
+                      titleFontSize: 13,
+                    ),
+                    categoryButton(
+                      title: 'Data Structures',
+                      iconName: 'brace.png',
                       iconSize: 70,
-                      color: Colors.red,
-                      onTap: () => (print('Foundational math pressed.')),
-                      spacing: 5,
+                      color: dataStructuresColor,
+                      onTap: () => (print('Data structures pressed.')),
+                      titleFontSize: 13,
+                    ),
+                    categoryButton(
+                      title: 'Machine Learning',
+                      iconName: 'machine_learning.png',
+                      iconSize: 70,
+                      color: machineLearningColor,
+                      onTap: () => (print('Machine learning pressed.')),
+                      titleFontSize: 13,
+                    ),
+                    categoryButton(
+                      title: 'Database Systems',
+                      iconName: 'database.png',
+                      iconSize: 70,
+                      color: dataBaseColor,
+                      onTap: () => (print('Database pressed.')),
                       titleFontSize: 13,
                     ),
                   ],

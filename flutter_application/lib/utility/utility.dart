@@ -88,82 +88,76 @@ Widget categoryButton({
   required String iconName,
   required double iconSize,
   required VoidCallback onTap,
-  required double spacing,
   required Color color,
   required double titleFontSize,
   double? radius,
   double? buttonWidth, // Added width option
   double? buttonHeight, // Added height option
+  double? bottomOffset,
+  double? rightOffset,
 }) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: buttonWidth ?? double.infinity, // Default width if not provided
-      height: buttonHeight ?? double.infinity, // Default height if not provided
-      decoration: BoxDecoration(
-        boxShadow: [
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius ?? 10),
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: buttonWidth ?? double.infinity, // Default width if not provided
+        height:
+            buttonHeight ?? double.infinity, // Default height if not provided
+        decoration: BoxDecoration(boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3), // Shadow color
             blurRadius: 8, // Reduced spread for a cleaner look
             offset: const Offset(0, 6), // Positioning of the shadow
           ),
-        ],
-        color: color,
-        borderRadius: BorderRadius.circular(radius ?? 10),
-      ),
-      child: Stack(
-        children: [
-          // Positioned image for bottom-right corner
-          Positioned(
-            bottom: -10, // Adjust for better positioning
-            right: -10, // Adjust for better positioning
-            child: Transform.rotate(
-              angle: 0.3, // 45 degrees in radians
-              child: Image.asset(
-                'assets/images/shadow_categories/$iconName',
-                width: iconSize,
-                height: iconSize,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Positioned text for top-left corner
-          Padding(
-            padding: const EdgeInsets.all(12), // Padding for the text
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: SizedBox(
-                width: 100,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          fontWeight: radius != null
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          color: Colors.white,
-                          shadows: <Shadow>[
-                            Shadow(
-                              offset: const Offset(2.0, 2.0),
-                              blurRadius: 10.0,
-                              color: Colors.black.withOpacity(0.05),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.left,
-                        maxLines: 2, // Optional: Limit to 2 lines
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+        ], gradient: createGradientFromColor(color)),
+        child: Stack(
+          children: [
+            // Positioned image for bottom-right corner
+            Positioned(
+              bottom: bottomOffset ?? -10, // Adjust for better positioning
+              right: rightOffset ?? -10, // Adjust for better positioning
+              child: Transform.rotate(
+                angle: 0.3, // 45 degrees in radians
+                child: Image.asset(
+                  'assets/images/shadow_categories/$iconName',
+                  width: iconSize,
+                  height: iconSize,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          ),
-        ],
+            // Positioned text for top-left corner
+            Padding(
+              padding: const EdgeInsets.all(12), // Padding for the text
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width: 100,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: titleFontSize,
+                            fontWeight: radius != null
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.left,
+                          maxLines: 2, // Optional: Limit to 2 lines
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );
@@ -227,6 +221,23 @@ Widget altCategoryButton({
         maxLines: 2, // Optional: Limit to 2 lines
         overflow: TextOverflow.ellipsis,
       ),
+    ],
+  );
+}
+
+LinearGradient createGradientFromColor(Color baseColor) {
+  // Convert the base color to HSL to manipulate lightness
+  HSLColor hslColor = HSLColor.fromColor(baseColor);
+  Color darkerVariant = hslColor
+      .withLightness((hslColor.lightness - 0.025).clamp(0.0, 1.0))
+      .toColor();
+
+  return LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      baseColor,
+      darkerVariant,
     ],
   );
 }

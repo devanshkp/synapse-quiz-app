@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "406459429189",
+    "project_id": "flutter-quiz-d9edb",
+    "storage_bucket": "flutter-quiz-d9edb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:406459429189:android:daedc2d229e4848f100e2c",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWUiEeOHjezfetL9uM5HIFC8Hrk1aEEqc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
