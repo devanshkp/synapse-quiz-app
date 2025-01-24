@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'pages/auth.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
 import 'pages/profile.dart';
@@ -7,7 +10,7 @@ import 'pages/leaderboard.dart';
 import 'pages/trivia.dart';
 import 'utility/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'utility/firebase_options.dart';
 
 // ...
 
@@ -24,16 +27,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Quiz App',
-      theme: ThemeData(
-        fontFamily: 'Poppins',
-        scaffoldBackgroundColor: backgroundPageColor,
-        splashFactory: NoSplash.splashFactory, // Removes click effect
-        highlightColor: Colors.transparent, // Removes highlight color
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) =>
+                UserProvider()..fetchUserProfile()), // Initialize UserProvider
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Quiz App',
+        theme: ThemeData(
+          fontFamily: 'Poppins',
+          scaffoldBackgroundColor: backgroundPageColor,
+          splashFactory: NoSplash.splashFactory,
+          highlightColor: Colors.transparent,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const AuthScreen(),
+          '/home': (context) => const BottomNavBar(),
+        },
       ),
-      home: const BottomNavBar(),
     );
   }
 }

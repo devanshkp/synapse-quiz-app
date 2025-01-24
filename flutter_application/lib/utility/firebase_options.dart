@@ -47,6 +47,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '406459429189',
     projectId: 'flutter-quiz-d9edb',
     storageBucket: 'flutter-quiz-d9edb.firebasestorage.app',
+    androidClientId: '406459429189-fan77tmt3uaqia0bdaohupvu7otnles0.apps.googleusercontent.com',
+    iosClientId: '406459429189-1o1gr4u02geb2jejot2vsi8nmldf5rvn.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterApplication',
   );
+
 }

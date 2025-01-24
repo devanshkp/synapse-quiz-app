@@ -1,4 +1,9 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application/models/user_profile.dart';
+import 'package:flutter_application/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import '../utility/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -16,8 +21,19 @@ class _ProfilePageState extends State<ProfilePage>
   final GlobalKey _statsKey = GlobalKey();
   static Uint8List? _statsImage;
   late TabController _tabController;
+  late UserProvider userProvider;
+  UserProfile? userProfile;
   double avatarRadius = 55.0;
   final double expandedHeight = 110.0;
+
+  bool _isDeveloperMode = false; // Tracks if developer mode is enabled
+  final TextEditingController _devModeController = TextEditingController();
+  final GlobalKey<FormState> _questionFormKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _hintController = TextEditingController();
+  final TextEditingController _answerController = TextEditingController();
+  final TextEditingController _optionsController = TextEditingController();
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -52,6 +68,14 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    userProvider = Provider.of<UserProvider>(context); // Listen for updates
+    userProfile = userProvider.userProfile;
+    if (userProfile == null) {
+      return const Scaffold(
+        body: Center(
+            child: CircularProgressIndicator()), // Show a loading indicator
+      );
+    }
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
@@ -167,16 +191,19 @@ class _ProfilePageState extends State<ProfilePage>
               children: [
                 CircleAvatar(
                   radius: avatarRadius,
-                  backgroundImage: const AssetImage('assets/images/avatar.jpg'),
+                  backgroundImage: userProfile!.profilePicture.isNotEmpty
+                      ? NetworkImage(userProfile!.profilePicture)
+                      : const AssetImage('assets/images/avatar.jpg')
+                          as ImageProvider,
                 ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'pathnem',
-          style: TextStyle(
+        Text(
+          userProfile!.username,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -184,9 +211,9 @@ class _ProfilePageState extends State<ProfilePage>
         ),
         const SizedBox(height: 5),
         RichText(
-          text: const TextSpan(
-            text: 'Devansh Kapoor • ',
-            style: TextStyle(
+          text: TextSpan(
+            text: '${userProfile!.fullName} • ',
+            style: const TextStyle(
               fontFamily: 'Poppins',
               color: Colors.white70,
               fontSize: 13,
@@ -195,13 +222,13 @@ class _ProfilePageState extends State<ProfilePage>
             ),
             children: [
               TextSpan(
-                text: '54',
-                style: TextStyle(
+                text: '${userProfile!.friends.length}',
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              TextSpan(
+              const TextSpan(
                 text: ' Friends',
                 style: TextStyle(
                   color: Colors.white70,
@@ -318,27 +345,16 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // Placeholder
-  Widget _buildExtraContent() {
-    return Container(
-      width: 350,
-      height: 300,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
-        color: buttonColor,
-      ),
-    );
-  }
-
   // Drawers
   Widget _buildLeftDrawer() {
+    final friends = userProfile!.friends;
+
     return Drawer(
       backgroundColor: backgroundPageColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          // Drawer Heading
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
             child: Text(
@@ -350,7 +366,6 @@ class _ProfilePageState extends State<ProfilePage>
               ),
             ),
           ),
-          // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
@@ -367,17 +382,20 @@ class _ProfilePageState extends State<ProfilePage>
                   borderSide: BorderSide.none,
                 ),
               ),
+              onSubmitted: (friendId) async {
+                if (friendId.isNotEmpty) {
+                  await _addFriend(friendId);
+                }
+              },
             ),
           ),
           const SizedBox(height: 16.0),
-          // Friends List
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                // Online Section
                 const Text(
-                  'Active',
+                  'Your Friends',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -385,19 +403,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 ),
                 const SizedBox(height: 8.0),
-                ..._buildFriendList(['Alice', 'Bob', 'Charlie'], online: true),
-                const SizedBox(height: 16.0),
-                // Offline Section
-                const Text(
-                  'Offline',
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                ..._buildFriendList(['Dave', 'Eve'], online: false),
+                ..._buildFriendList(friends),
               ],
             ),
           ),
@@ -406,15 +412,38 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
+  Future<void> _addFriend(String friendId) async {
+    // Add friend logic here
+  }
+
+  List<Widget> _buildFriendList(List<String> friends) {
+    if (friends.isEmpty) {
+      return [
+        const Text(
+          'No friends added yet.',
+          style: TextStyle(color: Colors.white54, fontSize: 16),
+        ),
+      ];
+    }
+
+    return friends.map((friendId) {
+      return ListTile(
+        title: Text(
+          friendId, // You can fetch and display more details if needed
+          style: const TextStyle(color: Colors.white),
+        ),
+      );
+    }).toList();
+  }
+
   Widget _buildRightDrawer() {
-    return const Drawer(
+    return Drawer(
       backgroundColor: backgroundPageColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
-          // Drawer Heading
-          Padding(
+          const SizedBox(height: 40),
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
             child: Text(
               'Settings',
@@ -425,46 +454,211 @@ class _ProfilePageState extends State<ProfilePage>
               ),
             ),
           ),
-          // Empty Content
-          Expanded(
-            child: Center(
-              child: Text(
-                'No settings available',
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
+          const Divider(color: Colors.white38),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title:
+                const Text('Sign Out', style: TextStyle(color: Colors.white)),
+            onTap: _signOut, // Call the sign-out function
           ),
+          ListTile(
+            leading: const Icon(Icons.developer_mode, color: Colors.green),
+            title: const Text('Developer Mode',
+                style: TextStyle(color: Colors.white)),
+            onTap: _promptDeveloperMode, // Prompt user for developer password
+          ),
+          if (_isDeveloperMode) ...[
+            ListTile(
+              leading: const Icon(Icons.add, color: Colors.blue),
+              title: const Text('Add Question',
+                  style: TextStyle(color: Colors.white)),
+              onTap: _showAddQuestionCard, // Show the add question card
+            ),
+          ],
         ],
       ),
     );
   }
 
-// Helper: Build Friend List Items
-  List<Widget> _buildFriendList(List<String> friends, {required bool online}) {
-    return friends
-        .map(
-          (friend) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: online ? Colors.green : Colors.grey,
-                  child: const Icon(Icons.person, color: Colors.white),
-                ),
-                const SizedBox(width: 12.0),
-                Text(
-                  friend,
-                  style: TextStyle(
-                    color: online ? Colors.white : Colors.white54,
-                    fontSize: 16,
+  void _signOut() {
+    // Sign out logic
+    FirebaseAuth.instance.signOut();
+    Navigator.pushReplacementNamed(
+        context, '/'); // Navigate back to the login page
+  }
+
+  void _promptDeveloperMode() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter Developer Password'),
+          content: TextField(
+            controller: _devModeController,
+            decoration: const InputDecoration(hintText: 'Password'),
+            obscureText: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (_devModeController.text == "devmode") {
+                  setState(() {
+                    _isDeveloperMode = true;
+                  });
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Incorrect password')),
+                  );
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddQuestionCard() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add New Question'),
+          content: Form(
+            key: _questionFormKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a title';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: [
+                      "neural_networks",
+                      "foundational_math",
+                      "sorting_algorithms",
+                      "machine_learning",
+                      "data_structures",
+                      "programming_basics",
+                      "popular_algorithms",
+                      "database_systems",
+                      "swe_fundamentals"
+                    ]
+                        .map((category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a category';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _hintController,
+                    decoration: const InputDecoration(labelText: 'Hint'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a hint';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _answerController,
+                    decoration: const InputDecoration(labelText: 'Answer'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the answer';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _optionsController,
+                    decoration: const InputDecoration(
+                        labelText: 'Options (comma-separated)'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the options';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-        )
-        .toList();
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: _addQuestionToFirestore,
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addQuestionToFirestore() async {
+    if (_questionFormKey.currentState?.validate() ?? false) {
+      final question = {
+        'title': _titleController.text,
+        'category': _selectedCategory,
+        'hint': _hintController.text,
+        'answer': _answerController.text,
+        'options':
+            _optionsController.text.split(',').map((e) => e.trim()).toList(),
+      };
+
+      try {
+        await FirebaseFirestore.instance.collection('questions').add(question);
+        Navigator.pop(context); // Close the dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Question added successfully')),
+        );
+
+        // Clear the form fields
+        _titleController.clear();
+        _hintController.clear();
+        _answerController.clear();
+        _optionsController.clear();
+        setState(() {
+          _selectedCategory = null;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error adding question: $e')),
+        );
+      }
+    }
   }
 
   // Reusable Widgets (Dividers)
