@@ -10,7 +10,7 @@ import 'pages/leaderboard.dart';
 import 'pages/trivia.dart';
 import 'utility/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'utility/firebase_options.dart';
+import 'firebase_options.dart';
 
 // ...
 
