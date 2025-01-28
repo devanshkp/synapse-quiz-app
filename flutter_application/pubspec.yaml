@@ -68,6 +68,7 @@ flutter:
     - assets/images/
     - assets/images/shadow_categories/
     - assets/images/category/
+    - assets/images/backgrounds/
     - assets/icons/
     - assets/icons/navbar/
     - assets/icons/home/

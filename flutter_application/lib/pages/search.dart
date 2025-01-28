@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../utility/colors.dart';
-import '../utility/utility.dart';
+import 'package:flutter_application/widgets/home/home_widgets.dart';
+import '../colors.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});

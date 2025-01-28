@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'colors.dart';
 import 'dart:ui';
 
 Container customHomeButton({
@@ -160,68 +160,6 @@ Widget categoryButton({
         ),
       ),
     ),
-  );
-}
-
-Widget altCategoryButton({
-  required String title,
-  required String iconName,
-  required double iconSize,
-  required VoidCallback onTap,
-  required double spacing,
-  required Color color,
-  required double titleFontSize,
-  double? radius,
-  double? buttonWidth, // Added width option
-  double? buttonHeight, // Added height option
-}) {
-  return Column(
-    children: [
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width:
-              buttonWidth ?? double.infinity, // Default width if not provided
-          height:
-              buttonHeight ?? double.infinity, // Default height if not provided
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3), // Shadow color
-                blurRadius: 8, // Reduced spread for a cleaner look
-                offset: const Offset(0, 6), // Positioning of the shadow
-              ),
-            ],
-            color: color,
-            borderRadius: BorderRadius.circular(radius ?? 10),
-          ),
-          child: Image.asset(
-            'assets/images/shadow_categories/$iconName',
-            width: iconSize,
-            height: iconSize,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: titleFontSize,
-          fontWeight: radius != null ? FontWeight.w700 : FontWeight.w600,
-          color: Colors.white,
-          shadows: <Shadow>[
-            Shadow(
-              offset: const Offset(2.0, 2.0),
-              blurRadius: 10.0,
-              color: Colors.black.withOpacity(0.05),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.left,
-        maxLines: 2, // Optional: Limit to 2 lines
-        overflow: TextOverflow.ellipsis,
-      ),
-    ],
   );
 }
 

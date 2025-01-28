@@ -84,7 +84,7 @@ class _TriviaPageState extends State<TriviaPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/trivia_background.jpg'),
+                image: AssetImage('assets/images/backgrounds/bg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),

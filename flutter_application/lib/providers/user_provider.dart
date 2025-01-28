@@ -5,8 +5,10 @@ import '../models/user_profile.dart'; // Import UserProfile model
 
 class UserProvider with ChangeNotifier {
   UserProfile? _userProfile;
+  int _totalQuestions = 0;
 
   UserProfile? get userProfile => _userProfile;
+  int get totalQuestions => _totalQuestions;
 
   Future<void> fetchUserProfile() async {
     try {
@@ -25,6 +27,23 @@ class UserProvider with ChangeNotifier {
     } catch (e) {
       print("Error fetching user profile: $e");
     }
+  }
+
+  Future<void> fetchTotalQuestions() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('questions')
+          .get(); // Get all documents
+      _totalQuestions = querySnapshot.size; // Get the count of documents
+      notifyListeners(); // Notify UI of changes
+    } catch (e) {
+      print("Error fetching total questions: $e");
+    }
+  }
+
+  Future<void> refreshUserProfile() async {
+    await fetchUserProfile();
+    await fetchTotalQuestions();
   }
 
   void updateUserProfile(UserProfile userProfile) {

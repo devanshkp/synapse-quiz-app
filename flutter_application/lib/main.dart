@@ -8,7 +8,7 @@ import 'pages/search.dart';
 import 'pages/profile.dart';
 import 'pages/leaderboard.dart';
 import 'pages/trivia.dart';
-import 'utility/colors.dart';
+import 'colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -30,8 +30,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-            create: (_) =>
-                UserProvider()..fetchUserProfile()), // Initialize UserProvider
+          create: (_) => UserProvider()
+            ..fetchUserProfile()
+            ..fetchTotalQuestions(), // Fetch total questions on app startup
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

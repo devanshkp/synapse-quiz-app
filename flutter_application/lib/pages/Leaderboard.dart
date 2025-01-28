@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/utility/colors.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_application/colors.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
