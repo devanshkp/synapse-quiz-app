@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/pages/signup.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'pages/auth.dart';
+import 'pages/login.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
 import 'pages/profile.dart';
@@ -46,8 +47,9 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => const AuthScreen(),
+          '/': (context) => const LoginScreen(),
           '/home': (context) => const BottomNavBar(),
+          '/signup': (context) => const SignUpScreen(),
         },
       ),
     );

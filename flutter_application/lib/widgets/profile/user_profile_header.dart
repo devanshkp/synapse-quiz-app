@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
+import 'package:flutter_application/services/friend_services.dart';
+import 'package:flutter_application/widgets/shared.dart';
 
 class UserProfileHeader extends StatelessWidget {
   final UserProfile userProfile;
+  final FriendService _friendService = FriendService();
 
-  const UserProfileHeader({super.key, required this.userProfile});
+  UserProfileHeader({super.key, required this.userProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -18,23 +21,13 @@ class UserProfileHeader extends StatelessWidget {
                 Border.all(width: 1.5, color: Colors.white.withOpacity(0.2)),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 55,
-                  backgroundImage: userProfile.profilePicture.isNotEmpty
-                      ? NetworkImage(userProfile.profilePicture)
-                      : const AssetImage('assets/images/avatar.jpg')
-                          as ImageProvider,
-                ),
-              ],
-            ),
-          ),
+              padding: const EdgeInsets.all(1.0),
+              child: AvatarImage(
+                  avatarUrl: userProfile.avatarUrl, avatarRadius: 55)),
         ),
         const SizedBox(height: 8),
         Text(
-          userProfile.username,
+          userProfile.userName,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 22,
@@ -42,33 +35,40 @@ class UserProfileHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        RichText(
-          text: TextSpan(
-            text: '${userProfile.fullName} • ',
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              color: Colors.white70,
-              fontSize: 12,
-              letterSpacing: 0.5,
-            ),
-            children: [
-              TextSpan(
-                text: '${userProfile.friends.length}',
+        StreamBuilder<int>(
+          stream: _friendService.getFriendCountStream(userProfile.userId),
+          builder: (context, snapshot) {
+            final friendCount = snapshot.data ?? 0;
+
+            return RichText(
+              text: TextSpan(
+                text: '${userProfile.fullName} • ',
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const TextSpan(
-                text: ' Friends',
-                style: TextStyle(
+                  fontFamily: 'Poppins',
                   color: Colors.white70,
                   fontSize: 12,
-                  letterSpacing: 0.4,
+                  letterSpacing: 0.5,
                 ),
+                children: [
+                  TextSpan(
+                    text: '$friendCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' Friends',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );

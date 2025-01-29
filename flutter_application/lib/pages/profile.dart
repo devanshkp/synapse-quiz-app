@@ -1,11 +1,13 @@
 import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/services/friend_services.dart';
 import 'package:flutter_application/widgets/profile/add_question_form.dart';
+import 'package:flutter_application/widgets/profile/friends_drawer.dart';
 import 'package:flutter_application/widgets/profile/main_stats.dart';
 import 'package:flutter_application/widgets/profile/custom_app_bar.dart';
 import 'package:flutter_application/widgets/profile/user_profile_header.dart';
-import 'package:flutter_application/widgets/profile/shared.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:flutter_application/widgets/profile/stats_section.dart';
 
 import 'dart:ui';
@@ -25,7 +27,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   final GlobalKey _statsKey = GlobalKey();
-  static Uint8List? _statsImage;
   late TabController _tabController;
   late UserProvider userProvider;
   UserProfile? userProfile;
@@ -42,31 +43,12 @@ class _ProfilePageState extends State<ProfilePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _captureStatsSection();
-    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _captureStatsSection() async {
-    try {
-      final boundary = _statsKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
-      if (boundary != null) {
-        final image = await boundary.toImage(pixelRatio: 2.0);
-        final byteData = await image.toByteData(format: ImageByteFormat.png);
-        setState(() {
-          _statsImage = byteData?.buffer.asUint8List();
-        });
-      }
-    } catch (e) {
-      debugPrint("Error capturing stats section: $e");
-    }
   }
 
   @override
@@ -76,23 +58,10 @@ class _ProfilePageState extends State<ProfilePage>
         preferredSize: Size.fromHeight(60.0),
         child: ProfileAppBar(),
       ),
-      drawer: Consumer<UserProvider>(
-        builder: (context, userProvider, child) {
-          final userProfile = userProvider.userProfile;
-          if (userProfile == null) {
-            return const Drawer(
-              backgroundColor: backgroundPageColor,
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          return _buildLeftDrawer(userProfile);
-        },
-      ),
+      drawer: const FriendsDrawer(),
       endDrawer: _buildRightDrawer(),
       body: ListView.builder(
-        itemCount: 6, // Adjust based on your number of sections/items
+        itemCount: 4, // Adjust based on your number of sections/items
         itemBuilder: (context, index) {
           if (index == 0) {
             return Column(
@@ -110,25 +79,30 @@ class _ProfilePageState extends State<ProfilePage>
               ],
             );
           } else if (index == 1) {
-            return const CustomHorizontalDivider(padding: 70);
+            return Column(
+              children: [
+                const SizedBox(height: 20),
+                Consumer<UserProvider>(
+                  builder: (context, userProvider, child) {
+                    final userProfile = userProvider.userProfile;
+                    if (userProfile == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return MainStats(
+                      userProfile: userProfile,
+                      totalQuestions: userProvider.totalQuestions,
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            );
           } else if (index == 2) {
-            return Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
-                final userProfile = userProvider.userProfile;
-                if (userProfile == null) {
-                  return const SizedBox.shrink();
-                }
-                return MainStats(
-                  userProfile: userProfile,
-                  totalQuestions: userProvider.totalQuestions,
-                );
-              },
+            return CustomTabBar(
+              controller: _tabController,
+              tabs: const ['Stats', 'Badges'],
             );
           } else if (index == 3) {
-            return const CustomHorizontalDivider(padding: 50);
-          } else if (index == 4) {
-            return _buildTabs();
-          } else if (index == 5) {
             return Column(
               children: [
                 const SizedBox(height: 10),
@@ -142,127 +116,27 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // Build the different tabs for each label (under main stats)
-  Widget _buildTabs() {
-    return TabBar(
-      controller: _tabController,
-      tabs: const [
-        Tab(text: 'Stats', height: 30.0),
-        Tab(text: 'Badges', height: 30.0),
-      ],
-      unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.normal, fontFamily: 'Poppins', fontSize: 13),
-      labelStyle:
-          const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
-      labelColor: lightAccentPurple,
-      unselectedLabelColor: Colors.white54,
-      dividerColor: Colors.transparent,
-      indicatorColor: lightAccentPurple, // Optional: Indicator color
-    );
-  }
-
   Widget _buildTabContent() {
     return SizedBox(
       height: 515,
       child: TabBarView(
         controller: _tabController,
         children: [
-          _statsSectionWrapper(),
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              final userProfile = userProvider.userProfile;
+
+              if (userProfile == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return StatsSection(userProfile: userProfile);
+            },
+          ),
           _buildBadgesSection(),
         ],
       ),
     );
-  }
-
-  // Drawers
-  Widget _buildLeftDrawer(UserProfile userProfile) {
-    final friends = userProfile.friends;
-
-    return Drawer(
-      backgroundColor: backgroundPageColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 40),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-            child: Text(
-              'Friends',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Add Friend',
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.person_add_alt_1_rounded,
-                    color: Colors.white54),
-                filled: true,
-                fillColor: Colors.white12,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onSubmitted: (friendId) async {
-                if (friendId.isNotEmpty) {
-                  await _addFriend(friendId);
-                }
-              },
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              children: [
-                const Text(
-                  'Your Friends',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                ..._buildFriendList(friends),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _addFriend(String friendId) async {
-    // Add friend logic here
-  }
-
-  List<Widget> _buildFriendList(List<String> friends) {
-    if (friends.isEmpty) {
-      return [
-        const Text(
-          'No friends added yet.',
-          style: TextStyle(color: Colors.white54, fontSize: 16),
-        ),
-      ];
-    }
-
-    return friends.map((friendId) {
-      return ListTile(
-        title: Text(
-          friendId, // You can fetch and display more details if needed
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-    }).toList();
   }
 
   Widget _buildRightDrawer() {
@@ -367,26 +241,6 @@ class _ProfilePageState extends State<ProfilePage>
         );
       },
     );
-  }
-
-  // Renders stats section as an image
-  Widget _statsSectionWrapper() {
-    return _statsImage != null
-        ? Image.memory(_statsImage!, fit: BoxFit.contain)
-        : Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              final userProfile = userProvider.userProfile;
-
-              if (userProfile == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return RepaintBoundary(
-                key: _statsKey,
-                child: StatsSection(userProfile: userProfile),
-              );
-            },
-          );
   }
 
   // Placeholder for badges section

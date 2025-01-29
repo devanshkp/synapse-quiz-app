@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/widgets/shared.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
@@ -60,7 +61,11 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  _buildTabs(),
+                  CustomTabBar(
+                    tabs: const ['Weekly', 'Monthly', 'All time'],
+                    controller: _tabController,
+                    horizontalPadding: 10,
+                  ),
                   const SizedBox(height: 35),
                   _buildTopPlayersPodium(),
                   const SizedBox(height: 30),

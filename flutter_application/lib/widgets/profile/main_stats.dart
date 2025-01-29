@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/colors.dart';
-import 'package:flutter_application/widgets/profile/shared.dart';
+import 'package:flutter_application/widgets/shared.dart';
 
 class MainStats extends StatelessWidget {
   final UserProfile userProfile;

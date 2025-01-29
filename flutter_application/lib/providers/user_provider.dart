@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_profile.dart'; // Import UserProfile model
+import '../models/user_profile.dart';
 
 class UserProvider with ChangeNotifier {
   UserProfile? _userProfile;
@@ -13,7 +13,10 @@ class UserProvider with ChangeNotifier {
   Future<void> fetchUserProfile() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        _userProfile = null;
+        return;
+      }
 
       final doc = await FirebaseFirestore.instance
           .collection('users')
@@ -23,6 +26,8 @@ class UserProvider with ChangeNotifier {
       if (doc.exists) {
         _userProfile = UserProfile.fromMap(doc.data()!);
         notifyListeners(); // Notify UI of changes
+      } else {
+        _userProfile = null;
       }
     } catch (e) {
       print("Error fetching user profile: $e");
