@@ -1,5 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/services/friend_services.dart';
@@ -103,7 +105,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               ),
               onSubmitted: (query) async {
                 if (query.isNotEmpty) {
-                  await _searchUsers(query, friends);
+                  await _searchUsers(query);
                 }
               },
             ),
@@ -191,64 +193,32 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  Widget _buildFriendRequestItem(Friend request) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      leading: AvatarImage(avatarUrl: request.avatarUrl, avatarRadius: 20),
-      title: Text(
-        request.fullName,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        request.userName,
-        style: const TextStyle(
-          color: Colors.white54,
-          fontSize: 12,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.check, color: Colors.green),
-            onPressed: () => _acceptFriendRequest(request.userId),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.red),
-            onPressed: () => _declineFriendRequest(request.userId),
-          ),
-        ],
-      ),
-    );
+  Future<void> _searchUsers(String query) async {
+    final result = await _friendService.searchUsers(query);
+
+    if (result['error'] != null) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
+      );
+    } else {
+      setState(() {
+        searchResults = result['friends'];
+      });
+    }
   }
 
   Widget _buildSearchResultItem(Friend friend, List<Friend> friends) {
     final isFriend = friends.any((f) => f.userId == friend.userId);
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-    return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('friend_requests')
-          .where('senderId', isEqualTo: currentUserId)
-          .where('receiverId', isEqualTo: friend.userId)
-          .where('status', isEqualTo: 'pending')
-          .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const ListTile(
-            title: Text(
-              'Loading...',
-              style: TextStyle(color: Colors.white),
-            ),
-          );
-        }
+    if (currentUserId == null) return const Column();
 
-        final isRequested =
-            snapshot.data != null && snapshot.data!.docs.isNotEmpty;
+    return FutureBuilder<bool>(
+      future:
+          _friendService.isFriendRequestPending(currentUserId, friend.userId),
+      builder: (context, snapshot) {
+        final isRequested = snapshot.data ?? false;
 
         return ListTile(
           contentPadding:
@@ -293,155 +263,115 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
+  Widget _buildFriendRequestItem(Friend request) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      leading: AvatarImage(avatarUrl: request.avatarUrl, avatarRadius: 20),
+      title: Text(
+        request.fullName,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(
+        request.userName,
+        style: const TextStyle(
+          color: Colors.white54,
+          fontSize: 12,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.check, color: Colors.green),
+            onPressed: () => _acceptFriendRequest(request.userId),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.red),
+            onPressed: () => _declineFriendRequest(request.userId),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _sendFriendRequest(String receiverId) async {
-    try {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-      if (currentUserId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User is not authenticated')),
-        );
-        return;
-      }
+    final result = await _friendService.sendFriendRequest(receiverId);
 
-      await FirebaseFirestore.instance.collection('friend_requests').add({
-        'senderId': currentUserId,
-        'receiverId': receiverId,
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request sent!')),
+    if (!result['success']) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending friend request: $e')),
-      );
+      return;
     }
+
+    // Update the UI state here to reflect the "Requested" state
+    setState(
+        () {}); // This will re-trigger the build method and update the trailing widget.
   }
 
   Future<void> _acceptFriendRequest(String senderId) async {
-    try {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final result = await _friendService.acceptFriendRequest(senderId);
 
-      if (currentUserId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User is not authenticated')),
-        );
-        return;
-      }
-
-      // Add each other as friends in the separate `friends` collection
-      await FirebaseFirestore.instance.collection('friends').add({
-        'userId1': currentUserId,
-        'userId2': senderId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      // Remove the friend request
-      final requestSnapshot = await FirebaseFirestore.instance
-          .collection('friend_requests')
-          .where('senderId', isEqualTo: senderId)
-          .where('receiverId', isEqualTo: currentUserId)
-          .get();
-
-      for (var doc in requestSnapshot.docs) {
-        await doc.reference.delete();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request accepted!')),
+    if (!result['success']) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
       );
-
-      // Refresh the list of friends
-      setState(() {
-        friendRequests.removeWhere((request) => request.userId == senderId);
-        _friendsFuture =
-            _friendService.getFriendIds(currentUserId).then((friendIds) {
-          return _friendService.getFriends(friendIds);
-        });
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error accepting friend request: $e')),
-      );
+      return;
     }
+
+    floatingSnackBar(
+      message: 'Friend request accepted!',
+      context: context,
+    );
+
+    // Refresh the friends list
+    setState(() {
+      friendRequests.removeWhere((request) => request.userId == senderId);
+      _friendsFuture = _friendService
+          .getFriendIds(FirebaseAuth.instance.currentUser!.uid)
+          .then((friendIds) => _friendService.getFriends(friendIds));
+    });
   }
 
   Future<void> _declineFriendRequest(String senderId) async {
-    try {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final result = await _friendService.declineFriendRequest(senderId);
 
-      if (currentUserId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User is not authenticated')),
-        );
-        return;
-      }
-
-      // Remove the friend request
-      final requestSnapshot = await FirebaseFirestore.instance
-          .collection('friend_requests')
-          .where('senderId', isEqualTo: senderId)
-          .where('receiverId', isEqualTo: currentUserId)
-          .get();
-
-      for (var doc in requestSnapshot.docs) {
-        await doc.reference.delete();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request declined!')),
+    if (!result['success']) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
       );
-
+    } else {
+      // Remove from the local list
       setState(() {
         friendRequests.removeWhere((request) => request.userId == senderId);
       });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error declining friend request: $e')),
-      );
     }
   }
 
   Future<void> _removeFriend(String friendId) async {
-    try {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final result = await _friendService.removeFriend(friendId);
 
-      if (currentUserId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User is not authenticated')),
-        );
-        return;
-      }
-
-      // Remove the friend relationship from the `friends` collection
-      final friendshipSnapshot = await FirebaseFirestore.instance
-          .collection('friends')
-          .where('userId1', isEqualTo: currentUserId)
-          .where('userId2', isEqualTo: friendId)
-          .get();
-
-      for (var doc in friendshipSnapshot.docs) {
-        await doc.reference.delete();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend removed successfully!')),
+    if (!result['success']) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
       );
-
-      // Refresh the list of friends
-      setState(() {
-        _friendsFuture =
-            _friendService.getFriendIds(currentUserId).then((friendIds) {
-          return _friendService.getFriends(friendIds);
-        });
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing friend: $e')),
-      );
+      return;
     }
+
+    // Refresh the friends list
+    setState(() {
+      _friendsFuture = _friendService
+          .getFriendIds(FirebaseAuth.instance.currentUser!.uid)
+          .then((friendIds) => _friendService.getFriends(friendIds));
+    });
   }
 
   Widget _buildFriendItem(Friend friend) {
@@ -484,30 +414,5 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             color: Colors.white54, fontSize: 12, fontStyle: FontStyle.italic),
       ),
     );
-  }
-
-  Future<void> _searchUsers(String query, List<Friend> friends) async {
-    try {
-      final result = await FirebaseFirestore.instance
-          .collection('users')
-          .where('userName', isEqualTo: query)
-          .get();
-
-      if (result.docs.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User $query not found')),
-        );
-        return;
-      }
-
-      setState(() {
-        searchResults =
-            result.docs.map((doc) => Friend.fromDocument(doc)).toList();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error searching for user: $e')),
-      );
-    }
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/services/friend_services.dart';
 import 'package:flutter_application/widgets/profile/add_question_form.dart';
 import 'package:flutter_application/widgets/profile/friends_drawer.dart';
 import 'package:flutter_application/widgets/profile/main_stats.dart';
@@ -10,12 +9,9 @@ import 'package:flutter_application/widgets/profile/user_profile_header.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:flutter_application/widgets/profile/stats_section.dart';
 
-import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,7 +22,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
-  final GlobalKey _statsKey = GlobalKey();
   late TabController _tabController;
   late UserProvider userProvider;
   UserProfile? userProfile;

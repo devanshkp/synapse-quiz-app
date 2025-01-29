@@ -24,16 +24,15 @@ class MainStats extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildMainStatCard(
-              'STREAK', '15 Days', Icons.whatshot, Colors.orangeAccent),
+              'STREAK', '15 Days', Icons.whatshot, currentStreakColor),
           const CustomVerticalDivider(),
-          _buildMainStatCard('RANK', '#264', Icons.language,
-              const Color.fromARGB(255, 64, 207, 255)),
+          _buildMainStatCard('RANK', '#264', Icons.language, globalRankColor),
           const CustomVerticalDivider(),
           _buildMainStatCard(
             'SOLVED',
             '${userProfile.questionsSolved}/$totalQuestions',
             Icons.check_circle,
-            const Color.fromARGB(255, 105, 240, 130),
+            solvedQuestionsColor,
           ),
         ],
       ),

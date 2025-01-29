@@ -280,10 +280,10 @@ class DailyTaskCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4, bottom: 4, left: 4, right: 15),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-            colors: [accentPurple, darkAccentPurple],
+            colors: [purpleAccent, darkPurpleAccent],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter),
-        color: accentPurple,
+        color: purpleAccent,
         // image: const DecorationImage(
         //     image: AssetImage('assets/images/mesh.png'),
         //     fit: BoxFit.cover),

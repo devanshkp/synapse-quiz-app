@@ -102,7 +102,7 @@ class StatsSection extends StatelessWidget {
                         padding: const EdgeInsets.only(right: 5.0),
                         child: ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
-                            colors: [accentPink, darkAccentPurple],
+                            colors: [lightPurpleAccent, darkPurpleAccent],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ).createShader(bounds),

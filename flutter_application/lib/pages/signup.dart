@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/colors.dart';
@@ -145,7 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: _sendVerificationEmail,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: darkAccentPurple,
+                      backgroundColor: darkPurpleAccent,
                     ),
                     child: const Text('Send Verification Email',
                         style: TextStyle(color: Colors.white)),
@@ -163,7 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: _checkEmailVerified,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: darkAccentPurple,
+                          backgroundColor: darkPurpleAccent,
                         ),
                         child: const Text('I have verified my email',
                             style: TextStyle(color: Colors.white)),

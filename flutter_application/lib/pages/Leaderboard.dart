@@ -249,9 +249,9 @@ class _LeaderboardPageState extends State<LeaderboardPage>
     bool isHighlighted = false,
   }) {
     List<Color> rankColors = [
-      const Color(0xffFFD700), // Gold (Rank 1)
-      const Color(0xFFC0C0C0), // Silver (Rank 2)
-      const Color(0xffe38d4c), // Bronze (Rank 3)
+      goldColor,
+      silverColor,
+      bronzeColor,
     ];
 
     return Column(
