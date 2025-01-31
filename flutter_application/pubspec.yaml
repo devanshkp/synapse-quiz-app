@@ -43,6 +43,7 @@ dependencies:
   provider: ^6.1.2
   rxdart: ^0.28.0
   floating_snackbar: ^1.0.5
+  font_awesome_flutter: ^10.8.0
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +73,7 @@ flutter:
     - assets/images/category/
     - assets/images/backgrounds/
     - assets/icons/
+    - assets/icons/auth/
     - assets/icons/navbar/
     - assets/icons/home/
     - assets/icons/profile/

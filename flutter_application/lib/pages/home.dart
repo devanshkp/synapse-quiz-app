@@ -64,7 +64,7 @@ class HomePage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 5),
             child: GestureDetector(
-                onTap: () => (print("Notification button pressed")),
+                onTap: () => (debugPrint("Notification button pressed")),
                 child: SvgPicture.asset('assets/icons/home/Bolt.svg')),
           )
         ],
@@ -88,14 +88,14 @@ class HomePage extends StatelessWidget {
             Expanded(
               flex: 3,
               child: GestureDetector(
-                  onTap: () => (print("Categories button pressed.")),
+                  onTap: () => (debugPrint("Categories button pressed.")),
                   child: categoriesButton()),
             ),
             const SizedBox(width: 15), // Space between the two columns
             Expanded(
               flex: 4,
               child: GestureDetector(
-                  onTap: () => (print("History button pressed.")),
+                  onTap: () => (debugPrint("History button pressed.")),
                   child: historyButton()),
             ),
           ],
@@ -103,7 +103,7 @@ class HomePage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 15),
           child: GestureDetector(
-              onTap: () => (print("Quick play button pressed.")),
+              onTap: () => (debugPrint("Quick play button pressed.")),
               child: quickPlayButton()),
         )
       ],
@@ -136,7 +136,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'math.png',
                   iconSize: 65,
                   color: foundMathColor,
-                  onTap: () => (print('Foudational math pressed.')),
+                  onTap: () => (debugPrint('Foudational math pressed.')),
                   rightOffset: -6,
                   radius: 18,
                   titleFontSize: 11),
@@ -145,7 +145,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'sort.png',
                   iconSize: 65,
                   color: sortingAlgColor,
-                  onTap: () => (print('Sorting Algorithms pressed.')),
+                  onTap: () => (debugPrint('Sorting Algorithms pressed.')),
                   radius: 18,
                   titleFontSize: 11),
               categoryButton(
@@ -153,7 +153,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'neural_network.png',
                   iconSize: 73,
                   color: neuralNetworksColor,
-                  onTap: () => (print('Neural networks pressed.')),
+                  onTap: () => (debugPrint('Neural networks pressed.')),
                   bottomOffset: -15,
                   rightOffset: -12,
                   radius: 18,
@@ -163,7 +163,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'machine_learning.png',
                   iconSize: 65,
                   color: machineLearningColor,
-                  onTap: () => (print('Machine learning pressed.')),
+                  onTap: () => (debugPrint('Machine learning pressed.')),
                   rightOffset: -8,
                   radius: 18,
                   titleFontSize: 11),
@@ -173,7 +173,7 @@ class HomePage extends StatelessWidget {
                   iconSize: 65,
                   color: dataStructuresColor,
                   rightOffset: -8,
-                  onTap: () => (print('Data structures pressed.')),
+                  onTap: () => (debugPrint('Data structures pressed.')),
                   radius: 18,
                   titleFontSize: 11),
               categoryButton(
@@ -181,7 +181,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'programming.png',
                   iconSize: 65,
                   color: proBasicsColor,
-                  onTap: () => (print('Programming basics pressed.')),
+                  onTap: () => (debugPrint('Programming basics pressed.')),
                   radius: 18,
                   titleFontSize: 11),
               categoryButton(
@@ -189,7 +189,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'algorithm.png',
                   iconSize: 65,
                   color: popularAlgColor,
-                  onTap: () => (print('Popular algorithms pressed.')),
+                  onTap: () => (debugPrint('Popular algorithms pressed.')),
                   rightOffset: -8,
                   radius: 18,
                   titleFontSize: 11),
@@ -198,7 +198,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'database.png',
                   iconSize: 65,
                   color: dataBaseColor,
-                  onTap: () => (print('Database pressed.')),
+                  onTap: () => (debugPrint('Database pressed.')),
                   radius: 18,
                   titleFontSize: 11),
               categoryButton(
@@ -206,7 +206,7 @@ class HomePage extends StatelessWidget {
                   iconName: 'swe.png',
                   iconSize: 65,
                   color: sweFundColor,
-                  onTap: () => (print('SWE fundamentals pressedd.')),
+                  onTap: () => (debugPrint('SWE fundamentals pressedd.')),
                   radius: 18,
                   rightOffset: -7,
                   titleFontSize: 11),
@@ -230,7 +230,7 @@ class HomePage extends StatelessWidget {
           subtitleFontSize: 9,
           iconPath: 'assets/icons/home/History.svg',
           iconSize: 25,
-          onTap: () => print('History button tapped'),
+          onTap: () => debugPrint('History button tapped'),
           textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),
           iconPadding: const EdgeInsets.only(bottom: 20),
         ));
@@ -244,7 +244,7 @@ class HomePage extends StatelessWidget {
           titleFontSize: 16,
           iconPath: 'assets/icons/home/Edit.svg',
           iconSize: 15,
-          onTap: () => print('Categories button tapped'),
+          onTap: () => debugPrint('Categories button tapped'),
           textPadding: const EdgeInsets.only(left: 15, right: 11),
           iconPadding: const EdgeInsets.only(bottom: 25),
         ));
@@ -261,7 +261,7 @@ class HomePage extends StatelessWidget {
           subtitleFontSize: 11,
           iconPath: 'assets/icons/home/Play.svg',
           iconSize: 22,
-          onTap: () => print('Quick play button tapped'),
+          onTap: () => debugPrint('Quick play button tapped'),
           textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
           iconPadding: const EdgeInsets.only(bottom: 20),
         ));

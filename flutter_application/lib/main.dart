@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/pages/signup.dart';
+import 'package:flutter_application/pages/email_verification.dart';
+import 'package:flutter_application/pages/login.dart';
+import 'package:flutter_application/pages/register.dart';
+import 'package:flutter_application/providers/auth_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'pages/login.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
 import 'pages/profile.dart';
@@ -30,11 +32,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => UserProvider()
-            ..fetchUserProfile()
-            ..fetchTotalQuestions(), // Fetch total questions on app startup
-        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -45,11 +43,12 @@ class MyApp extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           highlightColor: Colors.transparent,
         ),
-        initialRoute: '/',
+        initialRoute: '/', // Start with AuthProvider logic
         routes: {
-          '/': (context) => const LoginScreen(),
-          '/home': (context) => const BottomNavBar(),
-          '/signup': (context) => const SignUpScreen(),
+          '/': (context) => const AuthProvider(),
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegistrationPage(),
+          '/email-verification': (context) => const EmailVerificationPage(),
         },
       ),
     );

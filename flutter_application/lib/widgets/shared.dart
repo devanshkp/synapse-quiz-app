@@ -126,3 +126,46 @@ class AvatarImage extends StatelessWidget {
     );
   }
 }
+
+class HorizontalDividerWithText extends StatelessWidget {
+  final String text;
+  final double dividerPadding;
+  final Color dividerColor;
+  final double dividerThickness;
+  final TextStyle textStyle;
+
+  const HorizontalDividerWithText({
+    super.key,
+    required this.text,
+    this.dividerPadding = 5.0,
+    this.dividerColor = Colors.white70,
+    this.dividerThickness = 0.5,
+    this.textStyle = const TextStyle(color: Colors.white70, fontSize: 13),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomHorizontalDivider(
+            padding: dividerPadding,
+            color: dividerColor,
+            thickness: dividerThickness,
+          ),
+        ),
+        Text(
+          text,
+          style: textStyle,
+        ),
+        Expanded(
+          child: CustomHorizontalDivider(
+            padding: dividerPadding,
+            color: dividerColor,
+            thickness: dividerThickness,
+          ),
+        ),
+      ],
+    );
+  }
+}

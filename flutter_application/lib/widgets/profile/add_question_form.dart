@@ -1,3 +1,4 @@
+import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -59,9 +60,8 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
           widget.onQuestionAdded();
 
           // Show a success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Question added successfully!')),
-          );
+          floatingSnackBar(
+              message: 'Question added successfully!', context: context);
 
           // Close the dialog
           Navigator.pop(context);
@@ -69,9 +69,8 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
       } catch (e) {
         // Check if the widget is still mounted before showing the error
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error adding question: $e')),
-          );
+          floatingSnackBar(
+              message: 'Error adding question: $e', context: context);
         }
       }
     }

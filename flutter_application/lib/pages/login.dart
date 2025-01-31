@@ -1,17 +1,22 @@
+import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/widgets/auth/auth_widgets.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application/services/user_services.dart';
+import 'package:flutter_application/services/user_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginPageState extends State<LoginPage> {
+  final UserService _userService = UserService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final TextEditingController _emailController = TextEditingController();
@@ -43,14 +48,13 @@ class _LoginScreenState extends State<LoginScreen> {
             .get();
         if (!userDoc.exists) {
           _showUsernameDialog(user);
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing in with Google: $e')),
-      );
+      if (mounted) {
+        floatingSnackBar(
+            message: 'Error signing in with Google: $e', context: context);
+      }
     }
   }
 
@@ -62,18 +66,19 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = _passwordController.text.trim();
 
       if (email.isEmpty || password.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill in all fields')),
-        );
+        if (mounted) {
+          floatingSnackBar(
+              message: 'Please fill in all fields', context: context);
+        }
+
         return;
       }
 
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing in: $e')),
-      );
+      if (mounted) {
+        floatingSnackBar(message: 'Error signing in: $e', context: context);
+      }
     }
   }
 
@@ -93,9 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () async {
                 final userName = usernameController.text.trim();
                 if (userName.isNotEmpty) {
-                  await createUserProfile(user: user, userName: userName);
+                  await _userService.createUserProfile(
+                      user: user, userName: userName);
                   Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/home');
                 }
               },
               child: const Text('Submit'),
@@ -109,99 +114,87 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Welcome to Quiz App',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+      backgroundColor: backgroundPageColor,
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 140),
+              const Text(
+                "Let's Sign you in.",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 30),
-                TextField(
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Welcome back',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'You\'ve been missed!',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 50),
+              CustomTextField(
                   controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.white12,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 10),
-                TextField(
+                  labelText: 'Enter email address'),
+              const SizedBox(height: 10),
+              CustomTextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.white12,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+                  labelText: 'Enter Password',
+                  isPasswordField: true),
+              const SizedBox(height: 20),
+              CustomAuthButton(
+                  label: 'Login', onPressed: _signInWithEmailAndPassword),
+              const SizedBox(height: 30),
+              const HorizontalDividerWithText(text: 'or Login with'),
+              const SizedBox(height: 30),
+              // Dynamically built buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ThirdPartySignInButton(
+                    svgAssetPath: 'assets/icons/auth/facebook_logo.svg',
+                    onPressed: () => {},
+                    size: 27.5,
                   ),
-                  style: const TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _signInWithEmailAndPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 50, vertical: 15),
+                  const SizedBox(width: 5),
+                  ThirdPartySignInButton(
+                    svgAssetPath: 'assets/icons/auth/google_logo.svg',
+                    onPressed: _signInWithGoogle,
+                    size: 40.0,
                   ),
-                  child: const SizedBox(
-                      width: double.infinity,
-                      child: Center(
-                          child: Text(
-                        'Login',
-                        style: TextStyle(color: Colors.white),
-                      ))),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _signInWithGoogle,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 50, vertical: 15),
+                  const SizedBox(width: 5),
+                  ThirdPartySignInButton(
+                    svgAssetPath: 'assets/icons/auth/github_logo.svg',
+                    color: Colors.white,
+                    onPressed: () => {},
+                    size: 27.5,
                   ),
-                  child: const SizedBox(
-                    width: double.infinity,
-                    child: Center(
-                      child: Text(
-                        'Login with Google',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  child: const Text(
-                    'Don’t have an account? Sign up',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 150),
+              AuthRedirectText(
+                  regularText: 'Don\'t have an account?',
+                  highlightedText: 'Register',
+                  onTap: () => {Navigator.pushNamed(context, '/register')}),
+              const SizedBox(height: 15),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),

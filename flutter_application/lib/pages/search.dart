@@ -76,7 +76,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'machine_learning.png',
                       iconSize: 70,
                       color: machineLearningColor,
-                      onTap: () => (print('Machine learning pressed.')),
+                      onTap: () => (debugPrint('Machine learning pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -84,7 +84,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'brace.png',
                       iconSize: 70,
                       color: dataStructuresColor,
-                      onTap: () => (print('Data structures pressed.')),
+                      onTap: () => (debugPrint('Data structures pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -92,7 +92,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'programming.png',
                       iconSize: 65,
                       color: proBasicsColor,
-                      onTap: () => (print('Programming basics pressed.')),
+                      onTap: () => (debugPrint('Programming basics pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -100,7 +100,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'database.png',
                       iconSize: 70,
                       color: dataBaseColor,
-                      onTap: () => (print('Database pressed.')),
+                      onTap: () => (debugPrint('Database pressed.')),
                       titleFontSize: 13,
                     ),
                   ],
@@ -131,7 +131,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'algorithm.png',
                       iconSize: 70,
                       color: popularAlgColor,
-                      onTap: () => (print('Popular algorithms pressed.')),
+                      onTap: () => (debugPrint('Popular algorithms pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -139,7 +139,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'swe.png',
                       iconSize: 70,
                       color: sweFundColor,
-                      onTap: () => (print('SWE fundamentals pressed.')),
+                      onTap: () => (debugPrint('SWE fundamentals pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -147,7 +147,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'math.png',
                       iconSize: 70,
                       color: foundMathColor,
-                      onTap: () => (print('Foundational math pressed.')),
+                      onTap: () => (debugPrint('Foundational math pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -155,7 +155,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'sort.png',
                       iconSize: 72,
                       color: sortingAlgColor,
-                      onTap: () => (print('Sorting Algorithms pressed.')),
+                      onTap: () => (debugPrint('Sorting Algorithms pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -163,7 +163,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'neural_network.png',
                       iconSize: 80,
                       color: neuralNetworksColor,
-                      onTap: () => (print('Neural networks pressed.')),
+                      onTap: () => (debugPrint('Neural networks pressed.')),
                       bottomOffset: -15,
                       titleFontSize: 13,
                     ),
@@ -172,7 +172,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'programming.png',
                       iconSize: 65,
                       color: proBasicsColor,
-                      onTap: () => (print('Programming basics pressed.')),
+                      onTap: () => (debugPrint('Programming basics pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -180,7 +180,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'brace.png',
                       iconSize: 70,
                       color: dataStructuresColor,
-                      onTap: () => (print('Data structures pressed.')),
+                      onTap: () => (debugPrint('Data structures pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -188,7 +188,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'machine_learning.png',
                       iconSize: 70,
                       color: machineLearningColor,
-                      onTap: () => (print('Machine learning pressed.')),
+                      onTap: () => (debugPrint('Machine learning pressed.')),
                       titleFontSize: 13,
                     ),
                     categoryButton(
@@ -196,7 +196,7 @@ class SearchPage extends StatelessWidget {
                       iconName: 'database.png',
                       iconSize: 70,
                       color: dataBaseColor,
-                      onTap: () => (print('Database pressed.')),
+                      onTap: () => (debugPrint('Database pressed.')),
                       titleFontSize: 13,
                     ),
                   ],

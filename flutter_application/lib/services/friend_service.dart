@@ -6,10 +6,10 @@ import 'package:rxdart/rxdart.dart';
 class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch friend IDs for a user
-  Future<List<String>> getFriendIds(String userId) async {
+  // Fetch friends of User
+  Future<List<Friend>> getFriends(String userId) async {
     try {
-      // Query for userId1 and userId2
+      // Query for userId1 and userId2 to get the friend IDs
       final friendsSnapshot1 = await _firestore
           .collection('friends')
           .where('userId1', isEqualTo: userId)
@@ -26,28 +26,22 @@ class FriendService {
         ...friendsSnapshot2.docs.map((doc) => doc['userId1'] as String),
       ];
 
-      return friendIds;
-    } catch (e) {
-      throw Exception('Failed to fetch friend IDs: $e');
-    }
-  }
-
-  // Fetch friend details for a list of user IDs
-  Future<List<Friend>> getFriends(List<String> friendIds) async {
-    try {
+      // If no friends, return an empty list
       if (friendIds.isEmpty) return [];
 
+      // Fetch the friend details using the friend IDs
       final usersSnapshot = await _firestore
           .collection('users')
           .where('userId', whereIn: friendIds)
           .get();
 
+      // Map the user documents to Friend objects
       final friends =
           usersSnapshot.docs.map((doc) => Friend.fromDocument(doc)).toList();
 
       return friends;
     } catch (e) {
-      throw Exception('Failed to fetch friend details: $e');
+      throw Exception('Failed to fetch friends: $e');
     }
   }
 
@@ -86,7 +80,17 @@ class FriendService {
 
       if (senderIds.isEmpty) return [];
 
-      return getFriends(senderIds); // Fetch user details of senders
+      // Fetch the details of the users who have sent requests (senderIds)
+      final usersSnapshot = await _firestore
+          .collection('users')
+          .where('userId', whereIn: senderIds)
+          .get();
+
+      // Map the user documents to Friend objects
+      final friendRequets =
+          usersSnapshot.docs.map((doc) => Friend.fromDocument(doc)).toList();
+
+      return friendRequets;
     } catch (e) {
       throw Exception('Failed to fetch friend requests: $e');
     }
@@ -172,6 +176,17 @@ class FriendService {
       }
 
       final firestore = FirebaseFirestore.instance;
+
+      // Check if they are already friends
+      final existingFriendship = await firestore
+          .collection('friends')
+          .where('userId1', isEqualTo: currentUserId)
+          .where('userId2', isEqualTo: senderId)
+          .get();
+
+      if (existingFriendship.docs.isNotEmpty) {
+        return {'success': false, 'error': null};
+      }
 
       // Add each other as friends in the `friends` collection
       await firestore.collection('friends').add({
