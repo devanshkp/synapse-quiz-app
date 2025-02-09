@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+openai
+firebase-admin
+python-dotenv
+selenium
+google-genai

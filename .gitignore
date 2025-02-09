@@ -1,0 +1,14 @@
+# Ignore Python virtual environment 
+scraping/venv/
+
+# Ignore Firebase Service Account Key
+scraping/serviceAccountKey.json
+
+# Ignore environment variables
+.env
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore VS Code settings (optional)
+.vscode/

@@ -52,6 +52,8 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         final requests =
             await friendService.getPendingFriendRequests(currentUserId!);
 
+        if (!mounted) return;
+
         setState(() {
           friendRequests = requests;
         });
@@ -117,28 +119,41 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
+                  const SizedBox(height: 5),
+                  if (friendRequests.isNotEmpty)
+                    Column(
                       children: [
-                        const Text(
-                          'Friend Requests',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            children: [
+                              const Text(
+                                'Friend Requests',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              showCount(friendRequests.length)
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        showCount(friendRequests.length)
+                        const SizedBox(height: 5),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          itemCount: friendRequests.length,
+                          itemBuilder: (context, index) {
+                            return _buildFriendRequestItem(
+                                friendRequests[index]);
+                          },
+                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
-                  ),
-                  if (friendRequests.isNotEmpty)
-                    ...friendRequests
-                        .map((request) => _buildFriendRequestItem(request)),
-                  const SizedBox(height: 10),
-                  if (friendRequests.isEmpty) const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -157,8 +172,21 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                     ),
                   ),
                   if (friends.isNotEmpty)
-                    ...friends.map((friend) => _buildFriendItem(friend)),
-                  if (friends.isEmpty)
+                    Column(
+                      children: [
+                        const SizedBox(height: 5),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          itemCount: friends.length,
+                          itemBuilder: (context, index) {
+                            return _buildFriendItem(friends[index]);
+                          },
+                        ),
+                      ],
+                    )
+                  else
                     _buildEmptyState('Start adding friends!'),
                 ],
               ),
@@ -168,36 +196,37 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  Container showCount(int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+  Widget _buildFriendItem(Friend friend) {
+    return ListTile(
+      minTileHeight: 0,
+      dense: true,
+      contentPadding: const EdgeInsets.only(left: 12, right: 6, top: 6),
+      leading: AvatarImage(avatarUrl: friend.avatarUrl, avatarRadius: 20),
+      title: Text(
+        friend.fullName,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      child: Text(
-        count.toString(),
+      subtitle: Text(
+        friend.userName,
         style: const TextStyle(
           color: Colors.white54,
           fontSize: 12,
         ),
       ),
+      trailing: PopupMenuButton(
+        icon: const Icon(Icons.more_vert, color: Colors.white54),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            child: const Text('Remove Friend'),
+            onTap: () => _removeFriend(friend.userId),
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<void> _searchUsers(String query) async {
-    final result = await _friendService.searchUsers(query);
-
-    if (result['error'] != null) {
-      floatingSnackBar(
-        message: result['error'],
-        context: context,
-      );
-    } else {
-      setState(() {
-        searchResults = result['friends'];
-      });
-    }
   }
 
   Widget _buildSearchResultItem(Friend friend, List<Friend> friends) {
@@ -212,8 +241,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         final isRequested = snapshot.data ?? false;
 
         return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          minTileHeight: 0,
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 12, right: 6),
           leading: AvatarImage(avatarUrl: friend.avatarUrl, avatarRadius: 20),
           title: Text(
             friend.fullName,
@@ -256,7 +286,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
   Widget _buildFriendRequestItem(Friend request) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      minTileHeight: 0,
+      dense: true,
+      contentPadding: const EdgeInsets.only(left: 12, right: 6, top: 4),
       leading: AvatarImage(avatarUrl: request.avatarUrl, avatarRadius: 20),
       title: Text(
         request.fullName,
@@ -289,6 +321,38 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
+  Container showCount(int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        count.toString(),
+        style: const TextStyle(
+          color: Colors.white54,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _searchUsers(String query) async {
+    final result = await _friendService.searchUsers(query);
+
+    if (result['error'] != null) {
+      floatingSnackBar(
+        message: result['error'],
+        context: context,
+      );
+    } else if (mounted) {
+      setState(() {
+        searchResults = result['friends'];
+      });
+    }
+  }
+
   Future<void> _sendFriendRequest(String receiverId) async {
     final result = await _friendService.sendFriendRequest(receiverId);
 
@@ -300,6 +364,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       return;
     }
 
+    if (!mounted) return;
     // Update the UI state here to reflect the "Requested" state
     setState(
         () {}); // This will re-trigger the build method and update the trailing widget.
@@ -315,7 +380,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       );
       return;
     }
-
+    if (!mounted) return;
     floatingSnackBar(
       message: 'Friend request accepted!',
       context: context,
@@ -336,7 +401,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         message: result['error'],
         context: context,
       );
-    } else {
+    } else if (mounted) {
       // Remove from the local list
       setState(() {
         friendRequests.removeWhere((request) => request.userId == senderId);
@@ -355,41 +420,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       return;
     }
 
+    if (!mounted) return;
     // Refresh the friends list
     setState(() {
       _friendsFuture = _friendService.getFriends(currentUserId!);
     });
-  }
-
-  Widget _buildFriendItem(Friend friend) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      leading: AvatarImage(avatarUrl: friend.avatarUrl, avatarRadius: 20),
-      title: Text(
-        friend.fullName,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        friend.userName,
-        style: const TextStyle(
-          color: Colors.white54,
-          fontSize: 12,
-        ),
-      ),
-      trailing: PopupMenuButton(
-        icon: const Icon(Icons.more_vert, color: Colors.white54),
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            child: const Text('Remove Friend'),
-            onTap: () => _removeFriend(friend.userId),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildEmptyState(String text) {
