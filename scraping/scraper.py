@@ -8,6 +8,7 @@ import sys
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
+import bs4
 from bs4 import BeautifulSoup
 from google import genai
 from google.genai import types
@@ -89,6 +90,7 @@ def load_mcqs_from_json(filename):
 def random_delay(min_seconds=1, max_seconds=3):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
+# Function to scrape questions from www.sanfoundry.com
 def scrape_mcqs(url, maxQuestions=250):
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -98,8 +100,8 @@ def scrape_mcqs(url, maxQuestions=250):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-popup-blocking")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Disable automation detection
-    chrome_options.add_argument(f"user-agent={random.choice(user_agents)}")  # Randomize user-agent
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument(f"user-agent={random.choice(user_agents)}")
 
     driver = webdriver.Chrome(options=chrome_options)
     try:
@@ -109,132 +111,219 @@ def scrape_mcqs(url, maxQuestions=250):
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         mcqs = []
+
+        # Extract the subtopic from the entry-title using regex
+        header = soup.find("header", class_="entry-header")
+        if header:
+            title_element = header.find("h1", class_="entry-title")
+            if title_element:
+                title_text = title_element.text
+                match = re.search(r"[–-](.+)", title_text)  # Regex search
+                subtopic = match.group(1).strip() if match else None # if match found, group 1 is the subtopic. else None
+            else:
+                subtopic = None
+        else:
+            subtopic = None
+
         content = soup.find("div", class_="entry-content")
         if not content:
             logger.error("Error: Unable to find questions section.")
             return []
 
+        def contains_complex_content(tag):
+            """Check if a tag contains images, code blocks, scripts, or other complex elements."""
+            return (tag.find('img') is not None or 
+                    tag.find('noscript') is not None or
+                    tag.find('pre') is not None or
+                    tag.find('code') is not None or
+                    tag.find('script') is not None or
+                    tag.find('div', class_="hk1_style-wrap5") is not None)
+
+        def extract_formatted_text(tag):
+            """Extract text, handling nested sub/superscripts."""
+            extracted_text = ""
+
+            if isinstance(tag, str):
+                return tag
+
+            for elem in tag.contents:
+                if isinstance(elem, str):
+                    extracted_text += elem
+                elif elem.name == "sub":
+                    extracted_text += f"_{{{extract_formatted_text(elem)}}}"  # Recursive call
+                elif elem.name == "sup":
+                    extracted_text += f"^{{{extract_formatted_text(elem)}}}"  # Recursive call
+                elif elem.name == "br":
+                    extracted_text += "\n"
+                elif elem.name in ['b', 'i', 'u', 'span']:
+                    extracted_text += extract_formatted_text(elem) # recursive call
+                elif elem.name in ['img', 'pre', 'code', 'div']:
+                    break
+
+            return extracted_text.strip()
+
+
+
+        def extract_question_text(p_tag):
+            """Extract multi-line question text before any options, with improved subscript/superscript formatting."""
+            full_text = ""
+            
+            # First, collect all text nodes and tags in sequence
+            elements = []
+            for child in p_tag.children:
+                elements.append(child)
+            
+            # Process all elements to build the question text
+            i = 0
+            while i < len(elements):
+                element = elements[i]
+                
+                # Handle string nodes
+                if isinstance(element, str):
+                    text = element
+                    # If this looks like an option, we're done
+                    if re.match(r'^[a-d]\)', text):
+                        break
+                    # Otherwise, add it to our question text if it's not empty
+                    if text:
+                        # Remove question number at the beginning if present
+                        if i == 0:
+                            text = re.sub(r"^\d+[\).]\s*", "", text)
+                        full_text += text
+                
+                # Handle HTML tags
+                elif isinstance(element, bs4.element.Tag):
+                    if element.name == "br":
+                        # Check if next element is an option
+                        if i + 1 < len(elements):
+                            next_elem = elements[i + 1]
+                            if isinstance(next_elem, str) and re.match(r'^[a-d]\)', next_elem.strip()):
+                                break
+                        full_text += "\n"
+                    elif element.name == "sub":
+                        full_text += "_{" + extract_formatted_text(element) + "}" 
+                    elif element.name == "sup":
+                        full_text += "^{" + extract_formatted_text(element) + "}" 
+                    elif element.name in ['b', 'i', 'u', 'span'] and not element.get("class"):
+                        full_text += extract_formatted_text(element)
+                    elif element.name in ['img', 'a', 'pre', 'code']:
+                        # Stop at complex elements
+                        break
+                
+                i += 1
+            
+            # Clean up whitespace
+            full_text = re.sub(r'\s+', ' ', full_text)
+            full_text = re.sub(r'\n\s+', '\n', full_text)
+            
+            return full_text.strip()
+
+
+        def extract_options(p_tag):
+            """Extract options with improved mathematical notation and prevent duplicates."""
+            options = []
+            br_tags = p_tag.find_all("br")
+            seen_options = set()  # To track already processed options
+            
+            for i, br in enumerate(br_tags):
+                # Only process <br> tags that are immediately followed by option markers
+                next_elem = br.next_sibling
+                if not (isinstance(next_elem, str) and re.match(r'^[a-d]\)', next_elem.strip())):
+                    continue
+                    
+                option_content = []
+                current = next_elem
+                
+                while current and (i == len(br_tags) - 1 or current != br_tags[i + 1]):
+                    if isinstance(current, bs4.element.Tag):
+                        if current.name == "sub":
+                            option_content.append(f"_{{{extract_formatted_text(current)}}}") 
+                        elif current.name == "sup":
+                            option_content.append(f"^{{{extract_formatted_text(current)}}}") 
+                        elif current.name not in ['img', 'pre', 'code', 'div', 'span']:
+                            option_content.append(extract_formatted_text(current)) 
+                    elif isinstance(current, str):
+                        option_content.append(current)
+                    
+                    current = current.next_sibling if hasattr(current, 'next_sibling') else None
+                
+                option_text = ''.join(option_content).strip()
+                if option_text and re.match(r'^[a-d]\)', option_text):
+                    option_text = re.sub(r'^[a-d]\)\s*', '', option_text).strip()
+                    
+                    # Fix common LaTeX formatting issues
+                    option_text = re.sub(r'\s+', ' ', option_text)
+                    
+                    # Only add if not already seen and non-empty
+                    if option_text and option_text not in seen_options:
+                        options.append(option_text)
+                        seen_options.add(option_text)
+            
+            return options if len(options) >= 2 else []
+
+
+
         questions = content.find_all("p")
         i = 0
         while i < len(questions):
-            question_text = questions[i].get_text().split("\n")[0].strip()
-
-            # Skip if it doesn't start with a valid question (numbered or multiple choice)
-            if not re.match(r"^\d+[\).]\s|\b[A-Da-d][\).]\s", question_text):
+            current_tag = questions[i]
+            
+            # Skip if not a valid question start
+            if not re.match(r"^\d+[\).]\s|\b[A-Da-d][\).]\s", current_tag.get_text().strip()):
                 i += 1
-                continue  # Ignore titles or unrelated content
+                continue
 
-            # Remove the leading question number if present (e.g., "2. " or "3) ")
-            question_text = re.sub(r"^\d+[\).]\s*", "", question_text)
-
-            # Check if it's a question-only tag (i.e., no options here)
-            if not questions[i].find("br"):
-                # This is a question-only tag; check the next tag for additional info
-                additional_info = None
-                next_tag = questions[i].find_next("div", class_="hk1_style-wrap5")
-                if next_tag:
-                        # Traverse the nested structure to extract the text
-                    inner_div = next_tag.find("div", class_="hk1_style-wrap4") \
-                                        .find("div", class_="hk1_style-wrap3") \
-                                        .find("div", class_="hk1_style-wrap2") \
-                                        .find("div", class_="hk1_style-wrap") \
-                                        .find("div", class_="hk1_style") \
-                                        .find("div")
-                    if inner_div:
-                        # Extract the text from the <pre> tag
-                        pre_tag = inner_div.find("pre", class_="de1")
-                        if pre_tag:
-                            additional_info = pre_agent_code_formatting(pre_tag.get_text(separator="\n").strip())
-
-                # Move to the next tag that contains the options
+            # Skip questions with complex content
+            next_tag = current_tag.find_next_sibling()
+            if (contains_complex_content(current_tag) or
+                not current_tag.find("br") or
+                not (next_tag and next_tag.name == "div" and "collapseomatic_content" in next_tag.get("class", []))
+            ):
                 i += 1
-                options_tag = questions[i] if i < len(questions) else None
-                if options_tag:
-                    options = []
-                    
-                    # Extract first option (before the first <br>)
-                    first_option = options_tag.get_text(separator="\n").split("\n")[0].strip()
-                    if first_option and re.match(r'^[a-d]\)', first_option):
-                        first_option = re.sub(r'^[a-d]\)', '', first_option).strip()
-                        options.append(first_option)
+                continue
 
-                    # Extract remaining options after <br> tags
-                    for br in options_tag.find_all("br"):
-                        if br.next_sibling:
-                            option_text = br.next_sibling.strip()
-                            if option_text:
-                                option_text = re.sub(r'^[a-d]\)', '', option_text).strip()  # Remove option letter
-                                options.append(option_text)
+            question_text = extract_question_text(current_tag)
+            
+            options = extract_options(current_tag)
+            if not options:  # Skip if no valid options found
+                i += 1
+                continue
 
-                    # Find the corresponding answer and explanation
-                    answer_button = options_tag.find("span", class_="collapseomatic")
-                    if answer_button:
-                        answer_id = answer_button.get("id")
-                        if answer_id:
-                            answer_div = soup.find("div", id=f"target-{answer_id}")
-                            if answer_div:
-                                answer_text = answer_div.get_text(separator="\n").strip().split("Answer:")[-1].split("\n")[0].strip()
-                                explanation = "\n".join(answer_div.get_text(separator="\n").strip().split("\n")[1:]).strip()
-                                explanation = re.sub(r'^Explanation:\s*', '', explanation)
-                            else:
-                                answer_text = None
-                                explanation = None
-                        else:
-                            answer_text = None
-                            explanation = None
+            # Extract answer and explanation
+            answer_button = current_tag.find("span", class_="collapseomatic")
+
+            if answer_button:
+                answer_id = answer_button.get("id")
+                if answer_id:
+                    answer_div = soup.find("div", id=f"target-{answer_id}")
+                    if contains_complex_content(answer_div):
+                        i += 1
+                        continue
+                    if answer_div:
+                        full_text = extract_formatted_text(answer_div) 
+                        try:
+                            answer_text = full_text.split("Answer:")[-1].split("\n")[0].strip()
+                            explanation_lines = full_text.split("Explanation:")[-1].split("\n") if "Explanation:" in full_text else full_text.split("Answer:")[-1].split("\n")[1:]
+                            explanation = "\n".join(line.strip() for line in explanation_lines if line.strip()).strip() 
+                            explanation = re.sub(r'^Explanation:\s*', '', explanation).strip()
+                        except IndexError:
+                            answer_text = explanation = None
                     else:
-                        answer_text = None
-                        explanation = None
-
-                    if question_text and options and answer_text and explanation:
-                        mcqs.append({
-                            "question": question_text,
-                            "options": options,
-                            "answer": answer_text,
-                            "explanation": explanation,
-                            "additional_info": additional_info  # Store the additional info here
-                        })
-
-            # If the question has options in the same <p> tag
-            else:
-                options = []
-                for br in questions[i].find_all("br"):
-                    if br.next_sibling:
-                        option_text = br.next_sibling.strip()
-                        if option_text:
-                            option_text = re.sub(r'^[a-d]\)', '', option_text).strip()  # Remove option letter
-                            options.append(option_text)
-
-                # Extract the answer and explanation
-                answer_button = questions[i].find("span", class_="collapseomatic")
-                if answer_button:
-                    answer_id = answer_button.get("id")
-                    if answer_id:
-                        answer_div = soup.find("div", id=f"target-{answer_id}")
-                        if answer_div:
-                            answer_text = answer_div.get_text(separator="\n").strip().split("Answer:")[-1].split("\n")[0].strip()
-                            explanation = "\n".join(answer_div.get_text(separator="\n").strip().split("\n")[1:]).strip()
-                            explanation = re.sub(r'^Explanation:\s*', '', explanation)
-                        else:
-                            answer_text = None
-                            explanation = None
-                    else:
-                        answer_text = None
-                        explanation = None
+                        answer_text = explanation = None
                 else:
-                    answer_text = None
-                    explanation = None
+                    answer_text = explanation = None
+            else:
+                answer_text = explanation = None
 
-                if question_text and options and answer_text and explanation:
-                    mcqs.append({
-                        "question": question_text,
-                        "options": options,
-                        "answer": answer_text,
-                        "explanation": explanation,
-                        "additional_info": None  # No additional info in this case
-                    })
+            if question_text and options and answer_text and explanation:
+                mcqs.append({
+                    "question": question_text,
+                    "options": options,
+                    "answer": answer_text,
+                    "explanation": explanation,
+                    "subtopic": subtopic
+                })
 
-            # Stop when the maxQuestions limit is reached
             if len(mcqs) >= maxQuestions:
                 break
             i += 1
@@ -243,23 +332,7 @@ def scrape_mcqs(url, maxQuestions=250):
         return mcqs
 
     finally:
-        driver.quit()  # Ensure the browser closes after scraping
-
-# ============================== CODE FORMATTING SECTION ==============================
-
-# Remove unnecessary newlines and excessive spaces
-def pre_agent_code_formatting(code):
-    code = re.sub(r'\n+', '\n', code)  # Reduce multiple newlines to a single newline
-    code = re.sub(r'\s+', ' ', code)  # Reduce multiple spaces to a single space
-    code = code.replace(' \n', '\n')  # Fix spaces before newlines
-    return code.strip()
-
-# Removes unnecessary quotes from formatted code.
-def post_agent_code_formatting(code):
-    code = re.sub(r'^.*```.*\n?', '', code, flags=re.MULTILINE)
-    return re.sub(r'\\(.)', r'\1', code)  # Fix escaped characters
-
-
+        driver.quit()
     
 # ============================== HINT GENERATION SECTION ==============================
 
@@ -268,17 +341,7 @@ def generate_hints_for_mcqs(mcqs):
     for i, mcq in enumerate(mcqs):
         # Create the prompt
         prompt = f"""
-        This prompt has two tasks: 
-        1. Detect whether the input contains a code snippet. If so, identify the programming language and format it properly.
-        2.  Generate a hint that provides subtle guidance without being too direct or revealing the answer. The hint should feel like a natural clue rather than an explicit instruction.
-
-        ### Formatting Instructions:
-        - If a code snippet is detected, **format it using standard programming conventions** exactly as a professional developer would.
-        - **Ensure proper indentation and spacing** without extra or missing spaces.
-        - **DO NOT wrap the code in quotes, backticks, or code blocks.**
-        - **DO NOT include "Formatted Code", "Language:", or any labels before the code.**
-        - **DO NOT use triple quotes ('''), backticks (```), or single/double quotes (").**
-        - **ONLY return the code, exactly as it should be written in an IDE.**
+        Generate a hint that provides subtle guidance without being too direct or revealing the answer. The hint should feel like a natural clue rather than an explicit instruction.
 
         ### Hint Generation Instructions:
         - The hint should feel natural, offering a nudge in the right direction rather than directly instructing the user.
@@ -291,62 +354,32 @@ def generate_hints_for_mcqs(mcqs):
         Options: {mcq['options']}
         Answer: {mcq['answer']}
         Explanation: {mcq['explanation']}
-        Additional Info: {mcq['additional_info']}
 
         Respond in the following format:
-        [Code Detected] (Yes/No)
-
-        [Formatted Code]
-        <Return the formatted code exactly as it should be written, without quotes>
 
         [Hint]
         <Generated hint here>
         """
-
 
         try:
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=[prompt],
                 config=types.GenerateContentConfig(
-                    max_output_tokens=500,
+                    max_output_tokens=100,
                     temperature=0.7
                 )
             )
 
             # Extract response text
             response_text = response.text.strip() if response.text else ""
-            
-            # Initialize empty fields
-            mcq["additional_info"] = ""
-            mcq["hint"] = ""
-
-            # Parse response
-            if "[Code Detected]" in response_text:
-                parts = response_text.split("[Formatted Code]")
-                code_detected_section = parts[0]
-                hint_section = parts[1] if "[Hint]" in response_text else ""
-
-                if "Yes" in code_detected_section:
-                    # Extract the formatted code
-                    formatted_code = hint_section.split("[Hint]")[0].strip()
-                    hint = hint_section.split("[Hint]")[1].strip() if "[Hint]" in hint_section else ""
-                    formatted_code = post_agent_code_formatting(formatted_code)
-                    mcq["additional_info"] = formatted_code
-                    print(formatted_code)
-                    mcq["hint"] = hint
-                else:
-                    # No code detected, only extract the hint
-                    mcq["hint"] = response_text.split("[Hint]")[1].strip() if "[Hint]" in response_text else response_text
+            mcq["hint"] = response_text.split("[Hint]")[1].strip() if "[Hint]" in response_text else response_text
 
         except Exception as e:
             logging.error(f"Error processing question {i + 1}: {e}")
-            mcq["additional_info"] = ""
             mcq["hint"] = ""
 
     return mcqs
-
-
 
 # ============================== FIRESTORE STORAGE SECTION ==============================
 
@@ -374,9 +407,9 @@ def main():
     if len(sys.argv) < 4:
         raise ValueError("Error: URL and number of questions not provided.")
     
-    url = sys.argv[1]  # Get the URL passed from the command line
-    maxQuestions = int(sys.argv[2])  # Get the number of questions to scrape
-    category = sys.argv[3]
+    url = sys.argv[1]
+    maxQuestions = int(sys.argv[2]) 
+    topic = sys.argv[3]
 
     # Scrape MCQs
     mcqs = scrape_mcqs(url, maxQuestions=maxQuestions)
@@ -384,19 +417,23 @@ def main():
     # Hint generation
     hints = generate_hints_for_mcqs(mcqs)
 
+    for mcq in mcqs:
+        mcq["topic"] = topic
+
     # Use when adjusting the prompt for hint generation
     # mcqs = load_mcqs_from_json('scraped_questions.json')
 
+    # Save MCQs to a JSON File
     if mcqs:
         save_mcqs_to_json(mcqs)
     else:
         logger.error("No MCQs were scraped.")
 
     # Store MCQs in Firestore
-    # if mcqs:
-    #     store_in_firestore(mcqs)
-    # else:
-    #     logger.error("No MCQs to store.")
+    if mcqs:
+        store_in_firestore(mcqs)
+    else:
+        logger.error("No MCQs to store.")
 
 
 if __name__ == "__main__":

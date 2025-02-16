@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Regular colors
+const Color appColor = Color.fromARGB(255, 76, 76, 146);
 
 // Grey Variants
 const Color backgroundPageColor = Color(0xff161616);
@@ -29,7 +30,7 @@ const Color popularAlgColor = Color.fromARGB(255, 155, 75, 184);
 const Color sweFundColor = Color.fromARGB(255, 81, 161, 144);
 const Color foundMathColor = Color.fromARGB(255, 222, 96, 87);
 const Color sortingAlgColor = Color.fromARGB(255, 230, 142, 59);
-const Color neuralNetworksColor = Color.fromARGB(255, 207, 65, 108);
+const Color artificalIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
 
 // Leaderboard Colors
 const Color goldColor = Color(0xffFFD700);

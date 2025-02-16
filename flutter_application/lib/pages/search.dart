@@ -159,11 +159,12 @@ class SearchPage extends StatelessWidget {
                       titleFontSize: 13,
                     ),
                     categoryButton(
-                      title: 'Neural Networks',
-                      iconName: 'neural_network.png',
+                      title: 'Artifical Intelligence',
+                      iconName: 'artificial_intelligence.png',
                       iconSize: 80,
-                      color: neuralNetworksColor,
-                      onTap: () => (debugPrint('Neural networks pressed.')),
+                      color: artificalIntelligenceColor,
+                      onTap: () =>
+                          (debugPrint('Artifical Intelligence pressed.')),
                       bottomOffset: -15,
                       titleFontSize: 13,
                     ),
