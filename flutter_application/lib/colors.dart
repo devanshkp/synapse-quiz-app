@@ -8,6 +8,7 @@ const Color backgroundPageColor = Color(0xff161616);
 const Color buttonColor = Color(0xff232323);
 const Color buttonStrokeColor = Color(0xff636363);
 const Color navbarColor = Color(0xff090909);
+const Color drawerColor = Color.fromARGB(255, 14, 14, 14);
 
 // Purple Accents Variants
 const Color fadedPurpleAccent = Color.fromARGB(255, 167, 120, 239);

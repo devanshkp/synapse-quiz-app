@@ -211,6 +211,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_advanced_drawer:
+    dependency: "direct main"
+    description:
+      name: flutter_advanced_drawer
+      sha256: "01588d626014e0914ce64be9efbe908a093826ccea7d8963019651abd460ff0e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   flutter_card_swiper:
     dependency: "direct main"
     description:
@@ -227,14 +235,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  flutter_slider_drawer:
-    dependency: "direct main"
-    description:
-      name: flutter_slider_drawer
-      sha256: "41a627bc3a87c981ca128c0ec4e0f2135244c8e13a78bf472db4d59a1ed9896f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.2"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -253,6 +253,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_zoom_drawer:
+    dependency: "direct main"
+    description:
+      name: flutter_zoom_drawer
+      sha256: "5a3708548868463fb36e0e3171761ab7cb513df88d2f14053802812d2e855060"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.0"
   font_awesome_flutter:
     dependency: "direct main"
     description:

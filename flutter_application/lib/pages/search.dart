@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/widgets/home/home_widgets.dart';
+import 'package:flutter_application/widgets/home/widgets.dart';
 import '../colors.dart';
 
 class SearchPage extends StatelessWidget {
@@ -27,7 +27,7 @@ class SearchPage extends StatelessWidget {
                   child: TextField(
                     style: TextStyle(color: Colors.black),
                     decoration: InputDecoration(
-                      hintText: "Search Categories...",
+                      hintText: "Search Topics...",
                       hintStyle: TextStyle(color: Colors.black54),
                       border: InputBorder.none,
                     ),
@@ -71,7 +71,7 @@ class SearchPage extends StatelessWidget {
                   physics:
                       const NeverScrollableScrollPhysics(), // Disable GridView scrolling
                   children: [
-                    categoryButton(
+                    topicButton(
                       title: 'Machine Learning',
                       iconName: 'machine_learning.png',
                       iconSize: 70,
@@ -79,7 +79,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Machine learning pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Data Structures',
                       iconName: 'brace.png',
                       iconSize: 70,
@@ -87,7 +87,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Data structures pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Programming Basics',
                       iconName: 'programming.png',
                       iconSize: 65,
@@ -95,7 +95,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Programming basics pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Database Systems',
                       iconName: 'database.png',
                       iconSize: 70,
@@ -106,9 +106,9 @@ class SearchPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 30),
-                // All categories section
+                // All topics section
                 const Text(
-                  "All Categories",
+                  "All Topics",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -126,7 +126,7 @@ class SearchPage extends StatelessWidget {
                   physics:
                       const NeverScrollableScrollPhysics(), // Disable GridView scrolling
                   children: [
-                    categoryButton(
+                    topicButton(
                       title: 'Popular Algorithms',
                       iconName: 'algorithm.png',
                       iconSize: 70,
@@ -134,7 +134,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Popular algorithms pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'SWE Fundamentals',
                       iconName: 'swe.png',
                       iconSize: 70,
@@ -142,7 +142,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('SWE fundamentals pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Foundational Math',
                       iconName: 'math.png',
                       iconSize: 70,
@@ -150,7 +150,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Foundational math pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Sorting Algorithms',
                       iconName: 'sort.png',
                       iconSize: 72,
@@ -158,7 +158,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Sorting Algorithms pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Artifical Intelligence',
                       iconName: 'artificial_intelligence.png',
                       iconSize: 80,
@@ -168,7 +168,7 @@ class SearchPage extends StatelessWidget {
                       bottomOffset: -15,
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Programming Basics',
                       iconName: 'programming.png',
                       iconSize: 65,
@@ -176,7 +176,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Programming basics pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Data Structures',
                       iconName: 'brace.png',
                       iconSize: 70,
@@ -184,7 +184,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Data structures pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Machine Learning',
                       iconName: 'machine_learning.png',
                       iconSize: 70,
@@ -192,7 +192,7 @@ class SearchPage extends StatelessWidget {
                       onTap: () => (debugPrint('Machine learning pressed.')),
                       titleFontSize: 13,
                     ),
-                    categoryButton(
+                    topicButton(
                       title: 'Database Systems',
                       iconName: 'database.png',
                       iconSize: 70,

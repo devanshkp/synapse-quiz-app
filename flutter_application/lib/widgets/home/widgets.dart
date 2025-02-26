@@ -3,7 +3,7 @@ import 'package:flutter_application/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
 
-Container customHomeButton({
+Widget customHomeButton({
   required String title,
   required double titleFontSize,
   String? subtitle,
@@ -15,22 +15,29 @@ Container customHomeButton({
   required EdgeInsetsGeometry textPadding,
   required EdgeInsetsGeometry iconPadding,
 }) {
-  return Container(
-    height: double.infinity,
-    padding: textPadding,
-    decoration: BoxDecoration(
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.3), // Shadow color
-          blurRadius: 10, // Reduced spread for a cleaner look
-          offset: const Offset(0, 4), // Positioning of the shadow
-        ),
-      ],
-      gradient: buttonGradient,
-      borderRadius: BorderRadius.circular(20),
+  return ElevatedButton(
+    onPressed: onTap,
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 1,
+      backgroundColor: Colors.transparent,
+      shadowColor: Colors.black.withOpacity(0.3),
     ),
-    child: InkWell(
-      onTap: onTap,
+    child: Container(
+      padding: textPadding,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3), // Shadow color
+            blurRadius: 5, // Reduced spread for a cleaner look
+            offset: const Offset(0, 4), // Positioning of the shadow
+          ),
+        ],
+        gradient: buttonGradient,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -83,7 +90,7 @@ Container customHomeButton({
   );
 }
 
-Widget categoryButton({
+Widget topicButton({
   required String title,
   required String iconName,
   required double iconSize,

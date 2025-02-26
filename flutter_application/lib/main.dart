@@ -4,6 +4,8 @@ import 'package:flutter_application/pages/login.dart';
 import 'package:flutter_application/pages/register.dart';
 import 'package:flutter_application/providers/auth_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/services/observer_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'pages/home.dart';
@@ -33,6 +35,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (context) {
+          return TriviaProvider(
+              Provider.of<UserProvider>(context, listen: false));
+        }),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -43,12 +49,14 @@ class MyApp extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           highlightColor: Colors.transparent,
         ),
+        navigatorObservers: [ObserverService.routeObserver],
         initialRoute: '/', // Start with AuthProvider logic
         routes: {
           '/': (context) => const AuthProvider(),
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegistrationPage(),
           '/email-verification': (context) => const EmailVerificationPage(),
+          '/trivia': (context) => const TriviaPage(quickPlay: true),
         },
       ),
     );
@@ -59,11 +67,11 @@ class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
 
   @override
-  _BottomNavBarState createState() => _BottomNavBarState();
+  BottomNavBarState createState() => BottomNavBarState();
 }
 
-class _BottomNavBarState extends State<BottomNavBar> {
-  int _currentIndex = 2; // Track the current tab index
+class BottomNavBarState extends State<BottomNavBar> {
+  int _currentIndex = 0; // Track the current tab index
 
   // List of pages (widgets) to display
   final List<Widget> _screens = [

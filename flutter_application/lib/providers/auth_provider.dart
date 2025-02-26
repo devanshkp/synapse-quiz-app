@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application/main.dart';
 import 'package:flutter_application/pages/login.dart';
+import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -20,10 +21,10 @@ class AuthProvider extends StatelessWidget {
         }
         if (snapshot.hasData) {
           // User is authenticated, trigger refresh of user data
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
-          userProvider.fetchUserProfile();
-          userProvider.fetchTotalQuestions();
+        
+            Provider.of<UserProvider>(context, listen: false);
+            Provider.of<TriviaProvider>(context, listen: false);
+          
           return const BottomNavBar(); // User is signed in
         } else {
           return const LoginPage(); // User is not signed in

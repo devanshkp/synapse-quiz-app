@@ -223,7 +223,6 @@ def scrape_mcqs(url, maxQuestions=250):
             """Extract options with improved mathematical notation and prevent duplicates."""
             options = []
             br_tags = p_tag.find_all("br")
-            seen_options = set()  # To track already processed options
             
             for i, br in enumerate(br_tags):
                 # Only process <br> tags that are immediately followed by option markers
@@ -254,10 +253,9 @@ def scrape_mcqs(url, maxQuestions=250):
                     # Fix common LaTeX formatting issues
                     option_text = re.sub(r'\s+', ' ', option_text)
                     
-                    # Only add if not already seen and non-empty
-                    if option_text and option_text not in seen_options:
+                    # Only add if non-empty
+                    if option_text and option_text:
                         options.append(option_text)
-                        seen_options.add(option_text)
             
             return options if len(options) >= 2 else []
 

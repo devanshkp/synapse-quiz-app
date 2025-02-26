@@ -23,4 +23,24 @@ class Friend {
       avatarUrl: data['avatarUrl'],
     );
   }
+
+  // Factory constructor to create a Friend object from a Map
+  factory Friend.fromMap(Map<String, dynamic> data) {
+    return Friend(
+      userId: data['userId'] ?? '',
+      fullName: data['fullName'] ?? 'Unknown',
+      userName: data['userName'] ?? 'Unknown',
+      avatarUrl: data['avatarUrl'],
+    );
+  }
+
+  // Method to convert a Friend object to a Map
+  Map<String, dynamic> toMap() {
+    return {
+      'userId': userId,
+      'userName': userName,
+      'fullName': fullName,
+      'avatarUrl': avatarUrl,
+    };
+  }
 }

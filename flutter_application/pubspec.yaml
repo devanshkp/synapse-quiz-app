@@ -45,7 +45,8 @@ dependencies:
   floating_snackbar: ^1.0.5
   font_awesome_flutter: ^10.8.0
   string_extensions: ^0.7.3
-  flutter_slider_drawer: ^3.0.2
+  flutter_advanced_drawer: ^1.4.0
+  flutter_zoom_drawer: ^3.2.0
 
 dev_dependencies:
   flutter_test:

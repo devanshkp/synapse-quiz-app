@@ -24,7 +24,11 @@ class MainStats extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildMainStatCard(
-              'STREAK', '15 Days', Icons.whatshot, currentStreakColor),
+            'STREAK',
+            '${userProfile.currentStreak} ${userProfile.currentStreak == 1 ? 'day' : 'days'}', // Display "day" or "days"
+            Icons.whatshot,
+            currentStreakColor,
+          ),
           const CustomVerticalDivider(),
           _buildMainStatCard('RANK', '#264', Icons.language, globalRankColor),
           const CustomVerticalDivider(),

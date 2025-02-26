@@ -137,7 +137,9 @@ class AuthService {
                 if (userName.isNotEmpty) {
                   await _userService.createUserProfile(
                       user: user, userName: userName);
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
                 }
               },
               child: const Text('Submit'),

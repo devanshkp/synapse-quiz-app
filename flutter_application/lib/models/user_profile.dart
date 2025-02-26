@@ -3,18 +3,26 @@ class UserProfile {
   final String userName;
   final String fullName;
   final String avatarUrl;
-  final List<String> selectedCategories;
+  final List<String> selectedTopics;
   final List<String> encounteredQuestions;
   final int questionsSolved;
+  final int solvedTodayCount;
+  final String lastSolvedDate;
+  final int currentStreak;
+  final int maxStreak;
 
   UserProfile({
     required this.userId,
     required this.userName,
     required this.fullName,
     required this.avatarUrl,
-    required this.selectedCategories,
+    required this.selectedTopics,
     required this.encounteredQuestions,
     required this.questionsSolved,
+    required this.solvedTodayCount,
+    required this.lastSolvedDate,
+    required this.currentStreak,
+    required this.maxStreak,
   });
 
   // Factory method to create a UserProfile from a Firestore document
@@ -24,23 +32,31 @@ class UserProfile {
       userName: data['userName'] ?? 'No Username',
       fullName: data['fullName'] ?? 'No Name',
       avatarUrl: data['avatarUrl'] ?? '',
-      selectedCategories: List<String>.from(data['selectedCategories'] ?? []),
+      selectedTopics: List<String>.from(data['selectedTopics'] ?? []),
       encounteredQuestions:
           List<String>.from(data['encounteredQuestions'] ?? []),
       questionsSolved: data['questionsSolved'] ?? 0,
+      solvedTodayCount: data['solvedTodayCount'] ?? 0,
+      lastSolvedDate: data['lastSolvedDate'] ?? '',
+      currentStreak: data['currentStreak'] ?? 0,
+      maxStreak: data['maxStreak'] ?? 0,
     );
   }
 
-  // Method to convert UserProfile to a Map (useful for Firestore updates)
+  // Method to convert UserProfile to a Map
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
       'userName': userName,
       'fullName': fullName,
       'avatarUrl': avatarUrl,
-      'selectedCategories': selectedCategories,
+      'selectedTopics': selectedTopics,
       'encounteredQuestions': encounteredQuestions,
       'questionsSolved': questionsSolved,
+      'solvedTodayCount': solvedTodayCount,
+      'lastSolvedDate': lastSolvedDate,
+      'currentStreak': currentStreak,
+      'maxStreak': maxStreak,
     };
   }
 
@@ -50,19 +66,26 @@ class UserProfile {
     String? userName,
     String? fullName,
     String? avatarUrl,
-    List<String>? selectedCategories,
+    List<String>? selectedTopics,
     List<String>? encounteredQuestions,
     int? questionsSolved,
-    List<String>? friends,
-    List<String>? friendRequests,
+    int? solvedTodayCount,
+    String? lastSolvedDate,
+    int? currentStreak,
+    int? maxStreak,
   }) {
     return UserProfile(
-        userId: userId ?? this.userId,
-        userName: userName ?? this.userName,
-        fullName: fullName ?? this.fullName,
-        avatarUrl: avatarUrl ?? this.avatarUrl,
-        selectedCategories: selectedCategories ?? this.selectedCategories,
-        encounteredQuestions: encounteredQuestions ?? this.encounteredQuestions,
-        questionsSolved: questionsSolved ?? this.questionsSolved);
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      fullName: fullName ?? this.fullName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      selectedTopics: selectedTopics ?? this.selectedTopics,
+      encounteredQuestions: encounteredQuestions ?? this.encounteredQuestions,
+      questionsSolved: questionsSolved ?? this.questionsSolved,
+      solvedTodayCount: solvedTodayCount ?? this.solvedTodayCount,
+      lastSolvedDate: lastSolvedDate ?? this.lastSolvedDate,
+      currentStreak: currentStreak ?? this.currentStreak,
+      maxStreak: maxStreak ?? this.maxStreak,
+    );
   }
 }

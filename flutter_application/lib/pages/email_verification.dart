@@ -8,10 +8,10 @@ class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({super.key});
 
   @override
-  _EmailVerificationPageState createState() => _EmailVerificationPageState();
+  EmailVerificationPageState createState() => EmailVerificationPageState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> {
+class EmailVerificationPageState extends State<EmailVerificationPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isEmailVerified = false;
 

@@ -13,21 +13,21 @@ class UserService {
     await _firestore.collection('users').doc(user.uid).set({
       'userId': user.uid,
       'userName': userName,
-      'fullName': fullName ?? user.displayName ?? 'No Name',
+      'fullName': fullName ?? user.displayName ?? 'User',
       'avatarUrl': avatarUrl ?? '',
-      'selectedCategories': [
-        "neural_networks",
-        "foundational_math",
-        "sorting_algorithms",
-        "machine_learning",
+      'selectedTopics': [
+        "computer_network",
+        "discrete_math",
         "data_structures",
-        "programming_basics",
-        "popular_algorithms",
-        "database_systems",
-        "swe_fundamentals"
+        "algorithms",
+        "probability_&_statistics",
       ],
       'encounteredQuestions': [],
       'questionsSolved': 0,
+      'solvedTodayCount': 0,
+      'lastSolvedDate': '',
+      'currentStreak': 0,
+      'maxStreak': 0,
     });
   }
 }

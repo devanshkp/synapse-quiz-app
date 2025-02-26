@@ -6,29 +6,45 @@ class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
 
   @override
-  _LeaderboardPageState createState() => _LeaderboardPageState();
+  LeaderboardPageState createState() => LeaderboardPageState();
 }
 
-class _LeaderboardPageState extends State<LeaderboardPage>
+class LeaderboardPageState extends State<LeaderboardPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this); // 3 tabs
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundPageColor,
+        body: Container(
+      decoration: const BoxDecoration(
+        color: backgroundPageColor,
+        image: DecorationImage(
+          image: AssetImage('assets/images/shapes.png'),
+          opacity: 0.2,
+          repeat: ImageRepeat.repeat,
+        ),
+      ),
+      child: const Center(
+          child: Text(
+        "To be added...",
+        style: TextStyle(
+            fontWeight: FontWeight.w600, fontSize: 24, color: Colors.white),
+      )),
+    ));
+    return Scaffold(
       appBar: AppBar(
         backgroundColor: backgroundPageColor,
         scrolledUnderElevation: 0.0,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(15), // Height of the TabBar
+          preferredSize: const Size.fromHeight(15),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -52,7 +68,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         ),
       ),
       body: ListView.builder(
-        itemCount: 21, // 1 for static content, 20 for player list
+        itemCount: 21,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(

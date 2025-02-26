@@ -5,18 +5,75 @@ import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/services/friend_service.dart';
 import '../models/user_profile.dart';
 
-class UserProvider with ChangeNotifier {
+class UserProvider extends ChangeNotifier {
   UserProfile? _userProfile;
-  final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final FriendService _friendService = FriendService();
   int _totalQuestions = 0;
   List<Friend> _friends = [];
   List<Friend> _friendRequests = [];
 
   UserProfile? get userProfile => _userProfile;
+  String get currentUserId => _currentUserId;
   int get totalQuestions => _totalQuestions;
   List<Friend> get friends => _friends;
   List<Friend> get friendRequests => _friendRequests;
+
+  UserProvider() {
+    fetchUserProfile();
+    fetchTotalQuestions();
+    notifyListeners();
+  }
+
+  void listenToUserProfile() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .listen((docSnapshot) {
+        if (docSnapshot.exists) {
+          _userProfile = UserProfile.fromMap(docSnapshot.data()!);
+          notifyListeners(); // Notify UI of changes
+        }
+      });
+    }
+  }
+
+  // Real-time listener for friends list
+  void listenToFriendsList() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(user.uid)
+          .collection('userFriends')
+          .snapshots()
+          .listen((snapshot) {
+        _friends =
+            snapshot.docs.map((doc) => Friend.fromMap(doc.data())).toList();
+        notifyListeners(); // Notify UI of changes
+      });
+    }
+  }
+
+  // Real-time listener for friend requests
+  void listenToFriendRequests() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('friendRequests')
+          .doc(user.uid)
+          .collection('pendingRequests')
+          .snapshots()
+          .listen((snapshot) {
+        _friendRequests =
+            snapshot.docs.map((doc) => Friend.fromMap(doc.data())).toList();
+        notifyListeners(); // Notify UI of changes
+      });
+    }
+  }
 
   Future<void> fetchUserProfile() async {
     try {
@@ -44,10 +101,12 @@ class UserProvider with ChangeNotifier {
 
   Future<void> fetchTotalQuestions() async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance
+      final countQuery = await FirebaseFirestore.instance
           .collection('questions')
-          .get(); // Get all documents
-      _totalQuestions = querySnapshot.size; // Get the count of documents
+          .count()
+          .get(); // Only fetches the count
+
+      _totalQuestions = countQuery.count ?? 0; // Store the count
       notifyListeners(); // Notify UI of changes
     } catch (e) {
       debugPrint("Error fetching total questions: $e");
@@ -86,8 +145,30 @@ class UserProvider with ChangeNotifier {
     await fetchTotalQuestions();
   }
 
-  void updateUserProfile(UserProfile userProfile) {
-    _userProfile = userProfile;
+  void updateUserProfile({
+    String? userName,
+    String? fullName,
+    String? avatarUrl,
+    List<String>? selectedTopics,
+    List<String>? encounteredQuestions,
+    int? questionsSolved,
+    int? solvedTodayCount,
+    String? lastSolvedDate,
+    int? currentStreak,
+    int? maxStreak,
+  }) {
+    _userProfile = _userProfile?.copyWith(
+      userName: userName,
+      fullName: fullName,
+      avatarUrl: avatarUrl,
+      selectedTopics: selectedTopics,
+      encounteredQuestions: encounteredQuestions,
+      questionsSolved: questionsSolved,
+      solvedTodayCount: solvedTodayCount,
+      lastSolvedDate: lastSolvedDate,
+      currentStreak: currentStreak,
+      maxStreak: maxStreak,
+    );
     notifyListeners();
   }
 
