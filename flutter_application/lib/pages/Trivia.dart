@@ -8,12 +8,12 @@ import '../widgets/trivia/trivia_drawer.dart';
 import '../widgets/trivia/option_button.dart';
 import '../widgets/trivia/question_timer.dart';
 import '../colors.dart';
+import '../utils/text_formatter.dart';
 
 class TriviaPage extends StatefulWidget {
-  final bool topicSpecified;
+  final String topic;
   final bool quickPlay;
-  const TriviaPage(
-      {super.key, this.topicSpecified = false, this.quickPlay = false});
+  const TriviaPage({super.key, this.topic = '', this.quickPlay = false});
 
   @override
   State<TriviaPage> createState() => _TriviaPageState();
@@ -61,12 +61,12 @@ class _TriviaPageState extends State<TriviaPage>
 
     _topicAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
     );
 
     _closeAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 100),
     );
 
     _animationController.forward();
@@ -343,36 +343,109 @@ class _TriviaPageState extends State<TriviaPage>
               ),
 
               // Red background that appears during swipe
-              if (_drawerOffset > 0)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: _drawerOffset,
-                  child: AnimatedBuilder(
-                    animation: _topicAnimationController,
-                    builder: (context, child) {
-                      const maxIconSize = 40;
-                      final iconSize = maxIconSize *
-                          _topicAnimationController.value *
-                          _iconAnimationValue;
-                      return Container(
-                        color: Colors.red,
-                        child: Opacity(
-                          opacity: _topicAnimationController.value,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.cancel_outlined,
-                                color: Colors.white,
-                                size: iconSize,
+              if (_drawerOffset > 0 && _iconAnimationValue > 0)
+                Positioned.fill(
+                  child: Stack(
+                    children: [
+                      // Animated background
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: _drawerOffset,
+                        child: AnimatedBuilder(
+                          animation: _topicAnimationController,
+                          builder: (context, child) {
+                            return Opacity(
+                              opacity: _iconAnimationValue,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.red.shade600,
+                                      Colors.red.shade800,
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.red.shade900.withOpacity(0.5),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    // Animated pattern overlay
+                                    Positioned.fill(
+                                      child: Opacity(
+                                        opacity: 0.1,
+                                        child: Image.asset(
+                                          'assets/images/shapes.png',
+                                          repeat: ImageRepeat.repeat,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    // Center content
+                                    Center(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          // Icon with immediate scaling based on drag
+                                          Transform.scale(
+                                            scale: 0.8 +
+                                                (0.4 *
+                                                    (_dragExtent /
+                                                            _swipeThreshold)
+                                                        .clamp(0.0, 1.0)),
+                                            child: Icon(
+                                              Icons
+                                                  .remove_circle_outline_rounded,
+                                              color: Colors.white,
+                                              size: 32 *
+                                                  _topicAnimationController
+                                                      .value,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          // Text with fade animation
+                                          Opacity(
+                                            opacity:
+                                                _topicAnimationController.value,
+                                            child: Text(
+                                              'Exclude Topic',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                letterSpacing: 0.5,
+                                                shadows: [
+                                                  Shadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.3),
+                                                    offset: const Offset(0, 2),
+                                                    blurRadius: 4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -507,7 +580,7 @@ class _TriviaPageState extends State<TriviaPage>
             ),
           ],
         ),
-        child: Text(
+        child: TextFormatter.formatText(
           question['question'],
           style: const TextStyle(
             color: Colors.white,

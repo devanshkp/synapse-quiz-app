@@ -16,13 +16,42 @@ class UserProvider extends ChangeNotifier {
   UserProfile? get userProfile => _userProfile;
   String get currentUserId => _currentUserId;
   int get totalQuestions => _totalQuestions;
-  List<Friend> get friends => _friends;
-  List<Friend> get friendRequests => _friendRequests;
+  List<Friend> get friends => List.unmodifiable(_friends);
+  List<Friend> get friendRequests => List.unmodifiable(_friendRequests);
 
   UserProvider() {
     fetchUserProfile();
     fetchTotalQuestions();
+    fetchFriendsList();
+    fetchFriendRequests();
+    _setupFriendsListener();
+    _setupFriendRequestsListener();
     notifyListeners();
+  }
+
+  void _setupFriendsListener() {
+    // Listen to friends collection for changes
+    FirebaseFirestore.instance
+        .collection('friends')
+        .where('userId1', isEqualTo: _currentUserId)
+        .snapshots()
+        .listen((_) => fetchFriendsList());
+
+    FirebaseFirestore.instance
+        .collection('friends')
+        .where('userId2', isEqualTo: _currentUserId)
+        .snapshots()
+        .listen((_) => fetchFriendsList());
+  }
+
+  void _setupFriendRequestsListener() {
+    // Listen to friend requests collection for changes
+    FirebaseFirestore.instance
+        .collection('friend_requests')
+        .where('receiverId', isEqualTo: _currentUserId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .listen((_) => fetchFriendRequests());
   }
 
   void listenToUserProfile() {
@@ -37,40 +66,6 @@ class UserProvider extends ChangeNotifier {
           _userProfile = UserProfile.fromMap(docSnapshot.data()!);
           notifyListeners(); // Notify UI of changes
         }
-      });
-    }
-  }
-
-  // Real-time listener for friends list
-  void listenToFriendsList() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      FirebaseFirestore.instance
-          .collection('friends')
-          .doc(user.uid)
-          .collection('userFriends')
-          .snapshots()
-          .listen((snapshot) {
-        _friends =
-            snapshot.docs.map((doc) => Friend.fromMap(doc.data())).toList();
-        notifyListeners(); // Notify UI of changes
-      });
-    }
-  }
-
-  // Real-time listener for friend requests
-  void listenToFriendRequests() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      FirebaseFirestore.instance
-          .collection('friendRequests')
-          .doc(user.uid)
-          .collection('pendingRequests')
-          .snapshots()
-          .listen((snapshot) {
-        _friendRequests =
-            snapshot.docs.map((doc) => Friend.fromMap(doc.data())).toList();
-        notifyListeners(); // Notify UI of changes
       });
     }
   }
@@ -116,11 +111,8 @@ class UserProvider extends ChangeNotifier {
   // Fetch friends list from Firestore
   Future<void> fetchFriendsList() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        _friends = await _friendService.getFriends(currentUserId);
-        notifyListeners();
-      }
+      _friends = await _friendService.getFriends(_currentUserId);
+      notifyListeners();
     } catch (e) {
       debugPrint("Error fetching friends: $e");
     }
@@ -129,12 +121,9 @@ class UserProvider extends ChangeNotifier {
   // Fetch friend request data (pending requests)
   Future<void> fetchFriendRequests() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        _friendRequests =
-            await _friendService.getPendingFriendRequests(currentUserId);
-        notifyListeners();
-      }
+      _friendRequests =
+          await _friendService.getPendingFriendRequests(_currentUserId);
+      notifyListeners();
     } catch (e) {
       debugPrint("Error fetching friend requests: $e");
     }
@@ -172,10 +161,56 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Function to add a friend locally and update the database
+  Future<void> addFriend(Friend friend) async {
+    try {
+      final result = await _friendService.acceptFriendRequest(friend.userId);
+      if (result['success']) {
+        _friends = [..._friends, friend];
+        _friendRequests.removeWhere((req) => req.userId == friend.userId);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error adding friend: $e");
+    }
+  }
+
+  // Function to remove a friend locally and update the database
+  Future<void> removeFriend(String friendId) async {
+    try {
+      final result = await _friendService.removeFriend(friendId);
+      if (result['success']) {
+        _friends.removeWhere((friend) => friend.userId == friendId);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error removing friend: $e");
+    }
+  }
+
   // Function to clear user data when logging out
   void clearUserData() {
-    debugPrint('User logged out');
     _userProfile = null;
+    _friends = [];
+    _friendRequests = [];
     notifyListeners();
+  }
+
+  Future<UserProfile?> getUserProfileById(String userId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (doc.exists) {
+        return UserProfile.fromMap(doc.data()!);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint("Error fetching user profile by ID: $e");
+      return null;
+    }
   }
 }

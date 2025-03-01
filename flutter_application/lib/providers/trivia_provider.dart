@@ -96,11 +96,26 @@ class TriviaProvider extends ChangeNotifier {
         lastSolved = DateTime.tryParse(lastSolvedDate);
       }
 
-      if (lastSolved == null ||
-          lastSolved
-              .isBefore(DateTime.now().subtract(const Duration(days: 2)))) {
-        // If it's been 2 or more days since the last solved date, reset the streak to 0
+      // Check if the user has missed a day
+      if (lastSolved == null) {
+        // First time user, no streak yet
         currentStreak = 0;
+      } else {
+        // Get yesterday's date
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        final yesterdayDate =
+            DateTime(yesterday.year, yesterday.month, yesterday.day);
+
+        // Get the last solved date without time
+        final lastSolvedWithoutTime =
+            DateTime(lastSolved.year, lastSolved.month, lastSolved.day);
+
+        // If last solved date is before yesterday, they've missed at least one day
+        if (lastSolvedWithoutTime.isBefore(yesterdayDate)) {
+          debugPrint(
+              "Streak reset: Last solved on ${lastSolvedWithoutTime.toIso8601String()}, which is before yesterday (${yesterdayDate.toIso8601String()})");
+          currentStreak = 0;
+        }
       }
 
       // Always reset solved today count if it's a new day
@@ -265,13 +280,90 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   Future<List<String>> fetchAllTopics() async {
-    final querySnapshot =
-        await FirebaseFirestore.instance.collection('questions').get();
-    final topics = querySnapshot.docs
-        .map((doc) => doc['topic'] as String)
-        .toSet()
-        .toList();
-    return topics;
+    try {
+      debugPrint('Fetching topics from metadata...');
+      final topicsDoc =
+          await _firestore.collection('metadata').doc('topics').get();
+
+      if (!topicsDoc.exists) {
+        debugPrint(
+            'Topics metadata document does not exist. Refreshing topics...');
+        return refreshTopicsMetadata();
+      }
+
+      final data = topicsDoc.data();
+      if (data == null || !data.containsKey('list')) {
+        debugPrint('Topics metadata is invalid. Refreshing topics...');
+        return refreshTopicsMetadata();
+      }
+
+      final List<String> topics = List<String>.from(data['list']);
+      if (topics.isEmpty) {
+        debugPrint('Topics list is empty. Refreshing topics...');
+        return refreshTopicsMetadata();
+      }
+
+      debugPrint('Successfully fetched ${topics.length} topics from metadata.');
+      return topics;
+    } catch (e) {
+      debugPrint('Error fetching topics from metadata: $e');
+      debugPrint('Attempting to refresh topics...');
+      return refreshTopicsMetadata();
+    }
+  }
+
+  Future<List<String>> refreshTopicsMetadata() async {
+    try {
+      debugPrint('Refreshing topics metadata...');
+
+      // Fetch all questions to get unique topics
+      debugPrint('Attempting to fetch questions from Firestore...');
+      final querySnapshot = await _firestore.collection('questions').get();
+      debugPrint('Successfully fetched ${querySnapshot.docs.length} questions');
+
+      debugPrint('Extracting topics from questions...');
+      final topics = querySnapshot.docs
+          .map((doc) {
+            return doc['topic'] as String;
+          })
+          .toSet() // Convert to Set to remove duplicates
+          .toList();
+
+      debugPrint('Found unique topics: $topics');
+
+      // Sort topics alphabetically
+      topics.sort();
+      debugPrint('Sorted topics: $topics');
+
+      // Try to update the metadata document, but don't fail if we can't
+      try {
+        debugPrint('Attempting to update metadata document...');
+        await _firestore.collection('metadata').doc('topics').set({
+          'list': topics,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+        debugPrint('Metadata document updated successfully');
+      } catch (e) {
+        // Log the error but continue with the local topics list
+        debugPrint('Warning: Could not update metadata document: $e');
+        debugPrint('Continuing with local topics list');
+      }
+
+      // Refresh the topics in the provider
+      _allTopics = topics;
+      _displayedTopics = topics
+          .map((topic) => topic.replaceAll('_', ' ').toTitleCase)
+          .toList();
+
+      debugPrint(
+          'Topics metadata refreshed. Found ${topics.length} topics: $topics');
+      notifyListeners();
+      return topics;
+    } catch (e, stackTrace) {
+      debugPrint('Error refreshing topics metadata: $e');
+      debugPrint('Stack trace: $stackTrace');
+      throw Exception('Failed to refresh topics metadata: $e');
+    }
   }
 
   Future<void> updateUserSelectedTopics({bool inTriviaPage = false}) async {

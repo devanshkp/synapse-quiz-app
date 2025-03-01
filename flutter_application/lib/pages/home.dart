@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/home/session_history.dart';
-import 'package:flutter_application/widgets/home/topic_selection.dart';
-import 'package:flutter_application/widgets/home/widgets.dart';
+import 'package:flutter_application/widgets/home/home_widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../colors.dart';
@@ -84,7 +83,7 @@ class TopPortion extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Let’s play!',
+                      "Let's play!",
                       style: TextStyle(
                         color: Colors.white, // Bright color for emphasis
                         fontSize: 30,
@@ -131,7 +130,7 @@ class MiddlePortion extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: TopicButton(userProvider: userProvider),
+              child: TopicSelectionButton(userProvider: userProvider),
             ),
             const SizedBox(width: 15), // Space between the two columns
             const Expanded(
@@ -177,94 +176,103 @@ class BottomPortion extends StatelessWidget {
             crossAxisSpacing: 11,
             mainAxisSpacing: 11,
             childAspectRatio: 1,
-            children: [
-              topicButton(
-                title: 'Foundational Math',
-                iconName: 'math.png',
+            children: const [
+              TopicButton(
+                title: 'discrete_math',
+                iconName: 'discrete_math.png',
                 iconSize: 65,
-                color: foundMathColor,
-                onTap: () => debugPrint('Foundational math pressed.'),
+                color: discreteMathColor,
                 rightOffset: -6,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Sorting Algorithms',
-                iconName: 'sort.png',
+              TopicButton(
+                title: 'cloud_computing',
+                iconName: 'cloud_computing.png',
                 iconSize: 65,
-                color: sortingAlgColor,
-                onTap: () => debugPrint('Sorting Algorithms pressed.'),
+                color: cloudComputingColor,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Artificial Intelligence',
+              TopicButton(
+                title: 'artificial_intelligence',
                 iconName: 'artificial_intelligence.png',
                 iconSize: 73,
-                color: artificalIntelligenceColor,
-                onTap: () => debugPrint('Artificial Intelligence pressed.'),
+                color: artificialIntelligenceColor,
                 bottomOffset: -15,
                 rightOffset: -12,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Machine Learning',
+              TopicButton(
+                title: 'machine_learning',
                 iconName: 'machine_learning.png',
                 iconSize: 65,
                 color: machineLearningColor,
-                onTap: () => debugPrint('Machine learning pressed.'),
                 rightOffset: -8,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Data Structures',
-                iconName: 'brace.png',
+              TopicButton(
+                title: 'data_structures',
+                iconName: 'data_structures.png',
                 iconSize: 65,
                 color: dataStructuresColor,
                 rightOffset: -8,
-                onTap: () => debugPrint('Data structures pressed.'),
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Programming Basics',
-                iconName: 'programming.png',
-                iconSize: 65,
-                color: proBasicsColor,
-                onTap: () => debugPrint('Programming basics pressed.'),
+              TopicButton(
+                title: 'cyber_security',
+                iconName: 'cyber_security.png',
+                iconSize: 70,
+                color: cyberSecurityColor,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Popular Algorithms',
-                iconName: 'algorithm.png',
+              TopicButton(
+                title: 'algorithms',
+                iconName: 'algorithms.png',
                 iconSize: 65,
-                color: popularAlgColor,
-                onTap: () => debugPrint('Popular algorithms pressed.'),
+                color: algorithmsColor,
                 rightOffset: -8,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'Database Systems',
+              TopicButton(
+                title: 'database',
                 iconName: 'database.png',
-                iconSize: 65,
-                color: dataBaseColor,
-                onTap: () => debugPrint('Database pressed.'),
+                iconSize: 68,
+                color: databaseColor,
                 radius: 18,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
-              topicButton(
-                title: 'SWE Fundamentals',
-                iconName: 'swe.png',
+              TopicButton(
+                title: 'swe_fundamentals',
+                iconName: 'swe_fundamentals.png',
                 iconSize: 65,
-                color: sweFundColor,
-                onTap: () => debugPrint('SWE fundamentals pressed.'),
+                color: sweFundamentalsColor,
                 radius: 18,
                 rightOffset: -7,
                 titleFontSize: 11,
+                buttonType: 'home',
+                section: 'grid',
               ),
             ],
           ),
@@ -427,29 +435,6 @@ class DailyTaskCard extends StatelessWidget {
   }
 }
 
-class QuickPlayButton extends StatelessWidget {
-  const QuickPlayButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 82,
-      child: customHomeButton(
-        title: 'QUICK PLAY',
-        titleFontSize: 28,
-        titleFontWeight: FontWeight.bold,
-        subtitle: 'Play questions from your selected topics!',
-        subtitleFontSize: 11,
-        iconPath: 'assets/icons/home/Play.svg',
-        iconSize: 22,
-        onTap: () => Navigator.pushNamed(context, '/trivia'),
-        textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
-        iconPadding: const EdgeInsets.only(bottom: 20),
-      ),
-    );
-  }
-}
-
 class HistoryButton extends StatelessWidget {
   const HistoryButton({super.key});
 
@@ -470,31 +455,6 @@ class HistoryButton extends StatelessWidget {
         ),
         textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),
         iconPadding: const EdgeInsets.only(bottom: 20),
-      ),
-    );
-  }
-}
-
-class TopicButton extends StatelessWidget {
-  final UserProvider userProvider;
-
-  const TopicButton({super.key, required this.userProvider});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 72,
-      child: customHomeButton(
-        title: 'Topic Selection',
-        titleFontSize: 16,
-        iconPath: 'assets/icons/home/Edit.svg',
-        iconSize: 15,
-        onTap: () => showDialog(
-          context: context,
-          builder: (context) => const TopicSelectionPopup(),
-        ),
-        textPadding: const EdgeInsets.only(left: 15, right: 11),
-        iconPadding: const EdgeInsets.only(bottom: 25),
       ),
     );
   }

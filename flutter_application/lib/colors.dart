@@ -22,16 +22,19 @@ const Color solvedQuestionsColor = Color.fromARGB(255, 105, 240, 130);
 const Color currentStreakColor = Color.fromARGB(255, 255, 160, 64);
 const Color globalRankColor = Color.fromARGB(255, 64, 207, 255);
 
-// Category Colors
+// Topic Colors
 const Color machineLearningColor = Color.fromARGB(255, 87, 119, 193);
+const Color computerNeworkColor = Color.fromARGB(255, 205, 81, 201);
+const Color dataScienceColor = Color.fromARGB(255, 164, 164, 164);
+const Color probabilityStatisticsColor = Color.fromARGB(255, 187, 74, 74);
 const Color dataStructuresColor = Color.fromARGB(255, 159, 124, 79);
-const Color proBasicsColor = Color.fromARGB(255, 73, 150, 101);
-const Color dataBaseColor = Color.fromARGB(255, 207, 73, 89);
-const Color popularAlgColor = Color.fromARGB(255, 155, 75, 184);
-const Color sweFundColor = Color.fromARGB(255, 81, 161, 144);
-const Color foundMathColor = Color.fromARGB(255, 222, 96, 87);
-const Color sortingAlgColor = Color.fromARGB(255, 230, 142, 59);
-const Color artificalIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
+const Color cloudComputingColor = Color.fromARGB(255, 64, 182, 119);
+const Color databaseColor = Color.fromARGB(255, 42, 167, 198);
+const Color algorithmsColor = Color.fromARGB(255, 130, 102, 214);
+const Color sweFundamentalsColor = Color.fromARGB(255, 214, 116, 24);
+const Color discreteMathColor = Color.fromARGB(255, 222, 96, 87);
+const Color cyberSecurityColor = Color.fromARGB(255, 60, 60, 60);
+const Color artificialIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
 
 // Leaderboard Colors
 const Color goldColor = Color(0xffFFD700);

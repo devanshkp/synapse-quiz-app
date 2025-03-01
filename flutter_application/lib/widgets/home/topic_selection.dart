@@ -3,6 +3,7 @@ import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 
 class TopicSelectionPopup extends StatefulWidget {
   const TopicSelectionPopup({super.key});
@@ -11,25 +12,39 @@ class TopicSelectionPopup extends StatefulWidget {
   TopicSelectionPopupState createState() => TopicSelectionPopupState();
 }
 
-class TopicSelectionPopupState extends State<TopicSelectionPopup> {
+class TopicSelectionPopupState extends State<TopicSelectionPopup>
+    with SingleTickerProviderStateMixin {
   late UserProvider userProvider;
   late TriviaProvider triviaProvider;
   late List<String> _tempSelectedTopics;
+  late AnimationController _animationController;
+  bool _hasLoadedTopics = false;
+
   static const surfaceColor = backgroundPageColor;
   static const headerColor = Color.fromARGB(255, 28, 28, 28);
-  static const primaryAccentColor =
-      Color.fromARGB(255, 123, 70, 229); // Indigo accent
-  static const selectedItemColor =
-      Color(0xFF2D2B55); // Dark purple for selected items
+  static const primaryAccentColor = Color.fromARGB(255, 123, 70, 229);
+  static const selectedItemColor = Color(0xFF2D2B55);
   static const unprimaryAccentColor = Color(0xFF3A3A3A);
   static const textColor = Color(0xFFE0E0E0);
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400), // Essentially instant
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tempSelectedTopics = List.from(triviaProvider.selectedTopics);
+      _animationController.forward();
     });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -55,9 +70,11 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
 
   Future<void> _saveSelection() async {
     triviaProvider.syncTopics(_tempSelectedTopics);
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    Navigator.pop(context);
+  }
+
+  void _handleClose() {
+    Navigator.pop(context);
   }
 
   @override
@@ -65,9 +82,10 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Container(
         width: double.infinity,
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: 480),
         decoration: BoxDecoration(
           color: surfaceColor,
           borderRadius: BorderRadius.circular(24),
@@ -82,13 +100,19 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
         child: Consumer<TriviaProvider>(
           builder: (context, triviaProvider, child) {
             final isLoading = triviaProvider.isLoadingTopics;
+
+            if (!isLoading && !_hasLoadedTopics) {
+              _tempSelectedTopics = List.from(triviaProvider.selectedTopics);
+              _hasLoadedTopics = true;
+            }
+
             return ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildHeader(),
-                  _buildCategoriesGrid(isLoading),
+                  _buildTopicsGrid(isLoading),
                   _buildSaveButton(),
                 ],
               ),
@@ -114,7 +138,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
       child: Row(
         children: [
           const Text(
-            "Select Categories",
+            "Select Topics",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -124,106 +148,130 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close, color: textColor),
-            onPressed: () => Navigator.pop(context),
+            onPressed: _handleClose,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoriesGrid(bool isLoading) {
+  Widget _buildTopicsGrid(bool isLoading) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
         itemCount: isLoading ? 12 : triviaProvider.allTopics.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 2.5,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
+          childAspectRatio: 2.8,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
         ),
         itemBuilder: (context, index) {
           if (isLoading) {
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: headerColor,
-              ),
-            );
+            return _buildLoadingItem();
           } else {
             final unformattedTopic = triviaProvider.allTopics[index];
             final topic = triviaProvider.displayedTopics[index];
             final bool isSelected =
                 _tempSelectedTopics.contains(unformattedTopic);
-
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _toggleTopic(topic),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? primaryAccentColor
-                            : unprimaryAccentColor,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      color: isSelected ? selectedItemColor : headerColor,
-                    ),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Center(
-                            child: Text(
-                              topic,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
-                                color: isSelected ? Colors.white : textColor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        if (isSelected)
-                          const Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Icon(
-                              Icons.check_circle_outline_outlined,
-                              size: 16,
-                              color: primaryAccentColor,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
+            return _buildTopicItem(topic, isSelected);
           }
         },
       ),
     );
   }
 
+  Widget _buildLoadingItem() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: headerColor,
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(primaryAccentColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopicItem(String topic, bool isSelected) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _toggleTopic(topic),
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? primaryAccentColor : unprimaryAccentColor,
+              width: isSelected ? 2 : 1,
+            ),
+            color: isSelected ? selectedItemColor : headerColor,
+            boxShadow: [
+              if (isSelected)
+                BoxShadow(
+                  color: primaryAccentColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 0,
+                ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    topic.replaceAll('_', ' ').toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isSelected ? Colors.white : textColor,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Opacity(
+                  opacity: isSelected ? 1.0 : 0.0,
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 1000),
+                    scale: isSelected ? 1.0 : 0.0,
+                    curve: Curves.elasticOut,
+                    child: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 16,
+                      color: primaryAccentColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSaveButton() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15, left: 20, right: 20),
+      padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
       child: ElevatedButton(
         onPressed: _saveSelection,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 123, 70, 229),
-          minimumSize: const Size(double.infinity, 45),
+          backgroundColor: primaryAccentColor,
+          minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -232,9 +280,10 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup> {
         child: const Text(
           "Save Selection",
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
+            letterSpacing: 0.5,
           ),
         ),
       ),

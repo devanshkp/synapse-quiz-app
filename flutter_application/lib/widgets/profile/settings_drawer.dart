@@ -100,6 +100,33 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
               onTap: Provider.of<TriviaProvider>(context, listen: false)
                   .addRandomFieldToQuestions,
             ),
+            const SizedBox(height: 12),
+            _buildSettingsCard(
+              icon: Icons.refresh_rounded,
+              text: 'Refresh Topics',
+              color: Colors.green.withOpacity(0.8),
+              onTap: () async {
+                try {
+                  await Provider.of<TriviaProvider>(context, listen: false)
+                      .refreshTopicsMetadata();
+                  if (mounted) {
+                    floatingSnackBar(
+                      message: 'Topics refreshed successfully',
+                      context: context,
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to refresh topics: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
           ],
         ],
       ),

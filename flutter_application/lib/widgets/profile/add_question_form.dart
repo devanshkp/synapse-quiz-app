@@ -17,9 +17,9 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
   final TextEditingController _hintController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
   final TextEditingController _optionsController = TextEditingController();
-  String? _selectedCategory;
+  String? _selectedTopic;
 
-  final List<String> _categories = [
+  final List<String> _topics = [
     "neural_networks",
     "foundational_math",
     "sorting_algorithms",
@@ -44,7 +44,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
     if (_formKey.currentState?.validate() ?? false) {
       final question = {
         'title': _titleController.text,
-        'category': _selectedCategory,
+        'Topic': _selectedTopic,
         'hint': _hintController.text,
         'answer': _answerController.text,
         'options':
@@ -102,11 +102,11 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
               ),
               const SizedBox(height: 16),
               _buildDropdown(
-                label: 'Category',
-                items: _categories,
-                onChanged: (value) => setState(() => _selectedCategory = value),
+                label: 'Topic',
+                items: _topics,
+                onChanged: (value) => setState(() => _selectedTopic = value),
                 validator: (value) =>
-                    value == null ? 'Category is required' : null,
+                    value == null ? 'Topic is required' : null,
               ),
               const SizedBox(height: 16),
               _buildTextField(
@@ -193,7 +193,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
     required String? Function(String?)? validator,
   }) {
     return DropdownButtonFormField<String>(
-      value: _selectedCategory,
+      value: _selectedTopic,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
@@ -204,11 +204,11 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
           borderSide: BorderSide.none,
         ),
       ),
-      items: items.map((category) {
+      items: items.map((Topic) {
         return DropdownMenuItem(
-          value: category,
+          value: Topic,
           child: Text(
-            category,
+            Topic,
             style: const TextStyle(color: Colors.white),
           ),
         );

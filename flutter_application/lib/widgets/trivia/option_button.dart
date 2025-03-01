@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 
 class OptionButton extends StatelessWidget {
   final String option;
@@ -46,13 +47,14 @@ class OptionButton extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 width: double.infinity,
-                child: Text(
+                child: TextFormatter.formatText(
                   option,
-                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
+                    color: Colors.white,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

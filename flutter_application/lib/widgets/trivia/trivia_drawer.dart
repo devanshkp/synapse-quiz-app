@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/widgets/trivia/bottom_buttons.dart';
 import 'package:string_extensions/string_extensions.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 
 class TriviaDrawer extends StatefulWidget {
   final Map<String, dynamic> question;
@@ -127,7 +128,7 @@ class TriviaDrawerState extends State<TriviaDrawer> {
                     ),
                   ),
                 ),
-              Text(
+              TextFormatter.formatText(
                 widget.isAnswered
                     ? (widget.question['explanation'] ??
                         'No explanation available.')
@@ -138,6 +139,7 @@ class TriviaDrawerState extends State<TriviaDrawer> {
                   height: 1.6,
                   fontWeight: FontWeight.w400,
                 ),
+                textAlign: TextAlign.left,
               ),
             ],
           ),

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/services/friend_service.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 
 class UserProfileHeader extends StatelessWidget {
-  final FriendService _friendService = FriendService();
-
-  UserProfileHeader({super.key});
+  const UserProfileHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,40 +41,33 @@ class UserProfileHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 5),
-            StreamBuilder<int>(
-              stream: _friendService.getFriendCountStream(userProfile.userId),
-              builder: (context, snapshot) {
-                final friendCount = snapshot.data ?? 0;
-
-                return RichText(
-                  text: TextSpan(
-                    text: '${userProfile.fullName} • ',
+            RichText(
+              text: TextSpan(
+                text: '${userProfile.fullName} • ',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Colors.white70,
+                  fontSize: 12,
+                  letterSpacing: 0.5,
+                ),
+                children: [
+                  TextSpan(
+                    text: '${userProvider.friends.length}',
                     style: const TextStyle(
-                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' Friends',
+                    style: TextStyle(
                       color: Colors.white70,
                       fontSize: 12,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
-                    children: [
-                      TextSpan(
-                        text: '$friendCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const TextSpan(
-                        text: ' Friends',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
                   ),
-                );
-              },
+                ],
+              ),
             ),
           ],
         );

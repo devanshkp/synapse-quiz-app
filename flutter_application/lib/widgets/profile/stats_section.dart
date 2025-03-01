@@ -36,8 +36,12 @@ class StatsSection extends StatelessWidget {
               children: [
                 _buildStatCard('Member Since', 'Jan, 2022'),
                 SizedBox(width: statsSpacing),
-                _buildStatCard('Longest Streak', '124 Days',
-                    isHighlighted: true),
+                _buildStatCard(
+                  // Day or days if maxStreak is greater than 1
+                  'Longest Streak',
+                  '${userProfile.maxStreak} ${userProfile.maxStreak == 1 ? 'Day' : 'Days'}',
+                  isHighlighted: true,
+                ),
               ],
             ),
             SizedBox(height: statsSpacing),
@@ -121,7 +125,7 @@ class StatsSection extends StatelessWidget {
                     TextSpan(
                       text: '${value.split(' ').first} ',
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -129,7 +133,7 @@ class StatsSection extends StatelessWidget {
                   TextSpan(
                     text: value.split(' ').sublist(1).join(' '),
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -160,7 +164,7 @@ class StatsSection extends StatelessWidget {
             children: [
               const Flexible(
                 child: Text(
-                  'Top performance by category',
+                  'Top performance by topic',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15.5,
