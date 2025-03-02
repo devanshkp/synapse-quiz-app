@@ -47,6 +47,8 @@ dependencies:
   string_extensions: ^0.7.3
   flutter_advanced_drawer: ^1.4.0
   flutter_zoom_drawer: ^3.2.0
+  intl: ^0.19.0
+  contentsize_tabbarview: ^0.0.2
 
 dev_dependencies:
   flutter_test:

@@ -58,7 +58,7 @@ class TopPortion extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final String firstName =
-            userProvider.userProfile?.fullName.split(' ')[0] ?? 'Guest';
+            userProvider.userProfile?.fullName.split(' ')[0] ?? 'Player';
         final int questionCount =
             Provider.of<TriviaProvider>(context, listen: false)
                 .questions

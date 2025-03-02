@@ -240,9 +240,9 @@ class _OtherProfilePageState extends State<OtherProfilePage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const TextSpan(
-                    text: ' Friends',
-                    style: TextStyle(
+                  TextSpan(
+                    text: friendCount == 1 ? ' Friend' : ' Friends',
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 12,
                       letterSpacing: 0.4,

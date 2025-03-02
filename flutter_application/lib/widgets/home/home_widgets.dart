@@ -151,7 +151,7 @@ class TopicButton extends StatelessWidget {
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   TopicDetailsPage(
-                topicName: title.replaceAll('_', ' ').toTitleCase,
+                topicName: title,
                 iconName: iconName,
                 topicColor: color,
                 buttonType: buttonType,

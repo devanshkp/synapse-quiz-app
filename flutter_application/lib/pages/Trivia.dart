@@ -13,7 +13,13 @@ import '../utils/text_formatter.dart';
 class TriviaPage extends StatefulWidget {
   final String topic;
   final bool quickPlay;
-  const TriviaPage({super.key, this.topic = '', this.quickPlay = false});
+  final bool isTemporarySession;
+  const TriviaPage({
+    super.key,
+    this.topic = '',
+    this.quickPlay = false,
+    this.isTemporarySession = false,
+  });
 
   @override
   State<TriviaPage> createState() => _TriviaPageState();
@@ -79,6 +85,12 @@ class _TriviaPageState extends State<TriviaPage>
     _topicAnimationController.dispose();
     _closeAnimController.dispose();
     _triviaProvider.setTriviaActive(false);
+
+    // End temporary session if active
+    if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
+      _triviaProvider.endTemporaryTopicSession();
+    }
+
     ObserverService.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -98,12 +110,28 @@ class _TriviaPageState extends State<TriviaPage>
     super.didChangeDependencies();
     _triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
     ObserverService.routeObserver.subscribe(this, ModalRoute.of(context)!);
+
+    // Initialize temporary topic session if needed
+    if (widget.isTemporarySession && widget.topic.isNotEmpty) {
+      // Use post-frame callback to avoid state changes during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _triviaProvider.startTemporaryTopicSession(widget.topic);
+      });
+    }
   }
 
   @override
   void didPush() {
     debugPrint("pushed");
     _triviaProvider.setTriviaActive(true);
+  }
+
+  @override
+  void didPop() {
+    // End temporary session when navigating back
+    if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
+      _triviaProvider.endTemporaryTopicSession();
+    }
   }
 
   // ============================== SWIPE GESTURE HANDLERS ==============================
@@ -325,7 +353,7 @@ class _TriviaPageState extends State<TriviaPage>
                           ],
                         ),
                       ),
-                      if (widget.quickPlay)
+                      if (widget.quickPlay || widget.isTemporarySession)
                         Positioned(
                           top: 20,
                           left: 10,

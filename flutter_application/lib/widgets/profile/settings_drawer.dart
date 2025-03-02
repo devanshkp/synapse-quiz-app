@@ -104,7 +104,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
             _buildSettingsCard(
               icon: Icons.refresh_rounded,
               text: 'Refresh Topics',
-              color: Colors.green.withOpacity(0.8),
+              color: Colors.deepPurple.withOpacity(0.8),
               onTap: () async {
                 try {
                   await Provider.of<TriviaProvider>(context, listen: false)

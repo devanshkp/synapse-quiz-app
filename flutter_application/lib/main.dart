@@ -71,7 +71,7 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class BottomNavBarState extends State<BottomNavBar> {
-  int _currentIndex = 1; // Track the current tab index
+  int _currentIndex = 0; // Track the current tab index
 
   // List of pages (widgets) to display
   final List<Widget> _screens = [

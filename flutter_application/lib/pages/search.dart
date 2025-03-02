@@ -211,31 +211,31 @@ class _SearchPageState extends State<SearchPage> {
           _searchFocusNode.unfocus();
         },
         child: Scaffold(
-          appBar: AppBar(
-            elevation: 0,
+      appBar: AppBar(
+        elevation: 0,
             backgroundColor: backgroundPageColor,
             toolbarHeight: 90,
-            title: Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Container(
+        title: Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
                 child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
+              children: [
+                Expanded(
+                  child: TextField(
                         controller: _searchController,
                         focusNode: _searchFocusNode,
                         style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
-                          hintText: "Search Topics...",
-                          hintStyle: TextStyle(color: Colors.black54),
-                          border: InputBorder.none,
-                        ),
+                      hintText: "Search Topics...",
+                      hintStyle: TextStyle(color: Colors.black54),
+                      border: InputBorder.none,
+                    ),
                         onChanged: _filterTopics,
                       ),
                     ),
@@ -255,36 +255,36 @@ class _SearchPageState extends State<SearchPage> {
                           : null,
                       child: Icon(
                         _searchQuery.isNotEmpty ? Icons.close : Icons.search,
-                        color: Colors.black,
+                  color: Colors.black,
                       ),
-                    ),
-                  ],
                 ),
-              ),
+              ],
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.only(left: 18, right: 18),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(left: 18, right: 18),
             child: ListView(
               children: [
                 const SizedBox(height: 30),
 
                 // Show recommended section only if not searching
                 if (_searchQuery.isEmpty) ...[
-                  const Text(
-                    "Recommended for you",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                const Text(
+                  "Recommended for you",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 20),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.85,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
+                ),
+                const SizedBox(height: 20),
+                GridView.count(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.85,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: _recommendedTopics
@@ -293,14 +293,14 @@ class _SearchPageState extends State<SearchPage> {
                               iconName: topic['iconName'],
                               iconSize: topic['iconSize'],
                               color: topic['color'],
-                              titleFontSize: 13,
+                        titleFontSize: 13,
                               buttonType: "search",
                               section: topic['section'],
                               bottomOffset: topic['bottomOffset'] ?? 0,
                             ))
                         .toList(),
-                  ),
-                  const SizedBox(height: 30),
+                ),
+                const SizedBox(height: 30),
                 ],
 
                 // All topics or search results
@@ -326,10 +326,10 @@ class _SearchPageState extends State<SearchPage> {
                     : _searchQuery.isEmpty
                         // Grid view for all topics (when not searching)
                         ? GridView.count(
-                            crossAxisCount: 2,
-                            childAspectRatio: 1.85,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 16,
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.85,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             children: _filteredTopics
@@ -338,7 +338,7 @@ class _SearchPageState extends State<SearchPage> {
                                       iconName: topic['iconName'],
                                       iconSize: topic['iconSize'],
                                       color: topic['color'],
-                                      titleFontSize: 13,
+                        titleFontSize: 13,
                                       buttonType: "search",
                                       section: topic['section'],
                                       bottomOffset: topic['bottomOffset'] ?? 0,
@@ -397,10 +397,7 @@ class _SearchPageState extends State<SearchPage> {
                                           pageBuilder: (context, animation,
                                                   secondaryAnimation) =>
                                               TopicDetailsPage(
-                                            topicName: toTitleCase(
-                                                topic['title']
-                                                    .toString()
-                                                    .replaceAll('_', ' ')),
+                                            topicName: topic['title'],
                                             iconName: topic['iconName'],
                                             topicColor: topic['color'],
                                             buttonType: "search",

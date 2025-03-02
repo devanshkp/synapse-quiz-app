@@ -11,7 +11,7 @@ class UserProfileHeader extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final userProfile = userProvider.userProfile;
-
+        final friendCount = userProvider.friends.length;
         if (userProfile == null) {
           // Handle case when user profile is null (e.g., after logout)
           return const Center(child: Text("No user data available"));
@@ -52,15 +52,15 @@ class UserProfileHeader extends StatelessWidget {
                 ),
                 children: [
                   TextSpan(
-                    text: '${userProvider.friends.length}',
+                    text: '$friendCount',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const TextSpan(
-                    text: ' Friends',
-                    style: TextStyle(
+                  TextSpan(
+                    text: friendCount == 1 ? ' Friend' : ' Friends',
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 12,
                       letterSpacing: 0.4,

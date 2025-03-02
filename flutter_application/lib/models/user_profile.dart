@@ -10,6 +10,7 @@ class UserProfile {
   final String lastSolvedDate;
   final int currentStreak;
   final int maxStreak;
+  final Map<String, int> topicQuestionsSolved;
 
   UserProfile({
     required this.userId,
@@ -23,6 +24,7 @@ class UserProfile {
     required this.lastSolvedDate,
     required this.currentStreak,
     required this.maxStreak,
+    required this.topicQuestionsSolved,
   });
 
   // Factory method to create a UserProfile from a Firestore document
@@ -40,6 +42,8 @@ class UserProfile {
       lastSolvedDate: data['lastSolvedDate'] ?? '',
       currentStreak: data['currentStreak'] ?? 0,
       maxStreak: data['maxStreak'] ?? 0,
+      topicQuestionsSolved:
+          Map<String, int>.from(data['topicQuestionsSolved'] ?? {}),
     );
   }
 
@@ -57,6 +61,7 @@ class UserProfile {
       'lastSolvedDate': lastSolvedDate,
       'currentStreak': currentStreak,
       'maxStreak': maxStreak,
+      'topicQuestionsSolved': topicQuestionsSolved,
     };
   }
 
@@ -73,6 +78,7 @@ class UserProfile {
     String? lastSolvedDate,
     int? currentStreak,
     int? maxStreak,
+    Map<String, int>? topicQuestionsSolved,
   }) {
     return UserProfile(
       userId: userId ?? this.userId,
@@ -86,6 +92,7 @@ class UserProfile {
       lastSolvedDate: lastSolvedDate ?? this.lastSolvedDate,
       currentStreak: currentStreak ?? this.currentStreak,
       maxStreak: maxStreak ?? this.maxStreak,
+      topicQuestionsSolved: topicQuestionsSolved ?? this.topicQuestionsSolved,
     );
   }
 }

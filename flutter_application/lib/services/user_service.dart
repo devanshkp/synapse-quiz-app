@@ -28,6 +28,7 @@ class UserService {
       'lastSolvedDate': '',
       'currentStreak': 0,
       'maxStreak': 0,
+      'topicQuestionsSolved': {},
     });
   }
 }

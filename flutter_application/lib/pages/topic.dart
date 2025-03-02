@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/pages/trivia.dart';
+import 'package:string_extensions/string_extensions.dart';
 
 class TopicDetailsPage extends StatelessWidget {
   final String topicName;
@@ -85,12 +86,15 @@ class TopicDetailsPage extends StatelessWidget {
                             tag: 'topic_title_$heroBaseTag',
                             child: Material(
                               color: Colors.transparent,
-                              child: Text(
-                                topicName,
-                                style: const TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  topicName.replaceAll('_', ' ').toTitleCase,
+                                  style: const TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -100,7 +104,7 @@ class TopicDetailsPage extends StatelessWidget {
 
                           // Topic Description
                           Text(
-                            'Explore exciting questions about $topicName and test your knowledge!',
+                            'Explore exciting questions about ${topicName.replaceAll('_', ' ').toTitleCase} and test your knowledge!',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.white.withOpacity(0.9),
@@ -114,11 +118,14 @@ class TopicDetailsPage extends StatelessWidget {
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
+                                // Launch a temporary topic session
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        TriviaPage(topic: topicName),
+                                    builder: (context) => TriviaPage(
+                                      topic: topicName,
+                                      isTemporarySession: true,
+                                    ),
                                   ),
                                 );
                               },

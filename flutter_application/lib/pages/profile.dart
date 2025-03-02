@@ -7,10 +7,12 @@ import 'package:flutter_application/widgets/profile/settings_drawer.dart';
 import 'package:flutter_application/widgets/profile/user_profile_header.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:flutter_application/widgets/profile/stats_section.dart';
+import 'package:flutter_application/widgets/profile/badges_section.dart';
+import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
- 
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -25,12 +27,16 @@ class _ProfilePageState extends State<ProfilePage>
   UserProfile? userProfile;
   final double expandedHeight = 110.0;
 
-
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    // Set up listeners for user profile and total questions changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.listenToUserProfile();
+    });
   }
 
   @override
@@ -48,79 +54,73 @@ class _ProfilePageState extends State<ProfilePage>
       ),
       drawer: const FriendsDrawer(),
       endDrawer: const SettingsDrawer(),
-      body: ListView.builder(
-        itemCount: 4, // Adjust based on your number of sections/items
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Column(
-              children: [
-                const SizedBox(height: 20),
-                UserProfileHeader(),
-              ],
-            );
-          } else if (index == 1) {
-            return Column(
-              children: [
-                const SizedBox(height: 20),
-                Consumer<UserProvider>(
-                  builder: (context, userProvider, child) {
-                    final userProfile = userProvider.userProfile;
-                    if (userProfile == null) {
-                      return const SizedBox.shrink();
-                    }
-                    return MainStats(
-                      userProfile: userProfile,
-                      totalQuestions: userProvider.totalQuestions,
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-              ],
-            );
-          } else if (index == 2) {
-            return CustomTabBar(
-              controller: _tabController,
-              tabs: const ['Stats', 'Badges'],
-            );
-          } else if (index == 3) {
-            return Column(
-              children: [
-                const SizedBox(height: 10),
-                _buildTabContent(),
-              ],
-            );
-          }
-          return const SizedBox.shrink(); // Fallback for any undefined indices
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh user data
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          await userProvider.refreshUserProfile();
         },
-      ),
-    );
-  }
+        color: const Color(0xFF6C5CE7),
+        backgroundColor: const Color(0xFF2C2C2C),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Profile header section
+              const SizedBox(height: 20),
+              const UserProfileHeader(),
+              const SizedBox(height: 25),
 
-  Widget _buildTabContent() {
-    return SizedBox(
-      height: 515,
-      child: TabBarView(
-        controller: _tabController,
-        children: [
-          Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              final userProfile = userProvider.userProfile;
+              // Main stats section
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  final userProfile = userProvider.userProfile;
+                  if (userProfile == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return MainStats(
+                    userProfile: userProfile,
+                    totalQuestions: userProvider.totalQuestions,
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 25),
 
-              if (userProfile == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              // Tab bar
+              CustomTabBar(
+                controller: _tabController,
+                tabs: const ['Stats', 'Badges'],
+                horizontalPadding: 28,
+                tabHeight: 40,
+                indicatorPadding: const EdgeInsets.all(2),
+              ),
+              const SizedBox(height: 15),
 
-              return StatsSection(userProfile: userProfile);
-            },
+              // Tab content with responsive height
+              ContentSizeTabBarView(
+                controller: _tabController,
+                children: [
+                  Consumer<UserProvider>(
+                    builder: (context, userProvider, child) {
+                      final userProfile = userProvider.userProfile;
+                      if (userProfile == null) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return StatsSection(userProfile: userProfile);
+                    },
+                  ),
+                  const BadgesSection(),
+                ],
+              ),
+
+              // Bottom padding
+              const SizedBox(height: 20),
+            ],
           ),
-          _buildBadgesSection(),
-        ],
+        ),
       ),
     );
-  }
-
-  // Placeholder for badges section
-  Widget _buildBadgesSection() {
-    return const Padding(padding: EdgeInsets.all(12.0));
   }
 }

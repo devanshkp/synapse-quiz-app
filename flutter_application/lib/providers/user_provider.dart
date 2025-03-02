@@ -24,6 +24,7 @@ class UserProvider extends ChangeNotifier {
     fetchTotalQuestions();
     fetchFriendsList();
     fetchFriendRequests();
+    listenToUserProfile();
     _setupFriendsListener();
     _setupFriendRequestsListener();
     notifyListeners();
@@ -145,6 +146,7 @@ class UserProvider extends ChangeNotifier {
     String? lastSolvedDate,
     int? currentStreak,
     int? maxStreak,
+    Map<String, int>? topicQuestionsSolved,
   }) {
     _userProfile = _userProfile?.copyWith(
       userName: userName,
@@ -157,6 +159,7 @@ class UserProvider extends ChangeNotifier {
       lastSolvedDate: lastSolvedDate,
       currentStreak: currentStreak,
       maxStreak: maxStreak,
+      topicQuestionsSolved: topicQuestionsSolved,
     );
     notifyListeners();
   }
