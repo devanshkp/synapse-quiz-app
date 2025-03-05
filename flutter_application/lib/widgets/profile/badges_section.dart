@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
@@ -28,8 +30,6 @@ class _BadgesSectionState extends State<BadgesSection> {
     }
     final topicCounts = triviaProvider.topicCounts;
 
-    debugPrint('BadgesSection - Topic Counts from Provider: $topicCounts');
-
     if (mounted) {
       setState(() {
         _topicCounts = topicCounts;
@@ -44,14 +44,8 @@ class _BadgesSectionState extends State<BadgesSection> {
       builder: (context, userProvider, child) {
         final userProfile = userProvider.userProfile;
         if (userProfile == null || _isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CustomCircularProgressIndicator());
         }
-
-        debugPrint(
-            'BadgesSection - Selected Topics: ${userProfile.selectedTopics}');
-        debugPrint('BadgesSection - Topic Counts: $_topicCounts');
-        debugPrint(
-            'BadgesSection - Topic Questions Solved: ${userProfile.topicQuestionsSolved}');
 
         // Check if any topic has a perfect score (all questions solved)
         bool hasPerfectScore = false;
@@ -64,9 +58,6 @@ class _BadgesSectionState extends State<BadgesSection> {
             final solvedCount = entry.value;
             final totalCount = _topicCounts[topic] ?? 0;
 
-            debugPrint(
-                'BadgesSection - Checking topic: $topic, solved: $solvedCount, total: $totalCount');
-
             if (totalCount > 0 && solvedCount == totalCount) {
               hasPerfectScore = true;
               perfectTopic = topic.replaceAll('_', ' ');
@@ -76,8 +67,6 @@ class _BadgesSectionState extends State<BadgesSection> {
                       ? '${word[0].toUpperCase()}${word.substring(1)}'
                       : '')
                   .join(' ');
-              debugPrint(
-                  'BadgesSection - Perfect score found for topic: $perfectTopic');
               break;
             }
           }
@@ -92,14 +81,8 @@ class _BadgesSectionState extends State<BadgesSection> {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF2C2C2C),
-                      Color(0xFF232323),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  gradient: profileCardGradient,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: GridView.builder(
@@ -237,7 +220,7 @@ class _BadgesSectionState extends State<BadgesSection> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: unlocked ? Colors.white : Colors.white54,
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: unlocked
                                   ? FontWeight.w500
                                   : FontWeight.normal,
@@ -305,14 +288,8 @@ class _BadgesSectionState extends State<BadgesSection> {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF2C2C2C),
-            Color(0xFF232323),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(

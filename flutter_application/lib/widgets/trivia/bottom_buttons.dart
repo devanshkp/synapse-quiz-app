@@ -33,7 +33,7 @@ class SkipButton extends StatelessWidget {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(
           horizontal: 20,
-          vertical: 7,
+          vertical: 9,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -41,7 +41,10 @@ class SkipButton extends StatelessWidget {
         elevation: 5,
         shadowColor: Colors.black.withOpacity(0.4),
       ),
-      child: const Text("Skip Question"),
+      child: const Text(
+        "SKIP QUESTION",
+        style: TextStyle(fontSize: 13),
+      ),
     );
   }
 }
@@ -57,8 +60,11 @@ class NextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: const Icon(Icons.arrow_forward),
-      label: const Text('Next Question'),
+      icon: const Icon(Icons.arrow_forward, size: 18),
+      label: const Text(
+        'NEXT QUESTION',
+        style: TextStyle(fontSize: 13),
+      ),
       style: ElevatedButton.styleFrom(
         minimumSize:
             (drawerButton) ? const Size.fromHeight(5) : const Size(200, 5),
@@ -67,7 +73,7 @@ class NextButton extends StatelessWidget {
         foregroundColor: Colors.black,
         padding: const EdgeInsets.symmetric(
           horizontal: 20,
-          vertical: 7,
+          vertical: 9,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),

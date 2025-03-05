@@ -1,4 +1,6 @@
+import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/models/user_profile.dart';
+import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/profile/friends_drawer.dart';
 import 'package:flutter_application/widgets/profile/main_stats.dart';
@@ -61,63 +63,76 @@ class _ProfilePageState extends State<ProfilePage>
               Provider.of<UserProvider>(context, listen: false);
           await userProvider.refreshUserProfile();
         },
-        color: const Color(0xFF6C5CE7),
+        color: Colors.white,
         backgroundColor: const Color(0xFF2C2C2C),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // Profile header section
-              const SizedBox(height: 20),
-              const UserProfileHeader(),
-              const SizedBox(height: 25),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: backgroundPageColor,
+            image: DecorationImage(
+              image: AssetImage('assets/images/shapes.png'),
+              opacity: 0.15,
+              repeat: ImageRepeat.repeat,
+            ),
+          ),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                // Profile header section
+                const SizedBox(height: 20),
+                const UserProfileHeader(),
+                const SizedBox(height: 25),
 
-              // Main stats section
-              Consumer<UserProvider>(
-                builder: (context, userProvider, child) {
-                  final userProfile = userProvider.userProfile;
-                  if (userProfile == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return MainStats(
-                    userProfile: userProfile,
-                    totalQuestions: userProvider.totalQuestions,
-                  );
-                },
-              ),
-              
-              const SizedBox(height: 25),
+                // Main stats section
+                Consumer<UserProvider>(
+                  builder: (context, userProvider, child) {
+                    final userProfile = userProvider.userProfile;
+                    if (userProfile == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return MainStats(
+                      userProfile: userProfile,
+                      totalQuestions:
+                          Provider.of<TriviaProvider>(context, listen: false)
+                              .totalQuestions,
+                    );
+                  },
+                ),
 
-              // Tab bar
-              CustomTabBar(
-                controller: _tabController,
-                tabs: const ['Stats', 'Badges'],
-                horizontalPadding: 28,
-                tabHeight: 40,
-                indicatorPadding: const EdgeInsets.all(2),
-              ),
-              const SizedBox(height: 15),
+                const SizedBox(height: 25),
 
-              // Tab content with responsive height
-              ContentSizeTabBarView(
-                controller: _tabController,
-                children: [
-                  Consumer<UserProvider>(
-                    builder: (context, userProvider, child) {
-                      final userProfile = userProvider.userProfile;
-                      if (userProfile == null) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return StatsSection(userProfile: userProfile);
-                    },
-                  ),
-                  const BadgesSection(),
-                ],
-              ),
+                // Tab bar
+                CustomTabBar(
+                  controller: _tabController,
+                  tabs: const ['Stats', 'Badges'],
+                  horizontalPadding: 28,
+                  tabHeight: 40,
+                  indicatorPadding: const EdgeInsets.all(2),
+                ),
+                const SizedBox(height: 15),
 
-              // Bottom padding
-              const SizedBox(height: 20),
-            ],
+                // Tab content
+                ContentSizeTabBarView(
+                  controller: _tabController,
+                  children: [
+                    Consumer<UserProvider>(
+                      builder: (context, userProvider, child) {
+                        final userProfile = userProvider.userProfile;
+                        if (userProfile == null) {
+                          return const Center(
+                              child: CustomCircularProgressIndicator());
+                        }
+                        return StatsSection(userProfile: userProfile);
+                      },
+                    ),
+                    const BadgesSection(),
+                  ],
+                ),
+
+                // Bottom padding
+                const SizedBox(height: 15),
+              ],
+            ),
           ),
         ),
       ),

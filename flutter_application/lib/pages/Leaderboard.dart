@@ -33,7 +33,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
       ),
       child: const Center(
           child: Text(
-        "To be added...",
+        "Coming soon!",
         style: TextStyle(
             fontWeight: FontWeight.w600, fontSize: 24, color: Colors.white),
       )),

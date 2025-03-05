@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserProfile {
   final String userId;
   final String userName;
@@ -11,6 +13,7 @@ class UserProfile {
   final int currentStreak;
   final int maxStreak;
   final Map<String, int> topicQuestionsSolved;
+  final DateTime joinDate;
 
   UserProfile({
     required this.userId,
@@ -25,10 +28,28 @@ class UserProfile {
     required this.currentStreak,
     required this.maxStreak,
     required this.topicQuestionsSolved,
+    required this.joinDate,
   });
 
   // Factory method to create a UserProfile from a Firestore document
   factory UserProfile.fromMap(Map<String, dynamic> data) {
+    // Convert Firestore Timestamp to DateTime, or use current date if not available
+    DateTime joinDate;
+    if (data['joinDate'] != null) {
+      if (data['joinDate'] is Timestamp) {
+        joinDate = (data['joinDate'] as Timestamp).toDate();
+      } else {
+        // Try to parse from string if it's not a Timestamp
+        try {
+          joinDate = DateTime.parse(data['joinDate'].toString());
+        } catch (e) {
+          joinDate = DateTime.now();
+        }
+      }
+    } else {
+      joinDate = DateTime.now();
+    }
+
     return UserProfile(
       userId: data['userId'] ?? '',
       userName: data['userName'] ?? 'No Username',
@@ -44,6 +65,7 @@ class UserProfile {
       maxStreak: data['maxStreak'] ?? 0,
       topicQuestionsSolved:
           Map<String, int>.from(data['topicQuestionsSolved'] ?? {}),
+      joinDate: joinDate,
     );
   }
 
@@ -62,6 +84,7 @@ class UserProfile {
       'currentStreak': currentStreak,
       'maxStreak': maxStreak,
       'topicQuestionsSolved': topicQuestionsSolved,
+      'joinDate': joinDate,
     };
   }
 
@@ -79,6 +102,7 @@ class UserProfile {
     int? currentStreak,
     int? maxStreak,
     Map<String, int>? topicQuestionsSolved,
+    DateTime? joinDate,
   }) {
     return UserProfile(
       userId: userId ?? this.userId,
@@ -93,6 +117,7 @@ class UserProfile {
       currentStreak: currentStreak ?? this.currentStreak,
       maxStreak: maxStreak ?? this.maxStreak,
       topicQuestionsSolved: topicQuestionsSolved ?? this.topicQuestionsSolved,
+      joinDate: joinDate ?? this.joinDate,
     );
   }
 }

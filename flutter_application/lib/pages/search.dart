@@ -4,7 +4,8 @@ import 'package:flutter_application/pages/topic.dart';
 import '../colors.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final bool fromHome;
+  const SearchPage({super.key, this.fromHome = false});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -20,6 +21,7 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'algorithms.png',
       'iconSize': 65.0,
       'color': algorithmsColor,
+      'bottomOffset': -10.0,
       'section': 'all'
     },
     {
@@ -27,6 +29,7 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'swe_fundamentals.png',
       'iconSize': 65.0,
       'color': sweFundamentalsColor,
+      'bottomOffset': -10.0,
       'section': 'all'
     },
     {
@@ -46,21 +49,23 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'data_science',
       'iconName': 'data_science.png',
-      'iconSize': 65.0,
+      'iconSize': 68.0,
       'color': dataScienceColor,
+      'bottomOffset': -10.0,
       'section': 'all'
     },
     {
       'title': 'cloud_computing',
       'iconName': 'cloud_computing.png',
       'iconSize': 65.0,
+      'bottomOffset': -5.0,
       'color': cloudComputingColor,
       'section': 'all'
     },
     {
       'title': 'artificial_intelligence',
       'iconName': 'artificial_intelligence.png',
-      'iconSize': 70.0,
+      'iconSize': 73.0,
       'color': artificialIntelligenceColor,
       'bottomOffset': -15.0,
       'section': 'all'
@@ -68,7 +73,8 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'cyber_security',
       'iconName': 'cyber_security.png',
-      'iconSize': 70.0,
+      'iconSize': 72.0,
+      'bottomOffset': -10.0,
       'color': cyberSecurityColor,
       'section': 'all'
     },
@@ -77,19 +83,22 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'data_structures.png',
       'iconSize': 68.0,
       'color': dataStructuresColor,
+      'bottomOffset': -5.0,
       'section': 'all'
     },
     {
       'title': 'machine_learning',
       'iconName': 'machine_learning.png',
       'iconSize': 70.0,
+      'bottomOffset': -10.0,
       'color': machineLearningColor,
       'section': 'all'
     },
     {
       'title': 'database',
       'iconName': 'database.png',
-      'iconSize': 65.0,
+      'iconSize': 70.0,
+      'bottomOffset': -10.0,
       'color': databaseColor,
       'section': 'all'
     },
@@ -107,6 +116,7 @@ class _SearchPageState extends State<SearchPage> {
       'title': 'machine_learning',
       'iconName': 'machine_learning.png',
       'iconSize': 70.0,
+      'bottomOffset': -10.0,
       'color': machineLearningColor,
       'section': 'recommended'
     },
@@ -115,19 +125,22 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'data_structures.png',
       'iconSize': 68.0,
       'color': dataStructuresColor,
+      'bottomOffset': -5.0,
       'section': 'recommended'
     },
     {
       'title': 'cyber_security',
       'iconName': 'cyber_security.png',
-      'iconSize': 70.0,
+      'iconSize': 72.0,
       'color': cyberSecurityColor,
+      'bottomOffset': -10.0,
       'section': 'recommended'
     },
     {
       'title': 'database',
       'iconName': 'database.png',
       'iconSize': 70.0,
+      'bottomOffset': -10.0,
       'color': databaseColor,
       'section': 'recommended'
     },
@@ -197,13 +210,12 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () {
@@ -211,31 +223,44 @@ class _SearchPageState extends State<SearchPage> {
           _searchFocusNode.unfocus();
         },
         child: Scaffold(
-      appBar: AppBar(
-        elevation: 0,
+          appBar: AppBar(
+            elevation: 0,
             backgroundColor: backgroundPageColor,
             toolbarHeight: 90,
-        title: Padding(
-          padding: const EdgeInsets.only(top: 20.0),
-          child: Container(
+            leading: widget.fromHome
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  )
+                : null,
+            title: Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
+                  children: [
+                    Expanded(
+                      child: TextField(
                         controller: _searchController,
                         focusNode: _searchFocusNode,
                         style: const TextStyle(color: Colors.black),
                         decoration: const InputDecoration(
-                      hintText: "Search Topics...",
-                      hintStyle: TextStyle(color: Colors.black54),
-                      border: InputBorder.none,
-                    ),
+                          hintText: "Search Topics...",
+                          hintStyle: TextStyle(color: Colors.black54),
+                          border: InputBorder.none,
+                        ),
                         onChanged: _filterTopics,
                       ),
                     ),
@@ -255,36 +280,36 @@ class _SearchPageState extends State<SearchPage> {
                           : null,
                       child: Icon(
                         _searchQuery.isNotEmpty ? Icons.close : Icons.search,
-                  color: Colors.black,
+                        color: Colors.black,
                       ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 18, right: 18),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             child: ListView(
               children: [
                 const SizedBox(height: 30),
 
                 // Show recommended section only if not searching
                 if (_searchQuery.isEmpty) ...[
-                const Text(
-                  "Recommended for you",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                  const Text(
+                    "Recommended for you",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.85,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 16,
+                  const SizedBox(height: 20),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.85,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: _recommendedTopics
@@ -293,14 +318,14 @@ class _SearchPageState extends State<SearchPage> {
                               iconName: topic['iconName'],
                               iconSize: topic['iconSize'],
                               color: topic['color'],
-                        titleFontSize: 13,
+                              titleFontSize: 13,
                               buttonType: "search",
                               section: topic['section'],
                               bottomOffset: topic['bottomOffset'] ?? 0,
                             ))
                         .toList(),
-                ),
-                const SizedBox(height: 30),
+                  ),
+                  const SizedBox(height: 30),
                 ],
 
                 // All topics or search results
@@ -326,10 +351,10 @@ class _SearchPageState extends State<SearchPage> {
                     : _searchQuery.isEmpty
                         // Grid view for all topics (when not searching)
                         ? GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.85,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 16,
+                            crossAxisCount: 2,
+                            childAspectRatio: 1.85,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 16,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             children: _filteredTopics
@@ -338,7 +363,7 @@ class _SearchPageState extends State<SearchPage> {
                                       iconName: topic['iconName'],
                                       iconSize: topic['iconSize'],
                                       color: topic['color'],
-                        titleFontSize: 13,
+                                      titleFontSize: 13,
                                       buttonType: "search",
                                       section: topic['section'],
                                       bottomOffset: topic['bottomOffset'] ?? 0,
@@ -434,6 +459,7 @@ class _SearchPageState extends State<SearchPage> {
                               );
                             },
                           ),
+                const SizedBox(height: 15),
               ],
             ),
           ),

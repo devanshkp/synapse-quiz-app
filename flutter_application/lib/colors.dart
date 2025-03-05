@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 // Regular colors
 const Color appColor = Color.fromARGB(255, 76, 76, 146);
+const Color warningRed = Color.fromARGB(255, 181, 56, 47);
+const Color safeGreen = Color.fromARGB(255, 84, 183, 102);
 
 // Grey Variants
-const Color backgroundPageColor = Color(0xff161616);
-const Color buttonColor = Color(0xff232323);
+const Color backgroundPageColor = Color(0xff121212);
+const Color buttonColor = Color.fromARGB(255, 35, 35, 35);
 const Color buttonStrokeColor = Color(0xff636363);
 const Color navbarColor = Color(0xff090909);
 const Color drawerColor = Color.fromARGB(255, 14, 14, 14);
@@ -45,7 +47,7 @@ const Color bronzeColor = Color(0xffe38d4c);
 
 // Widget Gradients
 const LinearGradient buttonGradient = LinearGradient(
-  colors: [Color.fromARGB(255, 58, 58, 58), Color.fromARGB(255, 34, 34, 34)],
+  colors: [Color.fromARGB(255, 46, 46, 46), Color.fromARGB(255, 30, 30, 30)],
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
 );
@@ -54,10 +56,19 @@ const LinearGradient cardGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color.fromARGB(255, 46, 46, 46),
-      Color.fromARGB(255, 26, 26, 26),
-      Color.fromARGB(255, 20, 20, 20),
+      Color.fromARGB(255, 32, 32, 32),
+      Color.fromARGB(255, 22, 22, 22),
+      Color.fromARGB(255, 9, 9, 9),
     ]);
+
+const LinearGradient profileCardGradient = LinearGradient(
+  colors: [
+    Color.fromARGB(255, 35, 35, 35),
+    Color.fromARGB(255, 27, 27, 27),
+  ],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+);
 
 // Miscellaneous
 

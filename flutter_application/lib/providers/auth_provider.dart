@@ -4,6 +4,7 @@ import 'package:flutter_application/main.dart';
 import 'package:flutter_application/pages/login.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 
 class AuthProvider extends StatelessWidget {
@@ -16,12 +17,11 @@ class AuthProvider extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()), // Loading state
+            body: Center(child: CustomCircularProgressIndicator()), // Loading state
           );
         }
         if (snapshot.hasData) {
           // User is authenticated, trigger refresh of user data
-        
             Provider.of<UserProvider>(context, listen: false);
             Provider.of<TriviaProvider>(context, listen: false);
           

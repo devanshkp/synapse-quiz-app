@@ -19,6 +19,7 @@ class TriviaProvider extends ChangeNotifier {
   static const int questionBatchSize = 25;
 
   // Questions and Topics
+  int _totalQuestions = 0;
   List<Map<String, dynamic>> _questions = [];
   List<String> _allTopics = [];
   List<String> _selectedTopics = [];
@@ -47,6 +48,7 @@ class TriviaProvider extends ChangeNotifier {
   bool _isTriviaActive = false;
 
   // Getters
+  int get totalQuestions => _totalQuestions;
   List<Map<String, dynamic>> get questions => _questions;
   List<String> get allTopics => _allTopics;
   List<String> get selectedTopics => _selectedTopics;
@@ -69,6 +71,7 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    await fetchTotalQuestions();
     await loadTopics(); // Wait for topics to load
     await fetchQuestions(); // Fetch questions after topics are loaded
     await refreshProfileStats();
@@ -106,7 +109,7 @@ class TriviaProvider extends ChangeNotifier {
     _selectedTopics = [topic];
 
     // Fetch questions for this topic
-    await fetchQuestions();
+    await fetchQuestions(temporarySession: true);
 
     notifyListeners();
   }
@@ -180,8 +183,6 @@ class TriviaProvider extends ChangeNotifier {
 
         // If last solved date is before yesterday, they've missed at least one day
         if (lastSolvedWithoutTime.isBefore(yesterdayDate)) {
-          debugPrint(
-              "Streak reset: Last solved on ${lastSolvedWithoutTime.toIso8601String()}, which is before yesterday (${yesterdayDate.toIso8601String()})");
           currentStreak = 0;
         }
       }
@@ -205,8 +206,6 @@ class TriviaProvider extends ChangeNotifier {
         solvedTodayCount: solvedTodayCount,
         lastSolvedDate: currentDate,
       );
-      debugPrint(
-          "Updated streak to $currentStreak, solved today count to $solvedTodayCount.");
     }
   }
 
@@ -257,10 +256,6 @@ class TriviaProvider extends ChangeNotifier {
         lastSolvedDate: currentDate,
         topicQuestionsSolved: Map<String, int>.from(topicQuestionsSolved),
       );
-
-      debugPrint("Solved questions today: $solvedTodayCount");
-      debugPrint(
-          "Topic questions solved - $currentTopic: ${topicQuestionsSolved[currentTopic]}");
     }
   }
 
@@ -339,20 +334,6 @@ class TriviaProvider extends ChangeNotifier {
     await updateUserSelectedTopics();
   }
 
-  void addTopic(String topic) {
-    if (!selectedTopics.contains(topic)) {
-      selectedTopics.add(topic);
-      notifyListeners();
-    }
-  }
-
-  void removeTopic(String topic) {
-    if (selectedTopics.contains(topic)) {
-      selectedTopics.remove(topic);
-      notifyListeners();
-    }
-  }
-
   Future<List<String>> fetchUserselectedTopics(String userId) async {
     final userDoc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -365,25 +346,20 @@ class TriviaProvider extends ChangeNotifier {
 
   Future<List<String>> fetchAllTopics() async {
     try {
-      debugPrint('Fetching topics from metadata...');
       final topicsDoc =
           await _firestore.collection('metadata').doc('topics').get();
 
       if (!topicsDoc.exists) {
-        debugPrint(
-            'Topics metadata document does not exist. Refreshing topics...');
         return refreshTopicsMetadata();
       }
 
       final data = topicsDoc.data();
       if (data == null || !data.containsKey('list')) {
-        debugPrint('Topics metadata is invalid. Refreshing topics...');
         return refreshTopicsMetadata();
       }
 
       final List<String> topics = List<String>.from(data['list']);
       if (topics.isEmpty) {
-        debugPrint('Topics list is empty. Refreshing topics...');
         return refreshTopicsMetadata();
       }
 
@@ -391,23 +367,27 @@ class TriviaProvider extends ChangeNotifier {
       return topics;
     } catch (e) {
       debugPrint('Error fetching topics from metadata: $e');
-      debugPrint('Attempting to refresh topics...');
       return refreshTopicsMetadata();
     }
   }
 
-  Future<void> updateUserSelectedTopics({bool inTriviaPage = false}) async {
+  Future<void> updateUserSelectedTopics({bool topicAdded = true}) async {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(userProvider.currentUserId)
         .update({
       'selectedTopics': _selectedTopics,
     });
+
     // Filter out questions from unselected topics and fetch more questions
     filterQuestionsBySelectedTopics();
-    fetchQuestions();
+    if (topicAdded) {
+      fetchQuestions();
+    }
+
     // Reset timer when questions are fetched
     _lastSavedTime = totalTime;
+    notifyListeners();
   }
 
   Future<void> excludeTopic() async {
@@ -436,20 +416,16 @@ class TriviaProvider extends ChangeNotifier {
   // Fetch topic counts from metadata
   Future<void> fetchTopicCounts() async {
     try {
-      debugPrint('Fetching topic counts from metadata...');
       final topicsDoc =
           await _firestore.collection('metadata').doc('topics').get();
 
       if (!topicsDoc.exists) {
-        debugPrint(
-            'Topics metadata document does not exist. Refreshing topics...');
         await refreshTopicsMetadata();
         return fetchTopicCounts();
       }
 
       final data = topicsDoc.data();
       if (data == null || !data.containsKey('counts')) {
-        debugPrint('Topic counts metadata is invalid. Refreshing topics...');
         await refreshTopicsMetadata();
         return fetchTopicCounts();
       }
@@ -473,7 +449,6 @@ class TriviaProvider extends ChangeNotifier {
   Future<void> getTopicCounts() async {
     try {
       await fetchTopicCounts();
-      debugPrint('Updated topic counts: $_topicCounts');
       notifyListeners();
     } catch (e) {
       debugPrint('Error updating topic counts: $e');
@@ -481,6 +456,20 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   // ============================== QUESTION RELATED FUNCTIONS ==============================
+
+    Future<void> fetchTotalQuestions() async {
+    try {
+      final countQuery = await FirebaseFirestore.instance
+          .collection('questions')
+          .count()
+          .get(); // Only fetches the count
+
+      _totalQuestions = countQuery.count ?? 0; // Store the count
+      notifyListeners(); // Notify UI of changes
+    } catch (e) {
+      debugPrint("Error fetching total questions: $e");
+    }
+  }
 
   void printQuestionDetails(Map<String, dynamic> question) {
     // Extract question details
@@ -576,15 +565,15 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   Future<void> filterQuestionsBySelectedTopics() async {
-    debugPrint("filtering");
+    debugPrint("filtering questions by selected topics");
     _questions.removeWhere(
         (question) => !_selectedTopics.contains(question['topic']));
   }
 
-  Future<void> fetchQuestions({int retryCount = 0}) async {
+  Future<void> fetchQuestions({int retryCount = 0, bool temporarySession = false}) async {
     User? user = _auth.currentUser;
     _isFetching = true;
-    if (_questions.isEmpty) {
+    if (_questions.isEmpty || temporarySession) {
       _isLoadingQuestions = true;
       notifyListeners();
     }
@@ -615,7 +604,7 @@ class TriviaProvider extends ChangeNotifier {
               "No questions fetched, retrying (attempt ${retryCount + 1})...");
           _isFetching = false;
           _isLoadingQuestions = false;
-          return fetchQuestions(retryCount: retryCount + 1);
+          return fetchQuestions(retryCount: retryCount + 1, temporarySession: temporarySession);
         }
       }
     }
@@ -702,6 +691,7 @@ class TriviaProvider extends ChangeNotifier {
         }
       }
 
+      fetchedQuestions.shuffle();
       _questions.addAll(fetchedQuestions);
       _questions = _questions.toList();
 
@@ -801,14 +791,9 @@ class TriviaProvider extends ChangeNotifier {
   // Refreshes the topics metadata from the firestore's questions collection
   Future<List<String>> refreshTopicsMetadata() async {
     try {
-      debugPrint('Refreshing topics metadata...');
 
       // Fetch all questions to get unique topics
-      debugPrint('Attempting to fetch questions from Firestore...');
       final querySnapshot = await _firestore.collection('questions').get();
-      debugPrint('Successfully fetched ${querySnapshot.docs.length} questions');
-
-      debugPrint('Extracting topics from questions...');
 
       // Create a map to count questions per topic
       Map<String, int> topicCounts = {};
@@ -822,16 +807,11 @@ class TriviaProvider extends ChangeNotifier {
       // Get the unique topics
       final topics = topicCounts.keys.toList();
 
-      debugPrint('Found unique topics: $topics');
-      debugPrint('Topic counts: $topicCounts');
-
       // Sort topics alphabetically
       topics.sort();
-      debugPrint('Sorted topics: $topics');
 
       // Try to update the metadata document, but don't fail if we can't
       try {
-        debugPrint('Attempting to update metadata document...');
         await _firestore.collection('metadata').doc('topics').set({
           'list': topics,
           'counts': topicCounts,
@@ -841,7 +821,6 @@ class TriviaProvider extends ChangeNotifier {
       } catch (e) {
         // Log the error but continue with the local topics list
         debugPrint('Warning: Could not update metadata document: $e');
-        debugPrint('Continuing with local topics list');
       }
 
       // Refresh the topics in the provider
@@ -850,8 +829,6 @@ class TriviaProvider extends ChangeNotifier {
           .map((topic) => topic.replaceAll('_', ' ').toTitleCase)
           .toList();
 
-      debugPrint(
-          'Topics metadata refreshed. Found ${topics.length} topics: $topics');
       notifyListeners();
       return topics;
     } catch (e, stackTrace) {

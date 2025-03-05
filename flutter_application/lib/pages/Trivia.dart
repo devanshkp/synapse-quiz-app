@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/services/observer_service.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import '../providers/trivia_provider.dart';
@@ -113,16 +114,14 @@ class _TriviaPageState extends State<TriviaPage>
 
     // Initialize temporary topic session if needed
     if (widget.isTemporarySession && widget.topic.isNotEmpty) {
-      // Use post-frame callback to avoid state changes during build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _triviaProvider.startTemporaryTopicSession(widget.topic);
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _triviaProvider.startTemporaryTopicSession(widget.topic);
       });
     }
   }
 
   @override
   void didPush() {
-    debugPrint("pushed");
     _triviaProvider.setTriviaActive(true);
   }
 
@@ -262,6 +261,10 @@ class _TriviaPageState extends State<TriviaPage>
           return _buildLoadingScreen();
         }
 
+        if (triviaProvider.selectedTopics.isEmpty) {
+          return _buildEmptyState(topicsEmpty: true);
+        }
+
         if (triviaProvider.questions.isEmpty) {
           return _buildEmptyState();
         }
@@ -276,15 +279,23 @@ class _TriviaPageState extends State<TriviaPage>
       body: Container(
         decoration: const BoxDecoration(gradient: cardGradient),
         child: const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomCircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text(
+                "Loading questions...",
+                style: TextStyle(color: Colors.white70),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState({bool topicsEmpty = false}) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: cardGradient),
@@ -292,12 +303,20 @@ class _TriviaPageState extends State<TriviaPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.question_mark, size: 60, color: Colors.grey[600]),
+              Icon(
+                topicsEmpty
+                    ? Icons.question_mark_rounded
+                    : Icons.warning_rounded,
+                size: 60,
+                color: Colors.grey[600],
+              ),
               const SizedBox(height: 20),
               Text(
-                "No questions available in selected categories.",
+                topicsEmpty
+                    ? "No topics selected at the moment."
+                    : "No questions available in selected categories.",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   color: Colors.grey[400],
                   fontWeight: FontWeight.w500,
                 ),

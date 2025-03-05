@@ -29,6 +29,7 @@ class UserService {
       'currentStreak': 0,
       'maxStreak': 0,
       'topicQuestionsSolved': {},
+      'joinDate': FieldValue.serverTimestamp(),
     });
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -32,8 +33,6 @@ class _StatsSectionState extends State<StatsSection> {
     }
     final topicCounts = triviaProvider.topicCounts;
 
-    debugPrint('BadgesSection - Topic Counts from Provider: $topicCounts');
-
     if (mounted) {
       setState(() {
         _topicCounts = topicCounts;
@@ -60,20 +59,9 @@ class _StatsSectionState extends State<StatsSection> {
   }
 
   Widget _buildUserStatsCards() {
-    // Calculate join date
-    DateTime? joinDate;
-    if (widget.userProfile.lastSolvedDate.isNotEmpty) {
-      try {
-        joinDate = DateTime.parse(widget.userProfile.lastSolvedDate);
-      } catch (e) {
-        // Use a fallback date if parsing fails
-        joinDate = DateTime.now().subtract(const Duration(days: 30));
-      }
-    } else {
-      joinDate = DateTime.now().subtract(const Duration(days: 30));
-    }
-
-    String formattedJoinDate = DateFormat('MMM, yyyy').format(joinDate);
+    // Use the actual join date from the user profile
+    final joinDate = widget.userProfile.joinDate;
+    String formattedJoinDate = DateFormat('MMM yyyy').format(joinDate);
 
     // Get the number of selected topics
     final topicsCount = widget.userProfile.selectedTopics.length;
@@ -83,14 +71,8 @@ class _StatsSectionState extends State<StatsSection> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 41, 41, 41),
-            Color.fromARGB(255, 34, 34, 34),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
         boxShadow: [
           BoxShadow(
@@ -231,14 +213,8 @@ class _StatsSectionState extends State<StatsSection> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 41, 41, 41),
-            Color.fromARGB(255, 34, 34, 34),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
         boxShadow: [
           BoxShadow(
@@ -254,7 +230,7 @@ class _StatsSectionState extends State<StatsSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Solve Rate',
+              'Accuracy',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -270,11 +246,12 @@ class _StatsSectionState extends State<StatsSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${solveRate.toStringAsFixed(1)}% Success Rate',
+                        '${solveRate.toStringAsFixed(1)}% Solve Rate',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: .75,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -345,22 +322,15 @@ class _StatsSectionState extends State<StatsSection> {
 
   Widget _buildTopicPerformance() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CustomCircularProgressIndicator());
     }
 
     // Get user's selected topics
     final selectedTopics = widget.userProfile.selectedTopics;
 
-    // Debug prints
-    debugPrint('Selected Topics: $selectedTopics');
-    debugPrint('Topic Counts: $_topicCounts');
-
     // Filter topic counts to only include selected topics
     final filteredTopicCounts = Map.fromEntries(_topicCounts.entries
         .where((entry) => selectedTopics.contains(entry.key)));
-
-    // Debug print filtered counts
-    debugPrint('Filtered Topic Counts: $filteredTopicCounts');
 
     // Sort topics by question count (descending)
     final sortedTopics = filteredTopicCounts.entries.toList()
@@ -369,12 +339,8 @@ class _StatsSectionState extends State<StatsSection> {
     // Take top 5 topics
     final topTopics = sortedTopics.toList();
 
-    // Debug print top topics
-    debugPrint('Top Topics: $topTopics');
-
     // If no topics, show a message
     if (topTopics.isEmpty) {
-      // Debug print why it's empty
       if (selectedTopics.isEmpty) {
         debugPrint('No topics selected');
       } else if (_topicCounts.isEmpty) {
@@ -387,12 +353,19 @@ class _StatsSectionState extends State<StatsSection> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: backgroundPageColor,
-          borderRadius: BorderRadius.circular(20),
+          gradient: profileCardGradient,
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
         child: const Center(
           child: Text(
-            'No topics selected yet. Go to settings to select topics!',
+            'No topics selected at the moment.',
             style: TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
@@ -402,15 +375,9 @@ class _StatsSectionState extends State<StatsSection> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 41, 41, 41),
-            Color.fromARGB(255, 34, 34, 34),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -428,7 +395,7 @@ class _StatsSectionState extends State<StatsSection> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Your Topics',
+                  'Selected Topics',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

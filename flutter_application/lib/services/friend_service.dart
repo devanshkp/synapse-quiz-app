@@ -98,6 +98,12 @@ class FriendService {
 
   Future<Map<String, dynamic>> searchUsers(String query) async {
     try {
+      // Get current user's ID
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        return {'friends': [], 'error': 'Not authenticated'};
+      }
+
       final result = await FirebaseFirestore.instance
           .collection('users')
           .where('userName', isEqualTo: query)
@@ -107,8 +113,19 @@ class FriendService {
         return {'friends': [], 'error': 'User $query not found'};
       }
 
+      // Filter out the current user from the results
+      final filteredDocs =
+          result.docs.where((doc) => doc.id != currentUser.uid).toList();
+
+      if (filteredDocs.isEmpty) {
+        return {
+          'friends': [],
+          'error': 'No other users found with this username'
+        };
+      }
+
       return {
-        'friends': result.docs.map((doc) => Friend.fromDocument(doc)).toList(),
+        'friends': filteredDocs.map((doc) => Friend.fromDocument(doc)).toList(),
         'error': null,
       };
     } catch (e) {
@@ -240,6 +257,29 @@ class FriendService {
       return {
         'success': false,
         'error': 'Error declining friend request: ${e.toString()}'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> withdrawFriendRequest(
+      String currentUserId, String receiverId) async {
+    try {
+      final requestSnapshot = await FirebaseFirestore.instance
+          .collection('friend_requests')
+          .where('senderId', isEqualTo: currentUserId)
+          .where('receiverId', isEqualTo: receiverId)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (var doc in requestSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      return {'success': true, 'error': null};
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Error withdrawing friend request: ${e.toString()}'
       };
     }
   }

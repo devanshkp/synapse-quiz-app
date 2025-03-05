@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application/pages/email_verification.dart';
 import 'package:flutter_application/pages/login.dart';
 import 'package:flutter_application/pages/register.dart';
@@ -16,6 +17,7 @@ import 'pages/trivia.dart';
 import 'colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_application/pages/edit_profile.dart';
 
 // ...
 
@@ -32,6 +34,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
@@ -57,6 +63,8 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegistrationPage(),
           '/email-verification': (context) => const EmailVerificationPage(),
           '/trivia': (context) => const TriviaPage(quickPlay: true),
+          '/search': (context) => const SearchPage(fromHome: true),
+          '/edit_profile': (context) => const EditProfilePage(),
         },
       ),
     );

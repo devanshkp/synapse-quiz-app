@@ -9,28 +9,32 @@ class UserProvider extends ChangeNotifier {
   UserProfile? _userProfile;
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final FriendService _friendService = FriendService();
-  int _totalQuestions = 0;
   List<Friend> _friends = [];
   List<Friend> _friendRequests = [];
-
+  bool _isDeveloper = false;
   UserProfile? get userProfile => _userProfile;
   String get currentUserId => _currentUserId;
-  int get totalQuestions => _totalQuestions;
   List<Friend> get friends => List.unmodifiable(_friends);
   List<Friend> get friendRequests => List.unmodifiable(_friendRequests);
-
-  UserProvider() {
-    fetchUserProfile();
-    fetchTotalQuestions();
-    fetchFriendsList();
-    fetchFriendRequests();
-    listenToUserProfile();
-    _setupFriendsListener();
-    _setupFriendRequestsListener();
+  bool get isDeveloper => _isDeveloper;
+  set isDeveloper(bool value) {
+    _isDeveloper = value;
     notifyListeners();
   }
 
-  void _setupFriendsListener() {
+  UserProvider() {
+    // Fetches
+    fetchUserProfile();
+    fetchFriendsList();
+    fetchFriendRequests();
+    // Listeners
+    listenToUserProfile();
+    listenToFriends();
+    listenToFriendRequests();
+    notifyListeners();
+  }
+
+  void listenToFriends() {
     // Listen to friends collection for changes
     FirebaseFirestore.instance
         .collection('friends')
@@ -45,7 +49,7 @@ class UserProvider extends ChangeNotifier {
         .listen((_) => fetchFriendsList());
   }
 
-  void _setupFriendRequestsListener() {
+  void listenToFriendRequests() {
     // Listen to friend requests collection for changes
     FirebaseFirestore.instance
         .collection('friend_requests')
@@ -95,20 +99,6 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchTotalQuestions() async {
-    try {
-      final countQuery = await FirebaseFirestore.instance
-          .collection('questions')
-          .count()
-          .get(); // Only fetches the count
-
-      _totalQuestions = countQuery.count ?? 0; // Store the count
-      notifyListeners(); // Notify UI of changes
-    } catch (e) {
-      debugPrint("Error fetching total questions: $e");
-    }
-  }
-
   // Fetch friends list from Firestore
   Future<void> fetchFriendsList() async {
     try {
@@ -132,7 +122,6 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> refreshUserProfile() async {
     await fetchUserProfile();
-    await fetchTotalQuestions();
   }
 
   void updateUserProfile({
@@ -162,33 +151,6 @@ class UserProvider extends ChangeNotifier {
       topicQuestionsSolved: topicQuestionsSolved,
     );
     notifyListeners();
-  }
-
-  // Function to add a friend locally and update the database
-  Future<void> addFriend(Friend friend) async {
-    try {
-      final result = await _friendService.acceptFriendRequest(friend.userId);
-      if (result['success']) {
-        _friends = [..._friends, friend];
-        _friendRequests.removeWhere((req) => req.userId == friend.userId);
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint("Error adding friend: $e");
-    }
-  }
-
-  // Function to remove a friend locally and update the database
-  Future<void> removeFriend(String friendId) async {
-    try {
-      final result = await _friendService.removeFriend(friendId);
-      if (result['success']) {
-        _friends.removeWhere((friend) => friend.userId == friendId);
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint("Error removing friend: $e");
-    }
   }
 
   // Function to clear user data when logging out

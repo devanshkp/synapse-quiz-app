@@ -1,9 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/colors.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui';
 
 class TopicSelectionPopup extends StatefulWidget {
   const TopicSelectionPopup({super.key});
@@ -22,8 +23,8 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
 
   static const surfaceColor = backgroundPageColor;
   static const headerColor = Color.fromARGB(255, 28, 28, 28);
-  static const primaryAccentColor = Color.fromARGB(255, 123, 70, 229);
-  static const selectedItemColor = Color(0xFF2D2B55);
+  static const primaryAccentColor = Color.fromARGB(255, 136, 94, 219);
+  static const selectedItemColor = Color.fromARGB(255, 54, 52, 82);
   static const unprimaryAccentColor = Color(0xFF3A3A3A);
   static const textColor = Color(0xFFE0E0E0);
 
@@ -32,7 +33,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400), // Essentially instant
+      duration: const Duration(milliseconds: 400),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -87,6 +88,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 480),
         decoration: BoxDecoration(
+          border: Border.all(color: Colors.white.withOpacity(0.15)),
           color: surfaceColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -107,11 +109,12 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
             }
 
             return ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildHeader(),
+                  _buildSelectionButtons(),
                   _buildTopicsGrid(isLoading),
                   _buildSaveButton(),
                 ],
@@ -138,7 +141,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
       child: Row(
         children: [
           const Text(
-            "Select Topics",
+            "SELECT TOPICS",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -149,6 +152,51 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
           IconButton(
             icon: const Icon(Icons.close, color: textColor),
             onPressed: _handleClose,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectionButtons() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: headerColor,
+        border: Border(
+          bottom: BorderSide(
+            color: unprimaryAccentColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SelectionButton(
+              onTap: () {
+                setState(() {
+                  if (!Set.of(_tempSelectedTopics)
+                      .containsAll(triviaProvider.allTopics)) {
+                    _tempSelectedTopics.addAll(triviaProvider.allTopics);
+                  }
+                });
+              },
+              icon: Icons.add_circle_outline,
+              label: 'SELECT ALL',
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _SelectionButton(
+              onTap: () {
+                setState(() {
+                  _tempSelectedTopics.clear();
+                });
+              },
+              icon: Icons.remove_circle_outline,
+              label: 'DESELECT ALL',
+            ),
           ),
         ],
       ),
@@ -190,9 +238,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
         color: headerColor,
       ),
       child: const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(primaryAccentColor),
-        ),
+        child: CustomCircularProgressIndicator(),
       ),
     );
   }
@@ -226,7 +272,7 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
             children: [
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Text(
                     topic.replaceAll('_', ' ').toUpperCase(),
                     style: TextStyle(
@@ -265,25 +311,80 @@ class TopicSelectionPopupState extends State<TopicSelectionPopup>
   }
 
   Widget _buildSaveButton() {
+    final Set<String> currentTopics = Set.from(triviaProvider.selectedTopics);
+    final Set<String> tempTopics = Set.from(_tempSelectedTopics);
+
+    final bool hasChanges =
+        !const SetEquality().equals(currentTopics, tempTopics);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
       child: ElevatedButton(
-        onPressed: _saveSelection,
+        onPressed: hasChanges ? _saveSelection : () => {},
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryAccentColor,
+          backgroundColor: hasChanges ? Colors.white : Colors.grey.shade600,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),
-        child: const Text(
-          "Save Selection",
+        child: Text(
+          "SAVE SELECTION",
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+            fontSize: 12,
+            color: hasChanges ? Colors.black : Colors.grey.shade700,
             letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectionButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final IconData icon;
+  final String label;
+
+  const _SelectionButton({
+    required this.onTap,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            gradient: buttonGradient,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [buttonDropShadow],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ),

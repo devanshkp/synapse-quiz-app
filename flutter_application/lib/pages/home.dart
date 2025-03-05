@@ -160,12 +160,15 @@ class BottomPortion extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Topics >',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/search'),
+            child: const Text(
+              'Topics >',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(height: 15),
@@ -182,7 +185,8 @@ class BottomPortion extends StatelessWidget {
                 iconName: 'discrete_math.png',
                 iconSize: 65,
                 color: discreteMathColor,
-                rightOffset: -6,
+                rightOffset: -4,
+                bottomOffset: -1,
                 radius: 18,
                 titleFontSize: 11,
                 buttonType: 'home',
@@ -247,7 +251,7 @@ class BottomPortion extends StatelessWidget {
                 iconName: 'algorithms.png',
                 iconSize: 65,
                 color: algorithmsColor,
-                rightOffset: -8,
+                rightOffset: -2,
                 radius: 18,
                 titleFontSize: 11,
                 buttonType: 'home',
