@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application/pages/email_verification.dart';
-import 'package:flutter_application/pages/login.dart';
-import 'package:flutter_application/pages/register.dart';
+import 'package:flutter_application/pages/auth/email_verification.dart';
+import 'package:flutter_application/pages/auth/login.dart';
+import 'package:flutter_application/pages/auth/register.dart';
 import 'package:flutter_application/providers/auth_provider.dart';
-import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/observer_service.dart';
+import 'package:flutter_application/services/restart_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'pages/home.dart';
-import 'pages/search.dart';
-import 'pages/profile.dart';
-import 'pages/leaderboard.dart';
-import 'pages/trivia.dart';
-import 'colors.dart';
+import 'pages/main/home.dart';
+import 'pages/main/search.dart';
+import 'pages/main/profile.dart';
+import 'pages/main/leaderboard.dart';
+import 'pages/main/trivia.dart';
+import 'constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_application/pages/edit_profile.dart';
-
-// ...
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,34 +37,36 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (context) {
-          return TriviaProvider(
-              Provider.of<UserProvider>(context, listen: false));
-        }),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Quiz App',
-        theme: ThemeData(
-          fontFamily: 'Poppins',
-          scaffoldBackgroundColor: backgroundPageColor,
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: Colors.transparent,
+    return RestartService(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider(create: (context) {
+            return TriviaProvider(
+                Provider.of<UserProvider>(context, listen: false));
+          }),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Quiz App',
+          theme: ThemeData(
+            fontFamily: 'Poppins',
+            scaffoldBackgroundColor: backgroundPageColor,
+            splashFactory: NoSplash.splashFactory,
+            highlightColor: Colors.transparent,
+          ),
+          navigatorObservers: [ObserverService.routeObserver],
+          initialRoute: '/', // Start with AuthProvider logic
+          routes: {
+            '/': (context) => const AuthProvider(),
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const RegistrationPage(),
+            '/email-verification': (context) => const EmailVerificationPage(),
+            '/trivia': (context) => const TriviaPage(quickPlay: true),
+            '/search': (context) => const SearchPage(fromHome: true),
+            '/edit_profile': (context) => const EditProfilePage(),
+          },
         ),
-        navigatorObservers: [ObserverService.routeObserver],
-        initialRoute: '/', // Start with AuthProvider logic
-        routes: {
-          '/': (context) => const AuthProvider(),
-          '/login': (context) => const LoginPage(),
-          '/register': (context) => const RegistrationPage(),
-          '/email-verification': (context) => const EmailVerificationPage(),
-          '/trivia': (context) => const TriviaPage(quickPlay: true),
-          '/search': (context) => const SearchPage(fromHome: true),
-          '/edit_profile': (context) => const EditProfilePage(),
-        },
       ),
     );
   }

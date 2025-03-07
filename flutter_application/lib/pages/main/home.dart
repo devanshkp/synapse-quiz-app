@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/home/session_history.dart';
 import 'package:flutter_application/widgets/home/home_widgets.dart';
+import 'package:flutter_application/widgets/shared.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import '../colors.dart';
+import '../../constants.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -135,7 +135,7 @@ class MiddlePortion extends StatelessWidget {
             const SizedBox(width: 15), // Space between the two columns
             const Expanded(
               flex: 4,
-              child: HistoryButton(),
+              child: SessionHistoryButton(),
             ),
           ],
         ),
@@ -161,7 +161,10 @@ class BottomPortion extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/search'),
+            // animate to page
+            onTap: () => {
+              Navigator.pushNamed(context, '/search'),
+            },
             child: const Text(
               'Topics >',
               style: TextStyle(
@@ -181,12 +184,11 @@ class BottomPortion extends StatelessWidget {
             childAspectRatio: 1,
             children: const [
               TopicButton(
-                title: 'discrete_math',
-                iconName: 'discrete_math.png',
+                title: 'probability_&_statistics',
+                iconName: 'probability_&_statistics.png',
                 iconSize: 65,
-                color: discreteMathColor,
+                color: probabilityStatisticsColor,
                 rightOffset: -4,
-                bottomOffset: -1,
                 radius: 18,
                 titleFontSize: 11,
                 buttonType: 'home',
@@ -434,31 +436,6 @@ class DailyTaskCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class HistoryButton extends StatelessWidget {
-  const HistoryButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 72,
-      child: customHomeButton(
-        title: 'Session History',
-        titleFontSize: 16,
-        subtitle: 'Explore your most recent gameplay sessions.',
-        subtitleFontSize: 9,
-        iconPath: 'assets/icons/home/History.svg',
-        iconSize: 25,
-        onTap: () => showDialog(
-          context: context,
-          builder: (context) => const SessionHistoryPopup(),
-        ),
-        textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),
-        iconPadding: const EdgeInsets.only(bottom: 20),
       ),
     );
   }

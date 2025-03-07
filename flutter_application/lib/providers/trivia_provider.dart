@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,10 +14,10 @@ class TriviaProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Constants
   static const double totalTime = 30;
-  static const int minQuestions = 15;
-
-  static const int questionBatchSize = 25;
+  static const int minQuestions = 5;
+  static const int questionBatchSize = 15;
 
   // Questions and Topics
   int _totalQuestions = 0;
@@ -28,8 +29,11 @@ class TriviaProvider extends ChangeNotifier {
 
   // Temporary topic session variables
   bool _isTemporarySession = false;
-  List<String> _originalSelectedTopics = [];
+  List<String> _cachedSelectedTopics = [];
   List<Map<String, dynamic>> _cachedQuestions = [];
+
+  // Cached questions per topic
+  final Map<String, List<Map<String, dynamic>>> _cachedQuestionsPerTopic = {};
 
   // Loading state
   bool _isLoadingQuestions = true;
@@ -46,6 +50,9 @@ class TriviaProvider extends ChangeNotifier {
   String _correctAnswer = '';
   Map<String, dynamic>? _currentUserData;
   bool _isTriviaActive = false;
+
+  // Add this timer at the class level
+  Timer? _fetchQuestionsDebounceTimer;
 
   // Getters
   int get totalQuestions => _totalQuestions;
@@ -66,16 +73,7 @@ class TriviaProvider extends ChangeNotifier {
   bool get isTemporarySession => _isTemporarySession;
 
   TriviaProvider(this.userProvider) {
-    _lastSavedTime = totalTime;
-    init();
-  }
-
-  Future<void> init() async {
-    await fetchTotalQuestions();
-    await loadTopics(); // Wait for topics to load
-    await fetchQuestions(); // Fetch questions after topics are loaded
-    await refreshProfileStats();
-    notifyListeners();
+    initialize();
   }
 
   @override
@@ -85,64 +83,145 @@ class TriviaProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<void> initialize() async {
+    _lastSavedTime = totalTime;
+    await fetchTotalQuestions();
+    await loadTopics(); // Load topics first
+
+    // Initialize cached questions per topic after topics are loaded
+    for (String topic in _allTopics) {
+      _cachedQuestionsPerTopic[topic] = [];
+    }
+    await fetchQuestions(topics: _selectedTopics);
+    await refreshProfileStats();
+  }
+
+  void reset() {
+    _totalQuestions = 0;
+    _questions = [];
+    _selectedTopics = [];
+
+    _isTemporarySession = false;
+    _cachedQuestions = [];
+    _cachedSelectedTopics = [];
+
+    _isLoadingQuestions = true;
+    _isLoadingTopics = true;
+    _isFetching = false;
+
+    _currentIndex = 0;
+    _timeNotifier.value = totalTime;
+    _timer?.cancel();
+    _answered = false;
+    _selectedAnswer = '';
+    _correctAnswer = '';
+    _currentUserData = null;
+    _isTriviaActive = false;
+
+    for (String topic in _allTopics) {
+      _cachedQuestionsPerTopic[topic] = [];
+    }
+  }
+
   // ============================== TEMPORARY TOPIC SESSION FUNCTIONS ==============================
 
   /// Starts a temporary trivia session with a specific topic
-  Future<void> startTemporaryTopicSession(String topic) async {
+  Future<void> startTemporarySession(String topic) async {
+    if (_isTemporarySession) return;
+
+    debugPrint("Starting temporary session for topic: $topic");
+
+    _isTemporarySession = true;
+    _isLoadingQuestions = true;
+    notifyListeners();
+
     // Cache current state
     _cachedQuestions = List.from(_questions);
-    _originalSelectedTopics = List.from(_selectedTopics);
-    _isTemporarySession = true;
+    _cachedSelectedTopics = List.from(_selectedTopics);
 
-    // Reset state for new session
-    _questions = [];
+    _questions = _questions.where((q) => q['topic'] == topic).toList();
+    _selectedTopics = [topic];
+
+    debugPrint("Selected topics set to: $_selectedTopics");
+
+    // Add cached questions for this topic
+    retrieveCachedQuestionsForTopic(topic);
+
+    debugPrint(
+        "After retrieving cached questions: ${_questions.length} questions, all for topic $topic");
+
+    for (var q in _questions) {
+      if (q['topic'] != topic) {
+        debugPrint("WARNING: Found question with wrong topic: ${q['topic']}");
+      }
+    }
+
     _currentIndex = 0;
     _answered = false;
     _selectedAnswer = '';
-    _isLoadingQuestions = true;
 
-    // Reset the timer
-    _timer?.cancel();
-    _timeNotifier.value = totalTime;
+    // Fetch questions for this topic if there are less than minQuestions
+    if (_questions.length < minQuestions) {
+      await fetchQuestions(temporarySession: true, topics: [topic]);
+    }
 
-    // Set the temporary topic
-    _selectedTopics = [topic];
-
-    // Fetch questions for this topic
-    await fetchQuestions(temporarySession: true);
-
+    _isLoadingQuestions = false;
+    _questions.shuffle();
+    // Start the timer
+    startQuestionTimer();
     notifyListeners();
   }
 
   /// Ends the temporary topic session and restores the original state
-  void endTemporaryTopicSession() {
+  void endTemporarySession(String topic) {
     if (!_isTemporarySession) return;
 
-    // Restore original state
-    _selectedTopics = List.from(_originalSelectedTopics);
+    Future.microtask(() {
+      // Restore original state
+      _selectedTopics = List.from(_cachedSelectedTopics);
 
-    // If we had cached questions, restore them
-    if (_cachedQuestions.isNotEmpty) {
-      _questions = List.from(_cachedQuestions);
-    } else {
-      // Otherwise, we'll need to fetch questions again
-      _questions = [];
-      fetchQuestions();
-    }
+      if (_selectedTopics.contains(topic)) {
+        List<Map<String, dynamic>> currentQuestions = List.from(_questions);
+        _questions = List.from(_cachedQuestions);
 
-    // Reset session state
-    _cachedQuestions = [];
-    _originalSelectedTopics = [];
-    _isTemporarySession = false;
-    _currentIndex = 0;
-    _answered = false;
-    _selectedAnswer = '';
+        for (var question in currentQuestions) {
+          if (!_questions
+              .any((q) => q['questionId'] == question['questionId'])) {
+            _questions.add(question);
+          }
+        }
+      } else {
+        cacheQuestionsForTopic(topic);
+        _questions = List.from(_cachedQuestions);
+      }
 
-    // Reset the timer
-    _timer?.cancel();
-    _timeNotifier.value = totalTime;
+      // Don't call fetchQuestions() immediately, defer it if there are less than minQuestions
+      if (_questions.length < minQuestions) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_isTemporarySession == false) {
+            fetchQuestions(topics: [topic]);
+          }
+        });
+      }
 
-    notifyListeners();
+      // Shuffle the questions
+      _questions.shuffle();
+
+      // Reset session state
+      _cachedQuestions = [];
+      _cachedSelectedTopics = [];
+      _currentIndex = 0;
+      _answered = false;
+      _selectedAnswer = '';
+
+      _isTemporarySession = false;
+
+      notifyListeners();
+
+      // Reset the timer
+      _timer?.cancel();
+      _timeNotifier.value = totalTime;
+    });
   }
 
   // ============================== TRIVIA STATISTICS FUNCTIONS ==============================
@@ -261,10 +340,14 @@ class TriviaProvider extends ChangeNotifier {
 
   // ============================== TIMER FUNCTIONS ==============================
 
-  void setTriviaActive(bool active) {
+  void setTriviaActive(bool active, {bool temporarySession = false}) {
     _isTriviaActive = active;
+    if (temporarySession) return;
     if (active) {
       resumeTimer();
+      if (_questions.isEmpty) {
+        fetchQuestions(topics: _selectedTopics);
+      }
     } else {
       pauseTimer();
     }
@@ -310,6 +393,16 @@ class TriviaProvider extends ChangeNotifier {
     }
   }
 
+  // Force loading to complete (safety method)
+  void forceLoadingComplete() {
+    if (_isLoadingQuestions) {
+      _isLoadingQuestions = false;
+      debugPrint(
+          "Forced loading state to complete. Questions count: ${_questions.length}");
+      notifyListeners();
+    }
+  }
+
   // ============================== TOPIC FUNCTIONS ==============================
 
   String formatTopic(String topic) {
@@ -329,9 +422,26 @@ class TriviaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void syncTopics(List<String> cachedTopics) async {
-    _selectedTopics = cachedTopics;
-    await updateUserSelectedTopics();
+  void syncTopics(List<String> newTopics, {bool isTopicAdded = true}) async {
+    // Find removed topics
+    final removedTopics =
+        _selectedTopics.where((topic) => !newTopics.contains(topic)).toList();
+
+    // Find added topics
+    final addedTopics =
+        newTopics.where((topic) => !_selectedTopics.contains(topic)).toList();
+
+    // Cache questions for removed topics
+    for (String topic in removedTopics) {
+      cacheQuestionsForTopic(topic);
+    }
+
+    // Update selected topics
+    _selectedTopics = newTopics;
+
+    // Pass both isTopicAdded flag and the list of added topics
+    await updateUserSelectedTopics(
+        topicAdded: isTopicAdded, addedTopics: isTopicAdded ? addedTopics : []);
   }
 
   Future<List<String>> fetchUserselectedTopics(String userId) async {
@@ -371,7 +481,11 @@ class TriviaProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateUserSelectedTopics({bool topicAdded = true}) async {
+  Future<void> updateUserSelectedTopics({
+    bool topicAdded = true,
+    List<String>? addedTopics,
+  }) async {
+    // Update Firestore immediately
     await FirebaseFirestore.instance
         .collection('users')
         .doc(userProvider.currentUserId)
@@ -379,38 +493,69 @@ class TriviaProvider extends ChangeNotifier {
       'selectedTopics': _selectedTopics,
     });
 
-    // Filter out questions from unselected topics and fetch more questions
+    // Filter out questions from unselected topics immediately
     filterQuestionsBySelectedTopics();
-    if (topicAdded) {
-      fetchQuestions();
+
+    // Cancel any pending timer
+    _fetchQuestionsDebounceTimer?.cancel();
+
+    // Only schedule fetchQuestions if we're adding topics and have topics to add
+    if (topicAdded && addedTopics != null && addedTopics.isNotEmpty) {
+      // Set a new timer to fetch questions after a delay
+      _fetchQuestionsDebounceTimer = Timer(const Duration(seconds: 2), () {
+        if (!_isTemporarySession) {
+          debugPrint(
+              "Fetching questions for newly added topics: ${addedTopics.join(', ')}");
+          fetchQuestions(topics: addedTopics);
+          _lastSavedTime = totalTime;
+        }
+      });
+    } else {
+      _lastSavedTime = totalTime;
     }
 
-    // Reset timer when questions are fetched
-    _lastSavedTime = totalTime;
     notifyListeners();
   }
 
-  Future<void> excludeTopic() async {
-    if (_currentUserData != null &&
-        _currentUserData!.containsKey('selectedTopics')) {
-      List<dynamic> updatedTopics =
-          List.from(_currentUserData!['selectedTopics'] as List);
-      String currentTopic = _questions[_currentIndex]['topic'];
-      updatedTopics.remove(currentTopic);
-
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-        'selectedTopics': updatedTopics,
-      });
-
-      // Remove questions from the excluded topic
-      _questions.removeWhere((q) => q['topic'] == currentTopic);
-
-      if (_questions.length - _currentIndex <= minQuestions) {
-        fetchQuestions(); // Refetch questions if below threshold
-      }
-
-      notifyListeners();
+  Future<void> excludeTopic(BuildContext context) async {
+    if (_currentUserData == null ||
+        _currentUserData!.containsKey('selectedTopics') == false) {
+      return;
     }
+
+    if (_selectedTopics.length == 1) {
+      if (context.mounted) {
+        floatingSnackBar(
+          context: context,
+          message: 'Cannot exclude last topic',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+      return;
+    }
+
+    List<dynamic> updatedTopics =
+        List.from(_currentUserData!['selectedTopics'] as List);
+    String currentTopic = _questions[_currentIndex]['topic'];
+    updatedTopics.remove(currentTopic);
+
+    await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
+      'selectedTopics': updatedTopics,
+    });
+
+    cacheQuestionsForTopic(currentTopic);
+
+    // Remove questions from the excluded topic
+    _questions.removeWhere((q) => q['topic'] == currentTopic);
+
+    if (_questions.length - _currentIndex <= minQuestions) {
+      fetchQuestions(topics: _selectedTopics);
+    }
+
+    nextQuestion();
+
+    notifyListeners();
   }
 
   // Fetch topic counts from metadata
@@ -457,7 +602,7 @@ class TriviaProvider extends ChangeNotifier {
 
   // ============================== QUESTION RELATED FUNCTIONS ==============================
 
-    Future<void> fetchTotalQuestions() async {
+  Future<void> fetchTotalQuestions() async {
     try {
       final countQuery = await FirebaseFirestore.instance
           .collection('questions')
@@ -564,66 +709,138 @@ class TriviaProvider extends ChangeNotifier {
     return true;
   }
 
+  Future<void> retrieveCachedQuestionsForTopic(String topic,
+      {int limit = 20}) async {
+    // Initialize empty list if needed
+    _cachedQuestionsPerTopic.putIfAbsent(topic, () => []);
+
+    final cachedTopicQuestions = _cachedQuestionsPerTopic[topic]!;
+
+    if (cachedTopicQuestions.isEmpty) {
+      return;
+    }
+
+    debugPrint(
+        "Adding ${cachedTopicQuestions.length} cached questions for topic: $topic");
+    _questions.addAll(cachedTopicQuestions);
+
+    // Remove used questions from cache
+    if (cachedTopicQuestions.isNotEmpty) {
+      cachedTopicQuestions.removeRange(
+          0, min(cachedTopicQuestions.length, cachedTopicQuestions.length));
+    }
+  }
+
+  Future<void> cacheQuestionsForTopic(String topic) async {
+    // Filter questions to only include those with the matching topic
+    final topicQuestions =
+        _questions.where((q) => q['topic'] == topic).toList();
+
+    // Add the filtered questions to the cache
+    _cachedQuestionsPerTopic[topic]!.addAll(topicQuestions);
+
+    // Remove duplicates by questionId
+    final ids = <dynamic>{};
+    _cachedQuestionsPerTopic[topic]!
+        .retainWhere((x) => ids.add(x['questionId']));
+    debugPrint(
+        "Cached ${_cachedQuestionsPerTopic[topic]!.length} questions for topic: $topic");
+  }
+
+  Future<void> removeDuplicateQuestions() async {
+    final ids = <dynamic>{};
+    _questions.retainWhere((x) => ids.add(x['questionId']));
+  }
+
   Future<void> filterQuestionsBySelectedTopics() async {
     debugPrint("filtering questions by selected topics");
     _questions.removeWhere(
         (question) => !_selectedTopics.contains(question['topic']));
   }
 
-  Future<void> fetchQuestions({int retryCount = 0, bool temporarySession = false}) async {
-    User? user = _auth.currentUser;
-    _isFetching = true;
-    if (_questions.isEmpty || temporarySession) {
-      _isLoadingQuestions = true;
-      notifyListeners();
+  Future<void> fetchQuestions(
+      {int retryCount = 0,
+      bool temporarySession = false,
+      List<String>? topics}) async {
+    // Guard against multiple simultaneous calls
+    if (_isFetching && retryCount == 0) {
+      debugPrint("Fetch already in progress, skipping this call");
+      return;
     }
 
-    if (user != null) {
-      // Fetch the user's data and encountered questions
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
-      _currentUserData = userDoc.data() as Map<String, dynamic>?;
-      if (_currentUserData != null) {
-        // Get encountered questions from the user document
-        List<dynamic> encounteredQuestions =
-            _currentUserData!['encounteredQuestions'] ?? [];
+    User? user = _auth.currentUser;
+    _isFetching = true;
+    _currentIndex = 0;
 
-        if (_selectedTopics.isEmpty) {
-          debugPrint("No topics selected");
-          _questions = [];
-          _isLoadingQuestions = false;
-          notifyListeners();
-          return;
-        }
+    if (_questions.isEmpty || temporarySession) {
+      debugPrint("is loading set to true");
+      _isLoadingQuestions = true;
+    }
 
-        await fetchQuestionsFromFirebase(encounteredQuestions);
-
-        // If no questions were fetched and we haven't exceeded retry limit, try again
-        if (_questions.isEmpty && retryCount < 3) {
-          debugPrint(
-              "No questions fetched, retrying (attempt ${retryCount + 1})...");
-          _isFetching = false;
-          _isLoadingQuestions = false;
-          return fetchQuestions(retryCount: retryCount + 1, temporarySession: temporarySession);
-        }
+    for (String topic in topics ?? _selectedTopics) {
+      retrieveCachedQuestionsForTopic(topic, limit: 5);
+      if (_questions.isNotEmpty) {
+        _questions.shuffle();
       }
     }
 
-    if (_isTriviaActive && _questions.isNotEmpty && _isLoadingQuestions) {
+    try {
+      if (user != null) {
+        // Fetch the user's data and encountered questions
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        _currentUserData = userDoc.data() as Map<String, dynamic>?;
+        if (_currentUserData != null) {
+          // Get encountered questions from the user document
+          List<dynamic> encounteredQuestions =
+              _currentUserData!['encounteredQuestions'] ?? [];
+
+          if (topics?.isEmpty ?? _selectedTopics.isEmpty) {
+            debugPrint("No topics selected");
+            _questions = [];
+            _isLoadingQuestions = false;
+            if (_isTriviaActive) {
+              notifyListeners();
+            }
+            return;
+          }
+
+          if (_questions.length < minQuestions) {
+            await fetchQuestionsFromFirebase(
+                encounteredQuestions, topics ?? _selectedTopics);
+          }
+
+          // If no questions were fetched and we haven't exceeded retry limit, try again
+          if (_questions.isEmpty && retryCount < 3) {
+            debugPrint(
+                "No questions fetched, retrying (attempt ${retryCount + 1})...");
+            _isFetching = false;
+            _isLoadingQuestions = false;
+            return fetchQuestions(
+                retryCount: retryCount + 1,
+                temporarySession: temporarySession,
+                topics: topics ?? _selectedTopics);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching questions: $e");
+    } finally {
+      if (_isTriviaActive && _questions.isNotEmpty && _isLoadingQuestions) {
+        resumeTimer();
+        notifyListeners();
+      }
       _isLoadingQuestions = false;
-      resumeTimer();
+      _isFetching = false;
+
+      notifyListeners();
     }
-    _isFetching = false;
-    _isLoadingQuestions = false;
-    notifyListeners();
   }
 
   Future<void> fetchQuestionsFromFirebase(
-      List<dynamic> encounteredQuestions) async {
+      List<dynamic> encounteredQuestions, List<String> selectedTopics) async {
     User? user = _auth.currentUser;
-
     if (user == null) return;
-
     DocumentSnapshot userDoc =
         await _firestore.collection('users').doc(user.uid).get();
     _currentUserData = userDoc.data() as Map<String, dynamic>?;
@@ -641,9 +858,8 @@ class TriviaProvider extends ChangeNotifier {
     // Approach: Use a random field to get random documents efficiently
     try {
       // For each topic, fetch some random questions
-      for (String topic in _selectedTopics) {
-        int questionsToGet =
-            (questionBatchSize / _selectedTopics.length).ceil();
+      for (String topic in selectedTopics) {
+        int questionsToGet = (questionBatchSize / selectedTopics.length).ceil();
 
         // Use a random value between 0 and 1 as the starting point
         double randomStart = Random().nextDouble();
@@ -693,12 +909,29 @@ class TriviaProvider extends ChangeNotifier {
 
       fetchedQuestions.shuffle();
       _questions.addAll(fetchedQuestions);
-      _questions = _questions.toList();
+      _questions.shuffle();
 
       debugPrint('Questions fetched: ${_questions.length}');
     } catch (e) {
       debugPrint('Error fetching random questions: $e');
     }
+  }
+
+  void resetEncounteredQuestions() {
+    User? user = _auth.currentUser;
+    if (user == null) return;
+    DocumentReference userRef = _firestore.collection('users').doc(user.uid);
+    userRef.update({'encounteredQuestions': []});
+    userRef.update({'questionsSolved': 0});
+    userRef.update({'solvedTodayCount': 0});
+    userRef.update({'topicQuestionsSolved': {}});
+
+    userProvider.updateUserProfile(
+      encounteredQuestions: [],
+      questionsSolved: 0,
+      solvedTodayCount: 0,
+      topicQuestionsSolved: {},
+    );
   }
 
   // ============================== ANSWER HANDLING FUNCTIONS ==============================
@@ -728,17 +961,16 @@ class TriviaProvider extends ChangeNotifier {
 
   Future<void> updateQuestionData(bool isCorrect) async {
     User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentReference userRef = _firestore.collection('users').doc(user.uid);
-      WriteBatch batch = _firestore.batch();
+    if (user == null) return;
+    DocumentReference userRef = _firestore.collection('users').doc(user.uid);
+    WriteBatch batch = _firestore.batch();
 
-      batch.update(userRef, {
-        'encounteredQuestions':
-            FieldValue.arrayUnion([currentQuestion['questionId']])
-      });
+    batch.update(userRef, {
+      'encounteredQuestions':
+          FieldValue.arrayUnion([currentQuestion['questionId']])
+    });
 
-      await batch.commit();
-    }
+    await batch.commit();
   }
 
   void updateCurrentIndex(int index) {
@@ -755,8 +987,8 @@ class TriviaProvider extends ChangeNotifier {
       _currentIndex++;
       startQuestionTimer(resume: false);
     }
-    if (_questions.length - _currentIndex <= minQuestions && !_isFetching) {
-      fetchQuestions();
+    if (_questions.length - _currentIndex <= minQuestions) {
+      fetchQuestions(topics: _selectedTopics);
     }
     notifyListeners();
   }
@@ -791,7 +1023,6 @@ class TriviaProvider extends ChangeNotifier {
   // Refreshes the topics metadata from the firestore's questions collection
   Future<List<String>> refreshTopicsMetadata() async {
     try {
-
       // Fetch all questions to get unique topics
       final querySnapshot = await _firestore.collection('questions').get();
 

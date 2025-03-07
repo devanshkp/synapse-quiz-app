@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({super.key});
@@ -13,6 +13,7 @@ class UserProfileHeader extends StatelessWidget {
       builder: (context, userProvider, child) {
         final userProfile = userProvider.userProfile;
         final friendCount = userProvider.friends.length;
+
         if (userProfile == null) {
           // Handle case when user profile is null (e.g., after logout)
           return const Center(child: Text("No user data available"));
@@ -33,8 +34,15 @@ class UserProfileHeader extends StatelessWidget {
                   ),
                   child: Padding(
                       padding: const EdgeInsets.all(1.0),
-                      child: UserAvatarImage(
-                          avatarUrl: userProfile.avatarUrl, avatarRadius: 55)),
+                      child: userProvider.isDeveloper
+                          ? DeveloperAvatar(
+                              imageUrl: userProfile.avatarUrl,
+                              size: 55,
+                            )
+                          : UserAvatar(
+                              avatarUrl: userProfile.avatarUrl,
+                              avatarRadius: 55,
+                            )),
                 ),
 
                 // Edit button

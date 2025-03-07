@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/services/friend_service.dart';
 import 'package:flutter_application/widgets/shared.dart';
@@ -144,28 +144,20 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.085),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(15),
           ),
           child: TextField(
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search or add friend...',
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-              prefixIcon:
-                  Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
+              hintStyle: TextStyle(color: Colors.black.withOpacity(0.5)),
+              suffixIcon: Icon(Icons.search,
+                  color: Colors.black.withOpacity(0.5), size: 20),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 14,
+                vertical: 16,
               ),
             ),
             onChanged: (query) {
@@ -312,7 +304,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           child: ListTile(
             leading: GestureDetector(
               onTap: () => _navigateToUserProfile(friend),
-              child: AvatarImage(
+              child: UserAvatar(
                 avatarUrl: friend.avatarUrl,
                 avatarRadius: 20,
               ),
@@ -589,18 +581,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                       'Wants to be your friend',
                       style: TextStyle(
                         color: Colors.blue[200],
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Just now',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
                         fontSize: 10,
                       ),
                     ),
@@ -708,7 +688,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 ),
               ),
 
-              // Options container with glass effect
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
@@ -750,7 +729,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                                 child: Text(
                                   'View Profile',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.85),
+                                    color: Colors.white.withOpacity(0.95),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -832,7 +811,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withOpacity(0.95),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -854,47 +833,37 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   void _showRemoveFriendConfirmation(String friendId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.white.withOpacity(0.1)),
-        ),
-        title: const Text(
-          'Remove Friend',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        content: const Text(
-          'Are you sure you want to remove this friend?',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.blue[200]),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _removeFriend(friendId);
-            },
-            child: const Text(
-              'Remove',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => CustomAlertDialog(
+        title: 'Remove Friend',
+        content: 'Are you sure you want to remove this friend?',
+        confirmationButtonText: 'Remove',
+        cancelButtonText: 'Cancel',
+        onPressed: () => _removeFriend(friendId),
       ),
     );
   }
 
   void _navigateToUserProfile(Friend friend) {
+    // animate the page route and make it fast
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => OtherProfilePage(friend: friend),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            OtherProfilePage(friend: friend),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOutCubic;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
       ),
     );
   }

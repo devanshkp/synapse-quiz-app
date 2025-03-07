@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application/models/friend.dart';
-import 'package:rxdart/rxdart.dart';
 
 class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -43,26 +42,6 @@ class FriendService {
     } catch (e) {
       throw Exception('Failed to fetch friends: $e');
     }
-  }
-
-  Stream<int> getFriendCountStream(String userId) {
-    final userId1Query = _firestore
-        .collection('friends')
-        .where('userId1', isEqualTo: userId)
-        .snapshots();
-
-    final userId2Query = _firestore
-        .collection('friends')
-        .where('userId2', isEqualTo: userId)
-        .snapshots();
-
-    return Rx.combineLatest2(
-      userId1Query,
-      userId2Query,
-      (QuerySnapshot query1, QuerySnapshot query2) {
-        return query1.docs.length + query2.docs.length;
-      },
-    );
   }
 
   // Fetch pending friend requests

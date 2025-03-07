@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/pages/trivia.dart';
+import 'package:flutter_application/pages/main/trivia.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:string_extensions/string_extensions.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -92,36 +92,41 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
   void _toggleTopicSelection() async {
     final triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
 
+    // Update the UI immediately
     setState(() {
       _isTopicSelected = !_isTopicSelected;
     });
 
-    if (_isTopicSelected) {
-      triviaProvider.selectedTopics.remove(widget.topicName);
+    // Create a new list to avoid direct modification
+    List<String> updatedTopics = List.from(triviaProvider.selectedTopics);
+
+    if (_isTopicSelected && !updatedTopics.contains(widget.topicName)) {
+      updatedTopics.add(widget.topicName);
     } else {
-      triviaProvider.selectedTopics.add(widget.topicName);
+      updatedTopics.remove(widget.topicName);
     }
 
-    // Update the user's selected topics in Firestore
-    await triviaProvider.updateUserSelectedTopics(topicAdded: _isTopicSelected);
+    triviaProvider.syncTopics(updatedTopics, isTopicAdded: _isTopicSelected);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: widget.topicColor,
       body: Stack(
         children: [
           Container(
-            color: widget.topicColor,
+            color: Colors.black26,
           ),
-
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.black26,
-              image: DecorationImage(
-                image: AssetImage('assets/images/shapes.png'),
-                opacity: 0.2,
-                repeat: ImageRepeat.repeat,
+          SlideTransition(
+            position: _slideAnimation,
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/shapes.png'),
+                  opacity: 0.2,
+                  repeat: ImageRepeat.repeat,
+                ),
               ),
             ),
           ),
@@ -303,10 +308,10 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                               children: [
                                 // Play Button
                                 Expanded(
-                                  child: _buildActionButton(
+                                  child: GradientElevatedButton(
                                     icon: Icons.play_arrow,
                                     text: 'Play Now',
-                                    color: buttonColor,
+                                    gradient: buttonGradient,
                                     borderColor: Colors.white.withOpacity(0.15),
                                     textColor: Colors.white,
                                     onPressed: () {
@@ -328,16 +333,32 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
 
                                 // Add/Remove Topic Button
                                 Expanded(
-                                  child: _buildActionButton(
+                                  child: GradientElevatedButton(
                                     icon: _isTopicSelected
                                         ? Icons.remove_circle
                                         : Icons.add_circle,
                                     text: _isTopicSelected
                                         ? 'Remove'
                                         : 'Add Topic',
-                                    color: _isTopicSelected
-                                        ? warningRed
-                                        : safeGreen,
+                                    gradient: _isTopicSelected
+                                        ? const LinearGradient(
+                                            colors: [
+                                              Color.fromARGB(255, 98, 207, 102),
+                                              Colors.green,
+                                              Color.fromARGB(255, 56, 143, 59),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          )
+                                        : const LinearGradient(
+                                            colors: [
+                                              Color.fromARGB(255, 198, 74, 65),
+                                              warningRed,
+                                              Color.fromARGB(255, 148, 30, 22),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
                                     borderColor: Colors.white.withOpacity(0.2),
                                     textColor: Colors.white,
                                     onPressed: _toggleTopicSelection,
@@ -439,47 +460,6 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String text,
-    required Color color,
-    required Color textColor,
-    required Color borderColor,
-    required VoidCallback onPressed,
-  }) {
-    // width of the button is 100% of the screen
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: textColor,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: borderColor,
-            width: 1,
-          ),
-        ),
-        elevation: 8,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 22),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],

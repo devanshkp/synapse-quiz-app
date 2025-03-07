@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/services/friend_service.dart';
+import 'package:flutter_application/widgets/profile/tabs/topics_section.dart';
 import 'package:flutter_application/widgets/shared.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/widgets/profile/main_stats.dart';
-import 'package:flutter_application/widgets/profile/stats_section.dart';
-import 'package:flutter_application/widgets/profile/badges_section.dart';
+import 'package:flutter_application/widgets/profile/tabs/stats_section.dart';
+import 'package:flutter_application/widgets/profile/tabs/badges_section.dart';
 import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 
 class OtherProfilePage extends StatefulWidget {
@@ -39,7 +40,7 @@ class _OtherProfilePageState extends State<OtherProfilePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
     _loadUserProfile();
     _checkFriendshipStatus();
@@ -291,10 +292,18 @@ class _OtherProfilePageState extends State<OtherProfilePage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        centerTitle: true,
         title: Text(
           widget.friend.userName,
           style: const TextStyle(
               color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(0),
+          child: Divider(
+            color: Colors.white12,
+            height: 1,
+          ),
         ),
       ),
       body: _isLoading || _isLoadingFriendshipStatus
@@ -325,7 +334,7 @@ class _OtherProfilePageState extends State<OtherProfilePage>
                       // Tab bar
                       CustomTabBar(
                         controller: _tabController,
-                        tabs: const ['Stats', 'Badges'],
+                        tabs: const ['Stats', 'Badges', 'Topics'],
                         horizontalPadding: 28,
                         tabHeight: 40,
                         indicatorPadding: const EdgeInsets.all(2),
@@ -342,9 +351,14 @@ class _OtherProfilePageState extends State<OtherProfilePage>
                                   child: Text('No stats available',
                                       style: TextStyle(color: Colors.white))),
                           _userProfile != null
-                              ? const BadgesSection()
+                              ? BadgesSection(userProfile: _userProfile!)
                               : const Center(
                                   child: Text('No badges available',
+                                      style: TextStyle(color: Colors.white))),
+                          _userProfile != null
+                              ? TopicsSection(userProfile: _userProfile!)
+                              : const Center(
+                                  child: Text('No topics available',
                                       style: TextStyle(color: Colors.white))),
                         ],
                       ),
@@ -354,6 +368,19 @@ class _OtherProfilePageState extends State<OtherProfilePage>
                     ],
                   ),
                 ),
+    );
+  }
+
+  Future<void> _showRemoveFriendConfirmation(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) => CustomAlertDialog(
+        title: 'Remove Friend',
+        content: 'Are you sure you want to remove this friend?',
+        confirmationButtonText: 'Remove',
+        cancelButtonText: 'Cancel',
+        onPressed: () => _removeFriend(),
+      ),
     );
   }
 
@@ -403,45 +430,85 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     }
 
     if (_isFriend) {
-      return _FriendshipButton(
-        text: 'Remove Friend',
+      return FriendshipButton(
+        text: 'Remove',
         icon: Icons.person_remove,
-        color: warningRed,
-        onTap: _removeFriend,
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 198, 74, 65),
+            warningRed,
+            Color.fromARGB(255, 160, 37, 28),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        onTap: () => _showRemoveFriendConfirmation(context),
       );
     } else if (_isPendingRequest) {
-      return _FriendshipButton(
-        text: 'Cancel Request',
+      return FriendshipButton(
+        text: 'Cancel',
         icon: Icons.cancel,
-        color: const Color.fromARGB(255, 206, 127, 8),
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 227, 146, 24),
+            Color.fromARGB(255, 206, 127, 8),
+            Color.fromARGB(255, 184, 110, 0),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         onTap: _cancelFriendRequest,
       );
     } else if (_isIncomingRequest) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _FriendshipButton(
+          FriendshipButton(
             text: 'Accept',
             icon: Icons.check_circle,
-            color: Colors.green,
+            gradient: const LinearGradient(
+              colors: [
+                Color.fromARGB(255, 98, 207, 102),
+                Colors.green,
+                Color.fromARGB(255, 56, 143, 59),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             onTap: _acceptFriendRequest,
             width: 130,
           ),
           const SizedBox(width: 10),
-          _FriendshipButton(
+          FriendshipButton(
             text: 'Decline',
             icon: Icons.cancel,
-            color: warningRed,
+            gradient: const LinearGradient(
+              colors: [
+                Color.fromARGB(255, 198, 74, 65),
+                warningRed,
+                Color.fromARGB(255, 148, 30, 22),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             onTap: _declineFriendRequest,
             width: 130,
           ),
         ],
       );
     } else {
-      return _FriendshipButton(
-        text: 'Add Friend',
+      return FriendshipButton(
+        text: 'Request',
         icon: Icons.person_add,
-        color: const Color.fromARGB(255, 11, 145, 207),
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 28, 154, 212),
+            Color.fromARGB(255, 11, 145, 207),
+            Color.fromARGB(255, 6, 127, 183),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         onTap: _sendFriendRequest,
       );
     }
@@ -458,71 +525,42 @@ class _OtherProfilePageState extends State<OtherProfilePage>
   }
 }
 
-class _FriendshipButton extends StatelessWidget {
+class FriendshipButton extends StatelessWidget {
   final String text;
   final IconData icon;
-  final Color color;
+  final LinearGradient gradient;
   final VoidCallback? onTap;
   final double width;
 
-  const _FriendshipButton({
+  const FriendshipButton({
+    super.key,
     required this.text,
     required this.icon,
-    required this.color,
+    required this.gradient,
     this.onTap,
-    this.width = 180,
+    this.width = 170,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GradientElevatedButton(
+      text: text,
+      icon: icon,
+      gradient: gradient,
+      textColor: Colors.white,
+      borderColor: Colors.white.withOpacity(0.3),
+      onPressed: onTap ?? () {},
       width: width,
       height: 40,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
-        color: color,
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15.0),
-          onTap: onTap,
-          splashColor: Colors.white.withOpacity(0.1),
-          highlightColor: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildButtonContent(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButtonContent() {
-    return Row(
+      borderRadius: 10.0,
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      iconSize: 15,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      iconSpacing: 8,
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Glow Effect for Icon
-        Icon(
-          icon,
-          color: Colors.white.withOpacity(0.95),
-          size: 20,
-        ),
-        const SizedBox(width: 10),
-        Text(
-          text,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.95),
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-            fontSize: 13,
-          ),
-        ),
-      ],
+      fullWidth: false,
     );
   }
 }

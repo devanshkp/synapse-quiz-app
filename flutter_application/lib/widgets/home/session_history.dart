@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 
-class SessionHistoryPopup extends StatefulWidget {
-  const SessionHistoryPopup({
+class SessionHistoryPage extends StatefulWidget {
+  const SessionHistoryPage({
     super.key,
   });
 
   @override
-  SessionHistoryPopupState createState() => SessionHistoryPopupState();
+  SessionHistoryPageState createState() => SessionHistoryPageState();
 }
 
-class SessionHistoryPopupState extends State<SessionHistoryPopup> {
+class SessionHistoryPageState extends State<SessionHistoryPage> {
   @override
   void initState() {
     super.initState();
@@ -18,72 +18,57 @@ class SessionHistoryPopupState extends State<SessionHistoryPopup> {
 
   @override
   Widget build(BuildContext context) {
-    // Custom dark theme colors
-    const surfaceColor = backgroundPageColor;
-    const headerColor = Color.fromARGB(255, 28, 28, 28);
-    const unselectedBorderColor = Color(0xFF3A3A3A);
-    const textColor = Color(0xFFE0E0E0);
+    return Scaffold(
+      appBar: _buildAppBar(),
+      backgroundColor: backgroundPageColor,
+      body: Container(
+        decoration: const BoxDecoration(
+          color: backgroundPageColor,
+          image: DecorationImage(
+            image: AssetImage('assets/images/shapes.png'),
+            opacity: 0.2,
+            repeat: ImageRepeat.repeat,
+          ),
+        ),
+        child: const Center(
+            child: Text(
+          "Coming soon!",
+          style: TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 24, color: Colors.white),
+        )),
+      ),
+    );
+  }
 
-    return Dialog(
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxWidth: 600),
-        decoration: BoxDecoration(
-          color: surfaceColor,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    height: MediaQuery.sizeOf(context).height * 0.6,
-                    decoration: const BoxDecoration(
-                      color: headerColor,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: unselectedBorderColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "To be added....",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: textColor),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ],
+      leading: Container(
+        margin: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.white,
+            size: 20,
           ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      title: const Text(
+        "Topic Selection",
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      centerTitle: true,
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(0),
+        child: Divider(
+          color: Colors.white12,
+          height: 1,
         ),
       ),
     );

@@ -93,9 +93,11 @@ class CustomTextFieldState extends State<CustomTextField> {
         suffixIcon: widget.isPasswordField
             ? IconButton(
                 icon: Icon(
-                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  isPasswordVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: color,
-                  size: 20,
+                  size: 19,
                 ),
                 onPressed: () {
                   setState(() {
@@ -115,6 +117,7 @@ class CustomAuthButton extends StatelessWidget {
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Color textColor;
+  final bool isEnabled;
 
   const CustomAuthButton({
     super.key,
@@ -122,14 +125,16 @@ class CustomAuthButton extends StatelessWidget {
     required this.onPressed,
     this.backgroundColor = Colors.white,
     this.textColor = Colors.black,
+    this.isEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isEnabled ? onPressed : () {},
       style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor,
+        backgroundColor:
+            isEnabled ? backgroundColor : backgroundColor.withOpacity(0.5),
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -140,7 +145,8 @@ class CustomAuthButton extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            style: TextStyle(color: textColor),
+            style: TextStyle(
+                color: isEnabled ? textColor : textColor.withOpacity(0.5)),
           ),
         ),
       ),
@@ -185,6 +191,128 @@ class AuthRedirectText extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ForgotPasswordDialog extends StatefulWidget {
+  final Function(String) onSendResetLink;
+  final Function(String) validateEmail;
+
+  const ForgotPasswordDialog({
+    super.key,
+    required this.onSendResetLink,
+    required this.validateEmail,
+  });
+
+  @override
+  State<ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
+  final TextEditingController _emailController = TextEditingController();
+  String? _emailError;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _validateEmail(String value) {
+    if (value.isEmpty) {
+      setState(() {
+        _emailError = 'Please enter your email address';
+      });
+      return;
+    }
+
+    final isValid = widget.validateEmail(value);
+    setState(() {
+      _emailError = isValid ? null : 'Please enter a valid email address';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+      ),
+      title: const Text(
+        'Reset Password',
+        style: TextStyle(color: Colors.white, fontSize: 18),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enter your email address and we\'ll send you a link to reset your password.',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _emailController,
+            style: const TextStyle(color: Colors.white),
+            cursorColor: Colors.white,
+            decoration: InputDecoration(
+              labelText: 'Email Address',
+              labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+              errorText: _emailError,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Colors.white),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.red.shade300),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.red.shade300),
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.05),
+            ),
+            onChanged: (value) {
+              if (_emailError != null) {
+                _validateEmail(value);
+              }
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white70),
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            final email = _emailController.text.trim();
+            _validateEmail(email);
+
+            if (_emailError == null) {
+              Navigator.pop(context);
+              widget.onSendResetLink(email);
+            }
+          },
+          child: const Text(
+            'Send Reset Link',
+            style: TextStyle(color: Colors.blue),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application/main.dart';
-import 'package:flutter_application/pages/login.dart';
+import 'package:flutter_application/pages/auth/login.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/shared.dart';
@@ -17,15 +17,13 @@ class AuthProvider extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CustomCircularProgressIndicator()), // Loading state
+            body: Center(child: CustomCircularProgressIndicator()),
           );
         }
         if (snapshot.hasData) {
-          // User is authenticated, trigger refresh of user data
-            Provider.of<UserProvider>(context, listen: false);
-            Provider.of<TriviaProvider>(context, listen: false);
-          
-          return const BottomNavBar(); // User is signed in
+          Provider.of<UserProvider>(context, listen: false);
+          Provider.of<TriviaProvider>(context, listen: false);
+          return const BottomNavBar();
         } else {
           return const LoginPage(); // User is not signed in
         }

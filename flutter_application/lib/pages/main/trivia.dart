@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/services/observer_service.dart';
 import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/trivia/question_timer.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-import '../providers/trivia_provider.dart';
-import '../widgets/trivia/bottom_buttons.dart';
-import '../widgets/trivia/trivia_drawer.dart';
-import '../widgets/trivia/option_button.dart';
-import '../widgets/trivia/question_timer.dart';
-import '../colors.dart';
-import '../utils/text_formatter.dart';
+import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
+import 'package:flutter_application/widgets/trivia/bottom_buttons.dart';
+import 'package:flutter_application/widgets/trivia/trivia_drawer.dart';
+import 'package:flutter_application/widgets/trivia/option_button.dart';
+import 'dart:math';
 
 class TriviaPage extends StatefulWidget {
   final String topic;
@@ -36,7 +37,8 @@ class _TriviaPageState extends State<TriviaPage>
 
   // Animations
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _slideAnimation;
   late AnimationController _topicAnimationController;
   late AnimationController _closeAnimController;
 
@@ -56,13 +58,30 @@ class _TriviaPageState extends State<TriviaPage>
   void _initializeAnimations() {
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Create a sequence of animations for a snappier feel
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.95, end: 1.02).chain(
+          CurveTween(curve: Curves.easeOutCubic),
+        ),
+        weight: 100,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.02, end: 1.0).chain(
+          CurveTween(curve: Curves.easeInOutCubic),
+        ),
+        weight: 100,
+      ),
+    ]).animate(_animationController);
+
+    // Add a slide animation for more dynamic entry
+    _slideAnimation = Tween<double>(begin: 20.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Curves.easeInOut,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -85,12 +104,16 @@ class _TriviaPageState extends State<TriviaPage>
     _animationController.dispose();
     _topicAnimationController.dispose();
     _closeAnimController.dispose();
-    _triviaProvider.setTriviaActive(false);
 
-    // End temporary session if active
-    if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
-      _triviaProvider.endTemporaryTopicSession();
-    }
+    // Use a microtask to ensure state updates happen after disposal
+    Future.microtask(() {
+      _triviaProvider.setTriviaActive(false);
+
+      // End temporary session if active
+      if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
+        _triviaProvider.endTemporarySession(widget.topic);
+      }
+    });
 
     ObserverService.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -100,7 +123,8 @@ class _TriviaPageState extends State<TriviaPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      _triviaProvider.setTriviaActive(false);
+      _triviaProvider.setTriviaActive(false,
+          temporarySession: widget.isTemporarySession);
     } else if (state == AppLifecycleState.resumed) {
       _triviaProvider.setTriviaActive(true);
     }
@@ -115,7 +139,16 @@ class _TriviaPageState extends State<TriviaPage>
     // Initialize temporary topic session if needed
     if (widget.isTemporarySession && widget.topic.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await _triviaProvider.startTemporaryTopicSession(widget.topic);
+        await _triviaProvider.startTemporarySession(widget.topic);
+
+        // Add a safety timeout to prevent infinite loading
+        Future.delayed(const Duration(seconds: 30), () {
+          if (_triviaProvider.isLoadingQuestions && mounted) {
+            debugPrint(
+                "Safety timeout triggered - forcing loading state to false");
+            _triviaProvider.forceLoadingComplete();
+          }
+        });
       });
     }
   }
@@ -129,7 +162,10 @@ class _TriviaPageState extends State<TriviaPage>
   void didPop() {
     // End temporary session when navigating back
     if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
-      _triviaProvider.endTemporaryTopicSession();
+      // Use a microtask to ensure this runs after the current frame
+      Future.microtask(() {
+        _triviaProvider.endTemporarySession(widget.topic);
+      });
     }
   }
 
@@ -188,8 +224,7 @@ class _TriviaPageState extends State<TriviaPage>
             _iconAnimationValue = 1.0;
           });
           _topicAnimationController.reset();
-
-          debugPrint("excluded");
+          _triviaProvider.excludeTopic(context);
         }
       });
 
@@ -236,19 +271,18 @@ class _TriviaPageState extends State<TriviaPage>
   // ============================== QUESTION LOGIC ==============================
 
   void _handleNextQuestion() {
-    _triviaProvider.nextQuestion();
-    _advancedDrawerController.hideDrawer();
+    // First, animate out the current question
+    _animationController.reverse().then((_) {
+      // Update the question index
+      _triviaProvider.nextQuestion();
+      _advancedDrawerController.hideDrawer();
 
-    // Animate to the next page
-    _pageController.animateToPage(
-      _triviaProvider.currentIndex,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+      // Animate to the next page without animation (since we're handling it ourselves)
+      _pageController.jumpToPage(_triviaProvider.currentIndex);
 
-    // Reset the fade animation
-    _animationController.reset();
-    _animationController.forward();
+      // Animate in the new question
+      _animationController.forward();
+    });
   }
 
   // ============================== WIDGETS BUILDING ==============================
@@ -363,14 +397,7 @@ class _TriviaPageState extends State<TriviaPage>
                             repeat: ImageRepeat.repeat,
                           ),
                         ),
-                        child: Column(
-                          children: [
-                            _buildProgressIndicator(triviaProvider),
-                            Expanded(
-                              child: _buildQuestionPageView(triviaProvider),
-                            ),
-                          ],
-                        ),
+                        child: _buildQuestionPageView(triviaProvider),
                       ),
                       if (widget.quickPlay || widget.isTemporarySession)
                         Positioned(
@@ -439,36 +466,41 @@ class _TriviaPageState extends State<TriviaPage>
                                     ),
                                     // Center content
                                     Center(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          // Icon with immediate scaling based on drag
-                                          Transform.scale(
-                                            scale: 0.8 +
-                                                (0.4 *
-                                                    (_dragExtent /
-                                                            _swipeThreshold)
-                                                        .clamp(0.0, 1.0)),
-                                            child: Icon(
-                                              Icons
-                                                  .remove_circle_outline_rounded,
-                                              color: Colors.white,
-                                              size: 32 *
-                                                  _topicAnimationController
-                                                      .value,
+                                      child: Opacity(
+                                        opacity:
+                                            _topicAnimationController.value,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            // Icon with immediate scaling based on drag
+                                            Transform.scale(
+                                              scale: 0.6 +
+                                                  (0.4 *
+                                                      (_dragExtent /
+                                                              _swipeThreshold)
+                                                          .clamp(0.0, 1.0)),
+                                              child: Icon(
+                                                Icons
+                                                    .remove_circle_outline_rounded,
+                                                color: Colors.white,
+                                                size: 32 *
+                                                    _topicAnimationController
+                                                        .value,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          // Text with fade animation
-                                          Opacity(
-                                            opacity:
-                                                _topicAnimationController.value,
-                                            child: Text(
+                                            SizedBox(
+                                                width: 10 *
+                                                    _topicAnimationController
+                                                        .value),
+                                            // Text with fade animation
+                                            Text(
                                               'Exclude Topic',
                                               style: TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 16,
+                                                fontSize: 17 *
+                                                    _topicAnimationController
+                                                        .value,
                                                 fontWeight: FontWeight.w600,
                                                 letterSpacing: 0.5,
                                                 shadows: [
@@ -481,8 +513,8 @@ class _TriviaPageState extends State<TriviaPage>
                                                 ],
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -499,23 +531,6 @@ class _TriviaPageState extends State<TriviaPage>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildProgressIndicator(TriviaProvider triviaProvider) {
-    if (triviaProvider.questions.isEmpty) {
-      return const SizedBox.shrink(); // Return an empty widget if no questions
-    }
-
-    double progressValue = triviaProvider.questions.length > 1
-        ? triviaProvider.currentIndex / (triviaProvider.questions.length - 1)
-        : 1.0; // If only one question, progress is always 100%
-
-    return LinearProgressIndicator(
-      value: progressValue,
-      backgroundColor: Colors.black12,
-      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white30),
-      minHeight: 3,
     );
   }
 
@@ -539,25 +554,36 @@ class _TriviaPageState extends State<TriviaPage>
 
     return Stack(
       children: [
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
-                _buildQuestionHeader(triviaProvider, question),
-                const Spacer(),
-                _buildQuestionCard(question),
-                const Spacer(),
-                _buildOptions(triviaProvider, question),
-                const Spacer(),
-                _buildFooter(triviaProvider),
-                if (widget.quickPlay) const Spacer(),
-              ],
-            ),
-          ),
+        AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, _slideAnimation.value),
+              child: Transform.scale(
+                scale: _scaleAnimation.value,
+                child: Opacity(
+                  opacity: _animationController.value,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Spacer(),
+                        _buildQuestionHeader(triviaProvider, question),
+                        const Spacer(),
+                        _buildQuestionCard(question),
+                        const Spacer(),
+                        _buildOptions(triviaProvider, question),
+                        const Spacer(),
+                        _buildFooter(triviaProvider),
+                        const Spacer(flex: 1)
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -582,94 +608,138 @@ class _TriviaPageState extends State<TriviaPage>
             letterSpacing: 0.5,
           ),
         ),
-        if (question.containsKey('subtopic') && question['subtopic'] != null)
-          Column(
-            children: [
-              const SizedBox(height: 7.5),
-              Text(
-                '${question['subtopic']}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+        if (question.containsKey('subtopic') &&
+            question['subtopic'] != null) ...[
+          const SizedBox(height: 7.5),
+          Text(
+            '${question['subtopic']}',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+            textAlign: TextAlign.center,
           ),
+        ],
       ],
     );
   }
 
   Widget _buildQuestionCard(Map<String, dynamic> question) {
-    return Card(
-      elevation: 8,
-      shadowColor: Colors.black45,
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withOpacity(0.085),
-              Colors.white.withOpacity(0.05),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        // Create a bouncy effect for the card
+        final cardAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.1, 0.5, curve: Curves.easeOutBack),
           ),
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              spreadRadius: 1,
+        );
+
+        return Transform.scale(
+          scale: 0.8 + (0.2 * cardAnimation.value),
+          child: Card(
+            elevation: 8 * cardAnimation.value,
+            shadowColor: Colors.black45,
+            color: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
             ),
-          ],
-        ),
-        child: TextFormatter.formatText(
-          question['question'],
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            height: 1.4,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.085 * cardAnimation.value),
+                    Colors.white.withOpacity(0.05 * cardAnimation.value),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        Colors.black12.withOpacity(cardAnimation.value * 0.12),
+                    blurRadius: 10 * cardAnimation.value,
+                    spreadRadius: 1 * cardAnimation.value,
+                  ),
+                ],
+              ),
+              child: TextFormatter.formatText(
+                question['question'],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildOptions(
       TriviaProvider triviaProvider, Map<String, dynamic> question) {
-    return Column(
-        children: question['options'].map<Widget>((option) {
-      bool isCorrectOption = option == triviaProvider.correctAnswer;
-      bool isSelected = option == triviaProvider.selectedAnswer;
-      Color? buttonColor = const Color(0xff262626);
+    final options = question['options'];
 
-      if (triviaProvider.answered) {
-        if (isCorrectOption) {
-          buttonColor = Colors.green[400];
-        } else if (isSelected) {
-          buttonColor = Colors.red[600];
-        }
-      }
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Column(
+          children: List.generate(options.length, (i) {
+            // Stagger the animations for each option
+            final delay = i * 0.1;
+            final startInterval = 0.2 + delay;
+            final endInterval = min(1.0, startInterval + 0.3);
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: OptionButton(
-          option: option,
-          isCorrectOption: isCorrectOption,
-          isSelected: isSelected,
-          buttonColor: buttonColor,
-          onPressed: triviaProvider.answered
-              ? null
-              : () => _triviaProvider.handleAnswer(option),
-        ),
-      );
-    }).toList());
+            final optionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(startInterval, endInterval,
+                    curve: Curves.easeOutCubic),
+              ),
+            );
+
+            final option = options[i];
+            bool isCorrectOption = option == triviaProvider.correctAnswer;
+            bool isSelected = option == triviaProvider.selectedAnswer;
+            Color? buttonColor = const Color(0xff262626);
+
+            if (triviaProvider.answered) {
+              if (isCorrectOption) {
+                buttonColor = Colors.green[400];
+              } else if (isSelected) {
+                buttonColor = Colors.red[600];
+              }
+            }
+
+            return Transform.translate(
+              offset: Offset(30.0 * (1.0 - optionAnimation.value), 0),
+              child: Opacity(
+                opacity: optionAnimation.value,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: OptionButton(
+                    option: option,
+                    isCorrectOption: isCorrectOption,
+                    isSelected: isSelected,
+                    buttonColor: buttonColor,
+                    onPressed: triviaProvider.answered
+                        ? null
+                        : () => _triviaProvider.handleAnswer(option),
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
   }
 
   Widget _buildFooter(TriviaProvider triviaProvider) {

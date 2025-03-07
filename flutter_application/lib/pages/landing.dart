@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 
 class LandingPage extends StatelessWidget {

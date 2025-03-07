@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';

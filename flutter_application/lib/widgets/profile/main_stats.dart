@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/widgets/shared.dart';
 
 class MainStats extends StatelessWidget {
@@ -32,17 +32,17 @@ class MainStats extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildMainStatCard(
-            'STREAK',
-            '${userProfile.currentStreak} ${userProfile.currentStreak == 1 ? 'day' : 'days'}', // Display "day" or "days"
-            Icons.whatshot,
-            currentStreakColor,
-          ),
-          const CustomVerticalDivider(),
-          _buildMainStatCard(
             'ACCURACY',
             '$accuracy%',
             Icons.gps_fixed,
             globalRankColor,
+          ),
+          const CustomVerticalDivider(),
+          _buildMainStatCard(
+            'STREAK',
+            '${userProfile.currentStreak} ${userProfile.currentStreak == 1 ? 'day' : 'days'}', // Display "day" or "days"
+            Icons.whatshot,
+            currentStreakColor,
           ),
           const CustomVerticalDivider(),
           _buildMainStatCard(

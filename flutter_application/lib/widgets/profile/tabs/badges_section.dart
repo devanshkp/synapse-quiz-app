@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/models/user_profile.dart';
 
 class BadgesSection extends StatefulWidget {
-  const BadgesSection({super.key});
+  final UserProfile userProfile;
+
+  const BadgesSection({super.key, required this.userProfile});
 
   @override
   State<BadgesSection> createState() => _BadgesSectionState();
@@ -42,8 +45,8 @@ class _BadgesSectionState extends State<BadgesSection> {
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        final userProfile = userProvider.userProfile;
-        if (userProfile == null || _isLoading) {
+        final userProfile = widget.userProfile;
+        if (_isLoading) {
           return const Center(child: CustomCircularProgressIndicator());
         }
 

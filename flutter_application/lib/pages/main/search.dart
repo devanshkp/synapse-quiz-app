@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/widgets/home/home_widgets.dart';
 import 'package:flutter_application/pages/topic.dart';
-import '../colors.dart';
+import 'package:flutter_application/widgets/shared.dart';
+import '../../constants.dart';
 
 class SearchPage extends StatefulWidget {
   final bool fromHome;

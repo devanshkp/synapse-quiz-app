@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/colors.dart';
-import 'package:flutter_application/pages/topic.dart';
-import 'package:flutter_application/pages/trivia.dart';
+import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/pages/main/trivia.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/widgets/home/session_history.dart';
 import 'package:flutter_application/widgets/home/topic_selection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
-
-import 'package:string_extensions/string_extensions.dart';
 
 Widget customHomeButton({
   required String title,
@@ -27,7 +25,7 @@ Widget customHomeButton({
     height: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withOpacity(0.1)), 
+      border: Border.all(color: Colors.white.withOpacity(0.1)),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.3),
@@ -105,142 +103,6 @@ Widget customHomeButton({
     ),
     child: buttonContent,
   );
-}
-
-class TopicButton extends StatelessWidget {
-  final String title;
-  final String iconName;
-  final double iconSize;
-  final Color color;
-  final double titleFontSize;
-  final String buttonType;
-  final double? radius;
-  final double? buttonWidth;
-  final double? buttonHeight;
-  final double? bottomOffset;
-  final double? rightOffset;
-  final String? section;
-
-  const TopicButton({
-    super.key,
-    required this.title,
-    required this.iconName,
-    required this.iconSize,
-    required this.color,
-    required this.titleFontSize,
-    required this.buttonType,
-    this.radius,
-    this.buttonWidth,
-    this.buttonHeight,
-    this.bottomOffset,
-    this.rightOffset,
-    this.section,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final String heroBaseTag = section != null
-        ? '${title}_${buttonType}_$section'
-        : '${title}_$buttonType';
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius ?? 10),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  TopicDetailsPage(
-                topicName: title,
-                iconName: iconName,
-                topicColor: color,
-                buttonType: buttonType,
-                heroBaseTag: heroBaseTag,
-              ),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOutCubic;
-
-                var tween = Tween(begin: begin, end: end)
-                    .chain(CurveTween(curve: curve));
-                var offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(
-                  position: offsetAnimation,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 300),
-            ),
-          );
-        },
-        child: Container(
-          width: buttonWidth ?? double.infinity,
-          height: buttonHeight ?? double.infinity,
-          decoration: BoxDecoration(boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 6),
-            ),
-          ], gradient: createGradientFromColor(color)),
-          child: Stack(
-            children: [
-              // Positioned image for bottom-right corner
-              Positioned(
-                bottom: bottomOffset ?? -10,
-                right: rightOffset ?? -10,
-                child: Hero(
-                  tag: 'topic_icon_$heroBaseTag',
-                  child: Transform.rotate(
-                    angle: 0.3,
-                    child: Image.asset(
-                      'assets/images/topics/$iconName',
-                      width: iconSize,
-                      height: iconSize,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              // Positioned text for top-left corner
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Hero(
-                    tag: 'topic_title_$heroBaseTag',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 100),
-                        child: Text(
-                          title.replaceAll('_', ' ').toTitleCase,
-                          style: TextStyle(
-                            fontSize: titleFontSize,
-                            fontWeight: radius != null
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.left,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 LinearGradient createGradientFromColor(Color baseColor) {
@@ -361,15 +223,76 @@ class TopicSelectionButton extends StatelessWidget {
         iconSize: 15,
         heroTag: 'topic_selection_popup',
         onTap: () {
-          showDialog(
-            context: context,
-            barrierDismissible: true,
-            barrierColor: Colors.black.withOpacity(0.5),
-            builder: (context) => const TopicSelectionPopup(),
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const TopicSelectionPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOutCubic;
+
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+            ),
           );
         },
         textPadding: const EdgeInsets.only(left: 15, right: 11),
         iconPadding: const EdgeInsets.only(bottom: 25),
+      ),
+    );
+  }
+}
+
+class SessionHistoryButton extends StatelessWidget {
+  const SessionHistoryButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 72,
+      child: customHomeButton(
+        title: 'Session History',
+        titleFontSize: 16,
+        subtitle: 'Explore your most recent gameplay sessions.',
+        subtitleFontSize: 9,
+        iconPath: 'assets/icons/home/History.svg',
+        iconSize: 25,
+        textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),
+        iconPadding: const EdgeInsets.only(bottom: 20),
+        onTap: () {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const SessionHistoryPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOutCubic;
+
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,15 +1,16 @@
-import 'package:flutter_application/colors.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/profile/friends_drawer.dart';
+import 'package:flutter_application/widgets/profile/drawers/friends_drawer.dart';
 import 'package:flutter_application/widgets/profile/main_stats.dart';
 import 'package:flutter_application/widgets/profile/custom_app_bar.dart';
-import 'package:flutter_application/widgets/profile/settings_drawer.dart';
+import 'package:flutter_application/widgets/profile/drawers/settings_drawer.dart';
+import 'package:flutter_application/widgets/profile/tabs/topics_section.dart';
 import 'package:flutter_application/widgets/profile/user_profile_header.dart';
 import 'package:flutter_application/widgets/shared.dart';
-import 'package:flutter_application/widgets/profile/stats_section.dart';
-import 'package:flutter_application/widgets/profile/badges_section.dart';
+import 'package:flutter_application/widgets/profile/tabs/stats_section.dart';
+import 'package:flutter_application/widgets/profile/tabs/badges_section.dart';
 import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 
 import 'package:provider/provider.dart';
@@ -32,13 +33,8 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-
-    // Set up listeners for user profile and total questions changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.listenToUserProfile();
-    });
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -54,6 +50,7 @@ class _ProfilePageState extends State<ProfilePage>
         preferredSize: Size.fromHeight(60.0),
         child: ProfileAppBar(),
       ),
+      drawerEdgeDragWidth: MediaQuery.of(context).size.width * 0.1,
       drawer: const FriendsDrawer(),
       endDrawer: const SettingsDrawer(),
       body: RefreshIndicator(
@@ -78,7 +75,6 @@ class _ProfilePageState extends State<ProfilePage>
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                // Profile header section
                 const SizedBox(height: 20),
                 const UserProfileHeader(),
                 const SizedBox(height: 25),
@@ -104,7 +100,7 @@ class _ProfilePageState extends State<ProfilePage>
                 // Tab bar
                 CustomTabBar(
                   controller: _tabController,
-                  tabs: const ['Stats', 'Badges'],
+                  tabs: const ['Stats', 'Badges', 'Topics'],
                   horizontalPadding: 28,
                   tabHeight: 40,
                   indicatorPadding: const EdgeInsets.all(2),
@@ -125,7 +121,8 @@ class _ProfilePageState extends State<ProfilePage>
                         return StatsSection(userProfile: userProfile);
                       },
                     ),
-                    const BadgesSection(),
+                    BadgesSection(userProfile: userProvider.userProfile!),
+                    TopicsSection(userProfile: userProvider.userProfile!),
                   ],
                 ),
 
