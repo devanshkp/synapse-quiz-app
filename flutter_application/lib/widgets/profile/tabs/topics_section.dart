@@ -53,7 +53,6 @@ class _TopicsSectionState extends State<TopicsSection> {
       return const Center(child: CustomCircularProgressIndicator());
     }
 
-
     // Sort topics by question count (descending)
     final sortedTopics = _topicCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -82,7 +81,7 @@ class _TopicsSectionState extends State<TopicsSection> {
         ),
         child: const Center(
           child: Text(
-            'No topics selected at the moment.',
+            'Topic Counts Empty.',
             style: TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
@@ -112,7 +111,7 @@ class _TopicsSectionState extends State<TopicsSection> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Selected Topics',
+                  'Topic Performance',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -222,13 +221,25 @@ class _TopicsSectionState extends State<TopicsSection> {
               ],
             ),
           ),
-          Text(
-            '$count solved',
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+          Column(
+            children: [
+              Text(
+                '$count',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'Solved',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              )
+            ],
           ),
         ],
       ),
@@ -326,13 +337,13 @@ class _TopicsSectionState extends State<TopicsSection> {
         return databaseColor;
       case 'algorithms':
         return algorithmsColor;
-      case 'swe_fundamentals':
+      case 'SWE_fundamentals':
         return sweFundamentalsColor;
       case 'discrete_math':
         return discreteMathColor;
       case 'cyber_security':
         return cyberSecurityColor;
-      case 'artifical_intelligence':
+      case 'artificial_intelligence':
         return artificialIntelligenceColor;
       default:
         return Colors.grey;

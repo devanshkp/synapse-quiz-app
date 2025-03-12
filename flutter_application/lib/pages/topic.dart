@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/pages/main/trivia.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/shared.dart';
-import 'package:string_extensions/string_extensions.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
@@ -12,7 +12,6 @@ class TopicDetailsPage extends StatefulWidget {
   final String iconName;
   final Color topicColor;
   final String buttonType;
-  final String heroBaseTag;
 
   const TopicDetailsPage({
     super.key,
@@ -20,7 +19,6 @@ class TopicDetailsPage extends StatefulWidget {
     required this.iconName,
     required this.topicColor,
     required this.buttonType,
-    required this.heroBaseTag,
   });
 
   @override
@@ -43,7 +41,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
     );
 
     _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.125), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.1, 1.0, curve: Curves.easeOutCubic),
@@ -215,32 +213,28 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                           children: [
                             // Topic Icon
                             Center(
-                              child: Hero(
-                                tag: 'topic_icon_${widget.heroBaseTag}',
-                                child: Container(
-                                  width: 160,
-                                  height: 160,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(80),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            widget.topicColor.withOpacity(0.3),
-                                        blurRadius: 20,
-                                        spreadRadius: 5,
-                                      ),
-                                    ],
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.2),
-                                      width: 1,
+                              child: Container(
+                                width: 160,
+                                height: 160,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(80),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: widget.topicColor.withOpacity(0.3),
+                                      blurRadius: 20,
+                                      spreadRadius: 5,
                                     ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
                                   ),
-                                  child: Image.asset(
-                                    'assets/images/topics/${widget.iconName}',
-                                    fit: BoxFit.contain,
-                                  ),
+                                ),
+                                child: Image.asset(
+                                  'assets/images/topics/${widget.iconName}',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ),
@@ -248,30 +242,26 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                             const SizedBox(height: 28),
 
                             // Topic Name
-                            Hero(
-                              tag: 'topic_title_${widget.heroBaseTag}',
-                              child: Material(
-                                color: Colors.transparent,
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    widget.topicName
-                                        .replaceAll('_', ' ')
-                                        .toTitleCase,
-                                    style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black26,
-                                          blurRadius: 10,
-                                          offset: Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    textAlign: TextAlign.center,
+                            Material(
+                              color: Colors.transparent,
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  TextFormatter.formatTitlePreservingCase(
+                                      widget.topicName),
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black26,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
@@ -290,7 +280,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                 ),
                               ),
                               child: Text(
-                                'Explore exciting questions about ${widget.topicName.replaceAll('_', ' ').toTitleCase} and test your knowledge!',
+                                'Explore exciting questions about ${TextFormatter.formatTitlePreservingCase(widget.topicName)} and test your knowledge!',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white.withOpacity(0.9),
@@ -308,22 +298,49 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                               children: [
                                 // Play Button
                                 Expanded(
-                                  child: GradientElevatedButton(
-                                    icon: Icons.play_arrow,
-                                    text: 'Play Now',
-                                    gradient: buttonGradient,
-                                    borderColor: Colors.white.withOpacity(0.15),
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      // Launch a temporary topic session
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TriviaPage(
-                                            topic: widget.topicName,
-                                            isTemporarySession: true,
-                                          ),
-                                        ),
+                                  child: Consumer<TriviaProvider>(
+                                    builder: (context, triviaProvider, child) {
+                                      final bool isLoading =
+                                          triviaProvider.isLoadingQuestions;
+
+                                      return GradientElevatedButton(
+                                        icon: Icons.play_arrow,
+                                        text: isLoading
+                                            ? 'Please wait...'
+                                            : 'Play Now',
+                                        gradient: isLoading
+                                            ? LinearGradient(
+                                                colors: [
+                                                  Colors.grey.shade600,
+                                                  Colors.grey.shade700,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              )
+                                            : buttonGradient,
+                                        borderColor: Colors.white.withOpacity(
+                                            isLoading ? 0.05 : 0.15),
+                                        textColor: Colors.white
+                                            .withOpacity(isLoading ? 0.7 : 1.0),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        allowTextWrap: true,
+                                        maxLines: 1,
+                                        onPressed: isLoading
+                                            ? () {}
+                                            : () {
+                                                // Launch a temporary topic session
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        TriviaPage(
+                                                      topic: widget.topicName,
+                                                      isTemporarySession: true,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
                                       );
                                     },
                                   ),
@@ -343,24 +360,28 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                     gradient: _isTopicSelected
                                         ? const LinearGradient(
                                             colors: [
-                                              Color.fromARGB(255, 98, 207, 102),
-                                              Colors.green,
-                                              Color.fromARGB(255, 56, 143, 59),
-                                            ],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          )
-                                        : const LinearGradient(
-                                            colors: [
                                               Color.fromARGB(255, 198, 74, 65),
                                               warningRed,
                                               Color.fromARGB(255, 148, 30, 22),
                                             ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
+                                          )
+                                        : const LinearGradient(
+                                            colors: [
+                                              Color.fromARGB(255, 98, 207, 102),
+                                              Colors.green,
+                                              Color.fromARGB(255, 56, 143, 59),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
                                           ),
                                     borderColor: Colors.white.withOpacity(0.2),
                                     textColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 14),
+                                    allowTextWrap: true,
+                                    maxLines: 1,
                                     onPressed: _toggleTopicSelection,
                                   ),
                                 ),

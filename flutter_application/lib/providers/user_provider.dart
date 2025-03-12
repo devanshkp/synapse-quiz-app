@@ -1,11 +1,13 @@
 import 'dart:async';
-
+import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/services/friend_service.dart';
 import '../models/user_profile.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UserProvider extends ChangeNotifier {
   // Listeners
@@ -232,6 +234,85 @@ class UserProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Error fetching user profile by ID: $e");
+      return null;
+    }
+  }
+
+  /// Updates the user's profile in Firestore
+  Future<void> updateUserProfileInFirestore({
+    required String fullName,
+    String? avatarUrl,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final Map<String, dynamic> updateData = {
+        'fullName': fullName,
+      };
+
+      // Only update avatarUrl if it's provided
+      if (avatarUrl != null) {
+        updateData['avatarUrl'] = avatarUrl;
+      }
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update(updateData);
+
+      // The user profile will be updated via the listener
+    } catch (e) {
+      debugPrint("Error updating user profile in Firestore: $e");
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
+  /// Uploads a profile image to Firebase Storage and returns the download URL
+  Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Check if user already has a profile image
+      final String? existingImageUrl = _userProfile?.avatarUrl;
+      String destination;
+
+      if (existingImageUrl != null &&
+          existingImageUrl.contains('firebasestorage.googleapis.com')) {
+        // Extract the existing path from the URL to reuse it
+        try {
+          final ref = FirebaseStorage.instance.refFromURL(existingImageUrl);
+          destination = ref.fullPath;
+          debugPrint('Updating existing image at path: $destination');
+        } catch (e) {
+          // If we can't get the path from the URL, create a new one
+          debugPrint('Could not extract path from existing URL: $e');
+          final fileName =
+              '${DateTime.now().millisecondsSinceEpoch}_${path.basename(imageFile.path)}';
+          destination = 'profile_images/${user.uid}/$fileName';
+        }
+      } else {
+        // Create a new path if no existing image
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_${path.basename(imageFile.path)}';
+        destination = 'profile_images/${user.uid}/$fileName';
+      }
+
+      final ref = FirebaseStorage.instance.ref().child(destination);
+      final uploadTask = ref.putFile(imageFile);
+
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      debugPrint('Image uploaded successfully at: $downloadUrl');
+      return downloadUrl;
+    } catch (e) {
+      debugPrint("Error uploading profile image: $e");
       return null;
     }
   }

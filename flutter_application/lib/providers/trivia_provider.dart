@@ -1,13 +1,10 @@
 import 'dart:math';
-
-import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 import 'dart:async';
-
-import 'package:string_extensions/string_extensions.dart';
 
 class TriviaProvider extends ChangeNotifier {
   final UserProvider userProvider;
@@ -16,8 +13,8 @@ class TriviaProvider extends ChangeNotifier {
 
   // Constants
   static const double totalTime = 30;
-  static const int minQuestions = 5;
-  static const int questionBatchSize = 15;
+  static const int minQuestions = 25;
+  static const int questionBatchSize = 40;
 
   // Questions and Topics
   int _totalQuestions = 0;
@@ -41,7 +38,6 @@ class TriviaProvider extends ChangeNotifier {
   bool _isFetching = false;
 
   //Others
-  int _currentIndex = 0;
   final ValueNotifier<double> _timeNotifier = ValueNotifier<double>(totalTime);
   Timer? _timer;
   late double _lastSavedTime;
@@ -61,16 +57,18 @@ class TriviaProvider extends ChangeNotifier {
   List<String> get selectedTopics => _selectedTopics;
   List<String> get displayedTopics => _displayedTopics;
   Map<String, int> get topicCounts => _topicCounts;
+
+  bool get isTemporarySession => _isTemporarySession;
   bool get isLoadingQuestions => _isLoadingQuestions;
   bool get isLoadingTopics => _isLoadingTopics;
-  int get currentIndex => _currentIndex;
+
   ValueNotifier<double> get timeNotifier => _timeNotifier;
   bool get answered => _answered;
   String get selectedAnswer => _selectedAnswer;
   String get correctAnswer => _correctAnswer;
   Map<String, dynamic>? get currentUserData => _currentUserData;
-  Map<String, dynamic> get currentQuestion => _questions[_currentIndex];
-  bool get isTemporarySession => _isTemporarySession;
+  Map<String, dynamic> get currentQuestion =>
+      _questions.isNotEmpty ? _questions.first : {};
 
   TriviaProvider(this.userProvider) {
     initialize();
@@ -93,7 +91,6 @@ class TriviaProvider extends ChangeNotifier {
       _cachedQuestionsPerTopic[topic] = [];
     }
     await fetchQuestions(topics: _selectedTopics);
-    await refreshProfileStats();
   }
 
   void reset() {
@@ -109,7 +106,6 @@ class TriviaProvider extends ChangeNotifier {
     _isLoadingTopics = true;
     _isFetching = false;
 
-    _currentIndex = 0;
     _timeNotifier.value = totalTime;
     _timer?.cancel();
     _answered = false;
@@ -130,6 +126,9 @@ class TriviaProvider extends ChangeNotifier {
     if (_isTemporarySession) return;
 
     debugPrint("Starting temporary session for topic: $topic");
+
+    // Make sure any existing timer is canceled
+    stopTimer();
 
     _isTemporarySession = true;
     _isLoadingQuestions = true;
@@ -156,25 +155,34 @@ class TriviaProvider extends ChangeNotifier {
       }
     }
 
-    _currentIndex = 0;
     _answered = false;
     _selectedAnswer = '';
+    _timeNotifier.value = totalTime;
 
     // Fetch questions for this topic if there are less than minQuestions
     if (_questions.length < minQuestions) {
-      await fetchQuestions(temporarySession: true, topics: [topic]);
+      await fetchQuestions(temporarySession: true, topics: _selectedTopics);
     }
 
-    _isLoadingQuestions = false;
-    _questions.shuffle();
-    // Start the timer
-    startQuestionTimer();
-    notifyListeners();
+    if (_questions.isNotEmpty) {
+      _questions.shuffle();
+    }
+
+    // Start the timer after everything is set up
+    Future.microtask(() {
+      _isLoadingQuestions = false;
+      if (_questions.isNotEmpty) {
+        startQuestionTimer(resume: false);
+      }
+      notifyListeners();
+    });
   }
 
   /// Ends the temporary topic session and restores the original state
   void endTemporarySession(String topic) {
     if (!_isTemporarySession) return;
+
+    stopTimer();
 
     Future.microtask(() {
       // Restore original state
@@ -199,94 +207,27 @@ class TriviaProvider extends ChangeNotifier {
       if (_questions.length < minQuestions) {
         Future.delayed(const Duration(milliseconds: 300), () {
           if (_isTemporarySession == false) {
-            fetchQuestions(topics: [topic]);
+            fetchQuestions(topics: _selectedTopics);
           }
         });
       }
 
       // Shuffle the questions
-      _questions.shuffle();
+      preserveCurrentQuestionAndShuffle(currentQuestion);
 
       // Reset session state
       _cachedQuestions = [];
       _cachedSelectedTopics = [];
-      _currentIndex = 0;
       _answered = false;
       _selectedAnswer = '';
 
       _isTemporarySession = false;
 
       notifyListeners();
-
-      // Reset the timer
-      _timer?.cancel();
-      _timeNotifier.value = totalTime;
     });
   }
 
   // ============================== TRIVIA STATISTICS FUNCTIONS ==============================
-
-  Future<void> refreshProfileStats() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentReference userRef = _firestore.collection('users').doc(user.uid);
-      DocumentSnapshot userDoc = await userRef.get();
-      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
-
-      String currentDate = DateTime.now().toIso8601String().split('T').first;
-      String lastSolvedDate = userData?['lastSolvedDate'] ?? '';
-      int currentStreak = userData?['currentStreak'] ?? 0;
-      int maxStreak = userData?['maxStreak'] ?? 0;
-      int solvedTodayCount = userData?['solvedTodayCount'] ?? 0;
-      List<dynamic> encounteredQuestions =
-          userData?['encounteredQuestions'] ?? [];
-
-      DateTime? lastSolved;
-      if (lastSolvedDate.isNotEmpty) {
-        lastSolved = DateTime.tryParse(lastSolvedDate);
-      }
-
-      // Check if the user has missed a day
-      if (lastSolved == null) {
-        // First time user, no streak yet
-        currentStreak = 0;
-      } else {
-        // Get yesterday's date
-        final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        final yesterdayDate =
-            DateTime(yesterday.year, yesterday.month, yesterday.day);
-
-        // Get the last solved date without time
-        final lastSolvedWithoutTime =
-            DateTime(lastSolved.year, lastSolved.month, lastSolved.day);
-
-        // If last solved date is before yesterday, they've missed at least one day
-        if (lastSolvedWithoutTime.isBefore(yesterdayDate)) {
-          currentStreak = 0;
-        }
-      }
-
-      // Always reset solved today count if it's a new day
-      if (lastSolvedDate != currentDate) {
-        solvedTodayCount = 0; // Reset solved today count
-      }
-
-      await userRef.set({
-        'currentStreak': currentStreak,
-        'maxStreak': maxStreak,
-        'solvedTodayCount': solvedTodayCount,
-        'lastSolvedDate': currentDate,
-        'encounteredQuestions': encounteredQuestions,
-      }, SetOptions(merge: true));
-
-      userProvider.updateUserProfile(
-        currentStreak: currentStreak,
-        maxStreak: maxStreak,
-        solvedTodayCount: solvedTodayCount,
-        lastSolvedDate: currentDate,
-      );
-    }
-  }
 
   Future<void> updateProfileStats() async {
     User? user = _auth.currentUser;
@@ -305,9 +246,10 @@ class TriviaProvider extends ChangeNotifier {
       int solvedTodayCount = userData?['solvedTodayCount'] + 1;
       int currentStreak = userData?['currentStreak'];
       int maxStreak = userData?['maxStreak'];
+
       if (solvedTodayCount == 1) {
         currentStreak++;
-        if (maxStreak < currentStreak) maxStreak = currentStreak;
+        if (currentStreak > maxStreak) maxStreak = currentStreak;
       }
 
       // Update topic-specific questions solved
@@ -344,9 +286,10 @@ class TriviaProvider extends ChangeNotifier {
     _isTriviaActive = active;
     if (temporarySession) return;
     if (active) {
-      resumeTimer();
       if (_questions.isEmpty) {
         fetchQuestions(topics: _selectedTopics);
+      } else {
+        resumeTimer();
       }
     } else {
       pauseTimer();
@@ -354,9 +297,12 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   void pauseTimer() {
-    _timer?.cancel();
-    _lastSavedTime = _timeNotifier.value;
-    debugPrint("Timer paused at $_timeNotifier.value");
+    if (_timer != null) {
+      _timer!.cancel();
+      _timer = null;
+      _lastSavedTime = _timeNotifier.value;
+      debugPrint("Timer paused at ${_timeNotifier.value}");
+    }
   }
 
   void resumeTimer() {
@@ -365,20 +311,35 @@ class TriviaProvider extends ChangeNotifier {
     debugPrint("Timer resumed.");
   }
 
-  void startQuestionTimer({bool resume = false, bool initialStart = false}) {
+  // Explicitly stop the timer and reset its state
+  void stopTimer() {
+    if (_timer != null) {
+      _timer!.cancel();
+      _timer = null;
+      debugPrint("Timer explicitly stopped at ${_timeNotifier.value}");
+    }
+  }
+
+  void startQuestionTimer({bool resume = false}) {
     if (_questions.isEmpty || _isLoadingQuestions) return;
-    debugPrint("TIMER STARTED");
-    _timer?.cancel();
+
+    // Always cancel any existing timer first
+    stopTimer();
+
+    debugPrint("TIMER STARTED (resume: $resume)");
 
     _timeNotifier.value = (resume) ? _lastSavedTime : totalTime;
 
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (_timeNotifier.value > 0) {
-        _timeNotifier.value -= 0.1;
-      } else {
-        _timer?.cancel();
-        handleTimeout();
-      }
+    Future.microtask(() {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        if (_timeNotifier.value > 0) {
+          _timeNotifier.value -= 0.1;
+        } else {
+          timer.cancel();
+          _timer = null;
+          handleTimeout();
+        }
+      });
     });
   }
 
@@ -405,10 +366,6 @@ class TriviaProvider extends ChangeNotifier {
 
   // ============================== TOPIC FUNCTIONS ==============================
 
-  String formatTopic(String topic) {
-    return topic.replaceAll('_', ' ').toTitleCase;
-  }
-
   Future<void> loadTopics() async {
     final userTopics =
         await fetchUserselectedTopics(userProvider.currentUserId);
@@ -416,7 +373,7 @@ class TriviaProvider extends ChangeNotifier {
     _allTopics = topics;
     _selectedTopics = userTopics;
     _displayedTopics = allTopics
-        .map((topic) => topic.replaceAll('_', ' ').toTitleCase)
+        .map((topic) => TextFormatter.formatTitlePreservingCase(topic))
         .toList();
     _isLoadingTopics = false;
     notifyListeners();
@@ -502,7 +459,7 @@ class TriviaProvider extends ChangeNotifier {
     // Only schedule fetchQuestions if we're adding topics and have topics to add
     if (topicAdded && addedTopics != null && addedTopics.isNotEmpty) {
       // Set a new timer to fetch questions after a delay
-      _fetchQuestionsDebounceTimer = Timer(const Duration(seconds: 2), () {
+      _fetchQuestionsDebounceTimer = Timer(const Duration(seconds: 5), () {
         if (!_isTemporarySession) {
           debugPrint(
               "Fetching questions for newly added topics: ${addedTopics.join(', ')}");
@@ -518,44 +475,38 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   Future<void> excludeTopic(BuildContext context) async {
-    if (_currentUserData == null ||
-        _currentUserData!.containsKey('selectedTopics') == false) {
-      return;
-    }
-
-    if (_selectedTopics.length == 1) {
-      if (context.mounted) {
-        floatingSnackBar(
-          context: context,
-          message: 'Cannot exclude last topic',
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
+    try {
+      if (_selectedTopics.length == 1) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cannot exclude last topic'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
       }
-      return;
+
+      stopTimer(); // Explicitly stop the timer
+
+      String currentTopic = currentQuestion['topic'];
+      _selectedTopics.remove(currentTopic);
+
+      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
+        'selectedTopics': _selectedTopics,
+      });
+
+      cacheQuestionsForTopic(currentTopic);
+
+      // Remove questions from the excluded topic
+      _questions.removeWhere((q) => q['topic'] == currentTopic);
+
+      removeDuplicateQuestions();
+      nextQuestion();
+    } catch (e) {
+      debugPrint('Error excluding topic: $e');
     }
-
-    List<dynamic> updatedTopics =
-        List.from(_currentUserData!['selectedTopics'] as List);
-    String currentTopic = _questions[_currentIndex]['topic'];
-    updatedTopics.remove(currentTopic);
-
-    await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-      'selectedTopics': updatedTopics,
-    });
-
-    cacheQuestionsForTopic(currentTopic);
-
-    // Remove questions from the excluded topic
-    _questions.removeWhere((q) => q['topic'] == currentTopic);
-
-    if (_questions.length - _currentIndex <= minQuestions) {
-      fetchQuestions(topics: _selectedTopics);
-    }
-
-    nextQuestion();
-
-    notifyListeners();
   }
 
   // Fetch topic counts from metadata
@@ -619,7 +570,7 @@ class TriviaProvider extends ChangeNotifier {
   void printQuestionDetails(Map<String, dynamic> question) {
     // Extract question details
     String questionText = question['question'] ?? 'No question text available';
-    String topic = formatTopic(question['topic']);
+    String topic = TextFormatter.formatTitlePreservingCase(question['topic']);
     String subtopic = question['subtopic'] ?? 'No subtopic available';
     List<dynamic> options = question['options'] ?? [];
     String answerKey = question['answer'] ?? '';
@@ -752,10 +703,20 @@ class TriviaProvider extends ChangeNotifier {
     _questions.retainWhere((x) => ids.add(x['questionId']));
   }
 
-  Future<void> filterQuestionsBySelectedTopics() async {
+  void filterQuestionsBySelectedTopics() async {
     debugPrint("filtering questions by selected topics");
     _questions.removeWhere(
         (question) => !_selectedTopics.contains(question['topic']));
+  }
+
+  /// Preserves the current question at its index and shuffles the rest of the questions
+  void preserveCurrentQuestionAndShuffle(
+      Map<String, dynamic>? currentQuestion) {
+    if (_questions.isEmpty) return;
+
+    var currentQ = _questions.removeAt(0);
+    _questions.shuffle();
+    _questions.insert(0, currentQ);
   }
 
   Future<void> fetchQuestions(
@@ -768,20 +729,18 @@ class TriviaProvider extends ChangeNotifier {
       return;
     }
 
+    topics ??= _selectedTopics;
+
     User? user = _auth.currentUser;
     _isFetching = true;
-    _currentIndex = 0;
 
     if (_questions.isEmpty || temporarySession) {
       debugPrint("is loading set to true");
       _isLoadingQuestions = true;
     }
 
-    for (String topic in topics ?? _selectedTopics) {
+    for (String topic in topics) {
       retrieveCachedQuestionsForTopic(topic, limit: 5);
-      if (_questions.isNotEmpty) {
-        _questions.shuffle();
-      }
     }
 
     try {
@@ -795,19 +754,17 @@ class TriviaProvider extends ChangeNotifier {
           List<dynamic> encounteredQuestions =
               _currentUserData!['encounteredQuestions'] ?? [];
 
-          if (topics?.isEmpty ?? _selectedTopics.isEmpty) {
+          if (topics.isEmpty) {
             debugPrint("No topics selected");
             _questions = [];
             _isLoadingQuestions = false;
-            if (_isTriviaActive) {
-              notifyListeners();
-            }
+            notifyListeners();
             return;
           }
 
-          if (_questions.length < minQuestions) {
-            await fetchQuestionsFromFirebase(
-                encounteredQuestions, topics ?? _selectedTopics);
+          if (_questions.where((q) => topics!.contains(q['topic'])).isEmpty ||
+              _questions.length < minQuestions) {
+            await fetchQuestionsFromFirebase(encounteredQuestions, topics);
           }
 
           // If no questions were fetched and we haven't exceeded retry limit, try again
@@ -819,20 +776,22 @@ class TriviaProvider extends ChangeNotifier {
             return fetchQuestions(
                 retryCount: retryCount + 1,
                 temporarySession: temporarySession,
-                topics: topics ?? _selectedTopics);
+                topics: topics);
           }
+
+          preserveCurrentQuestionAndShuffle(currentQuestion);
         }
       }
     } catch (e) {
       debugPrint("Error fetching questions: $e");
     } finally {
       if (_isTriviaActive && _questions.isNotEmpty && _isLoadingQuestions) {
+        _isLoadingQuestions = false;
         resumeTimer();
         notifyListeners();
       }
       _isLoadingQuestions = false;
       _isFetching = false;
-
       notifyListeners();
     }
   }
@@ -907,9 +866,11 @@ class TriviaProvider extends ChangeNotifier {
         }
       }
 
+      // Shuffle the fetched questions before adding them to the main list
       fetchedQuestions.shuffle();
+
+      // Add the fetched questions to the main list
       _questions.addAll(fetchedQuestions);
-      _questions.shuffle();
 
       debugPrint('Questions fetched: ${_questions.length}');
     } catch (e) {
@@ -937,17 +898,74 @@ class TriviaProvider extends ChangeNotifier {
   // ============================== ANSWER HANDLING FUNCTIONS ==============================
 
   void getAnswer() {
-    String correctAnswerKey = currentQuestion['answer'];
-    _correctAnswer = currentQuestion['options']
-        [correctAnswerKey.toLowerCase().trim().codeUnitAt(0) - 97];
+    if (_questions.isEmpty) {
+      debugPrint("ERROR: getAnswer() called when _questions is empty!");
+      _correctAnswer = '';
+      return;
+    }
+
+    Map<String, dynamic> question = _questions.first;
+
+    if (!question.containsKey('answer') || question['answer'] == null) {
+      debugPrint(
+          "ERROR: Question is missing 'answer' field: ${question['questionId']}");
+      _correctAnswer = '';
+      return;
+    }
+
+    String correctAnswerKey = question['answer'];
+    if (correctAnswerKey.isEmpty) {
+      debugPrint(
+          "ERROR: Question has empty 'answer' field: ${question['questionId']}");
+      _correctAnswer = '';
+      return;
+    }
+
+    if (!question.containsKey('options') || question['options'] == null) {
+      debugPrint(
+          "ERROR: Question is missing 'options' field: ${question['questionId']}");
+      _correctAnswer = '';
+      return;
+    }
+
+    List<dynamic> options = question['options'];
+    if (options.isEmpty) {
+      debugPrint(
+          "ERROR: Question has empty 'options' field: ${question['questionId']}");
+      _correctAnswer = '';
+      return;
+    }
+
+    try {
+      int index = correctAnswerKey.toLowerCase().trim().codeUnitAt(0) - 97;
+      if (index < 0 || index >= options.length) {
+        debugPrint(
+            "ERROR: Invalid answer index $index for question: ${question['questionId']}");
+        _correctAnswer = '';
+        return;
+      }
+
+      _correctAnswer = options[index];
+    } catch (e) {
+      debugPrint(
+          "ERROR getting answer: $e for question: ${question['questionId']}");
+      _correctAnswer = '';
+    }
   }
 
   void handleAnswer(String selectedOption) {
     if (_answered) return;
 
+    debugPrint("Answer selected: $selectedOption - Stopping timer");
+
+    // Stop the timer immediately
+    stopTimer();
+
     _answered = true;
     _selectedAnswer = selectedOption;
-    _timer?.cancel();
+
+    // Freeze the timer display at current value
+    _lastSavedTime = _timeNotifier.value;
 
     getAnswer();
     bool isCorrect = selectedOption == _correctAnswer;
@@ -973,23 +991,29 @@ class TriviaProvider extends ChangeNotifier {
     await batch.commit();
   }
 
-  void updateCurrentIndex(int index) {
-    _currentIndex = index;
-    notifyListeners();
-  }
+  Future<void> nextQuestion() async {
+    // Make sure the timer is canceled before moving to next question
+    stopTimer();
 
-  void nextQuestion() {
-    _timer?.cancel();
     _answered = false;
     _selectedAnswer = '';
 
-    if (_currentIndex < _questions.length - 1) {
-      _currentIndex++;
+    _questions.removeAt(0);
+
+    // If questions list is empty or getting low, fetch more questions
+    if (_questions.isEmpty || _questions.length <= minQuestions) {
+      debugPrint(
+          "Fetching more questions because count is low: ${_questions.length}");
+      await fetchQuestions(topics: _selectedTopics);
+    }
+
+    // Only start the timer if we have questions
+    if (_questions.isNotEmpty) {
       startQuestionTimer(resume: false);
+    } else {
+      debugPrint("ERROR: Still no questions after fetching in nextQuestion()!");
     }
-    if (_questions.length - _currentIndex <= minQuestions) {
-      fetchQuestions(topics: _selectedTopics);
-    }
+
     notifyListeners();
   }
 
@@ -1057,7 +1081,7 @@ class TriviaProvider extends ChangeNotifier {
       // Refresh the topics in the provider
       _allTopics = topics;
       _displayedTopics = topics
-          .map((topic) => topic.replaceAll('_', ' ').toTitleCase)
+          .map((topic) => TextFormatter.formatTitlePreservingCase(topic))
           .toList();
 
       notifyListeners();

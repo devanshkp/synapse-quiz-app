@@ -5,7 +5,8 @@ import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/constants.dart';
 
 class UserProfileHeader extends StatelessWidget {
-  const UserProfileHeader({super.key});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  const UserProfileHeader({super.key, required this.scaffoldKey});
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +35,10 @@ class UserProfileHeader extends StatelessWidget {
                   ),
                   child: Padding(
                       padding: const EdgeInsets.all(1.0),
-                      child: userProvider.isDeveloper
-                          ? DeveloperAvatar(
-                              imageUrl: userProfile.avatarUrl,
-                              size: 55,
-                            )
-                          : UserAvatar(
-                              avatarUrl: userProfile.avatarUrl,
-                              avatarRadius: 55,
-                            )),
+                      child: UserAvatar(
+                        avatarUrl: userProfile.avatarUrl,
+                        avatarRadius: 55,
+                      )),
                 ),
 
                 // Edit button
@@ -90,33 +86,40 @@ class UserProfileHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 5),
-            RichText(
-              text: TextSpan(
-                text: '${userProfile.fullName} • ',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  color: Colors.white70,
-                  fontSize: 12,
-                  letterSpacing: 0.5,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${userProfile.fullName} • ',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-                children: [
-                  TextSpan(
-                    text: '$friendCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  TextSpan(
-                    text: friendCount == 1 ? ' Friend' : ' Friends',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
+                GestureDetector(
+                  onTap: () {
+                    scaffoldKey.currentState?.openDrawer();
+                  },
+                  child: RichText(
+                      text: TextSpan(
+                          style: const TextStyle(fontFamily: 'Poppins'),
+                          children: [
+                        TextSpan(
+                            text: '$friendCount',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500)),
+                        TextSpan(
+                            text: friendCount == 1 ? ' Friend' : ' Friends',
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.85),
+                                fontSize: 12,
+                                letterSpacing: 0.4))
+                      ])),
+                )
+              ],
             ),
           ],
         );

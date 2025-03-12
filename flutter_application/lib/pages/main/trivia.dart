@@ -109,8 +109,7 @@ class _TriviaPageState extends State<TriviaPage>
     Future.microtask(() {
       _triviaProvider.setTriviaActive(false);
 
-      // End temporary session if active
-      if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
+      if (widget.isTemporarySession) {
         _triviaProvider.endTemporarySession(widget.topic);
       }
     });
@@ -160,6 +159,8 @@ class _TriviaPageState extends State<TriviaPage>
 
   @override
   void didPop() {
+    _triviaProvider.setTriviaActive(false,
+        temporarySession: widget.isTemporarySession);
     // End temporary session when navigating back
     if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
       // Use a microtask to ensure this runs after the current frame
@@ -172,6 +173,10 @@ class _TriviaPageState extends State<TriviaPage>
   // ============================== SWIPE GESTURE HANDLERS ==============================
 
   void _onDragUpdate(DragUpdateDetails details) {
+    if (widget.isTemporarySession ||
+        _triviaProvider.selectedTopics.length == 1) {
+      return;
+    }
     if (details.primaryDelta != null && details.primaryDelta! > 0) {
       setState(() {
         _dragExtent += details.primaryDelta!;
@@ -183,6 +188,10 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   void _onDragEnd(DragEndDetails details) {
+    if (widget.isTemporarySession ||
+        _triviaProvider.selectedTopics.length == 1) {
+      return;
+    }
     if (_dragExtent.abs() > _swipeThreshold) {
       _handleTopicExclusion();
     } else {
@@ -224,9 +233,10 @@ class _TriviaPageState extends State<TriviaPage>
             _iconAnimationValue = 1.0;
           });
           _topicAnimationController.reset();
-          _triviaProvider.excludeTopic(context);
         }
       });
+
+      _triviaProvider.excludeTopic(context);
 
       _closeAnimController.forward();
     });
@@ -276,9 +286,6 @@ class _TriviaPageState extends State<TriviaPage>
       // Update the question index
       _triviaProvider.nextQuestion();
       _advancedDrawerController.hideDrawer();
-
-      // Animate to the next page without animation (since we're handling it ourselves)
-      _pageController.jumpToPage(_triviaProvider.currentIndex);
 
       // Animate in the new question
       _animationController.forward();
@@ -411,6 +418,13 @@ class _TriviaPageState extends State<TriviaPage>
                             },
                           ),
                         ),
+
+                      // Topics counter in top right
+                      Positioned(
+                        top: 20,
+                        right: 20,
+                        child: _buildTopicsCounter(triviaProvider),
+                      ),
                     ],
                   ),
                 ),
@@ -535,22 +549,14 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   Widget _buildQuestionPageView(TriviaProvider triviaProvider) {
-    return PageView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      controller: _pageController,
-      itemCount: triviaProvider.questions.length,
-      onPageChanged: (index) {
-        _animationController.reset();
-        _animationController.forward();
-      },
-      itemBuilder: (context, index) {
-        return _buildQuestionPage(triviaProvider, triviaProvider.currentIndex);
-      },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: _buildQuestionPage(triviaProvider),
     );
   }
 
-  Widget _buildQuestionPage(TriviaProvider triviaProvider, int index) {
-    final question = triviaProvider.questions[index];
+  Widget _buildQuestionPage(TriviaProvider triviaProvider) {
+    final question = triviaProvider.currentQuestion;
 
     return Stack(
       children: [
@@ -600,7 +606,7 @@ class _TriviaPageState extends State<TriviaPage>
         ),
         const SizedBox(height: 17.5),
         Text(
-          triviaProvider.formatTopic(question['topic']),
+          TextFormatter.formatTitlePreservingCase(question['topic'].toString()),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -763,6 +769,50 @@ class _TriviaPageState extends State<TriviaPage>
           onNextQuestion: _handleNextQuestion,
         ),
       ],
+    );
+  }
+
+  // Build topics counter widget
+  Widget _buildTopicsCounter(TriviaProvider triviaProvider) {
+    final int topicsCount = triviaProvider.selectedTopics.length;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
+            spreadRadius: 0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.category_rounded,
+            color: Colors.white.withOpacity(0.9),
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$topicsCount ${topicsCount == 1 ? 'Topic' : 'Topics'}',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

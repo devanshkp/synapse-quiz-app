@@ -4,6 +4,9 @@ scraping/venv/
 # Ignore Firebase Service Account Key
 scraping/serviceAccountKey.json
 
+# Ignore server functions
+server_functions/
+
 # Ignore environment variables
 .env
 

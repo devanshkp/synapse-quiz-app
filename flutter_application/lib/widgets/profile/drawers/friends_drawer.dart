@@ -21,7 +21,6 @@ class FriendsDrawer extends StatefulWidget {
 class _FriendsDrawerState extends State<FriendsDrawer> {
   final FriendService _friendService = FriendService();
   List<Friend> searchResults = [];
-  List<Friend> friendRequests = [];
   String? currentUserId;
 
   @override
@@ -45,12 +44,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        final friends = userProvider.friends;
-        final requests = userProvider.friendRequests;
-
-        // Update the local friendRequests list with data from provider
-        friendRequests = List.from(requests);
-
         return Container(
           decoration: const BoxDecoration(color: backgroundPageColor),
           child: SafeArea(
@@ -60,7 +53,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 _buildHeader(),
                 _buildSearchBar(),
                 Expanded(
-                  child: _buildContent(friends),
+                  child: _buildContent(userProvider.friends),
                 ),
               ],
             ),
@@ -71,6 +64,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   }
 
   Widget _buildHeader() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -98,7 +92,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               ),
             ],
           ),
-          if (friendRequests.isNotEmpty) ...[
+          if (userProvider.friendRequests.isNotEmpty) ...[
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -116,7 +110,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${friendRequests.length} new',
+                    '${userProvider.friendRequests.length} new',
                     style: TextStyle(
                       color: Colors.blue[200],
                       fontSize: 12,
@@ -195,6 +189,8 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   }
 
   Widget _buildFriendsList(List<Friend> friends) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final friendRequests = userProvider.friendRequests;
     // Calculate total items: section headers + friend requests + divider (if requests exist) + all friends
     final int totalItems = 1 + // "All Friends" header
         (friendRequests.isNotEmpty
@@ -228,14 +224,13 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             final requestIndex = index - currentIndex;
             final request = friendRequests[requestIndex];
             return Padding(
-              key: ValueKey('request_${request.userId}'),
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 5),
               child: _buildFriendRequestCard(request),
             );
           }
           currentIndex += friendRequests.length;
 
-          // Divider after Friend Requests
+          // Divider
           if (index == currentIndex) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
@@ -309,12 +304,15 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 avatarRadius: 20,
               ),
             ),
-            title: Text(
-              friend.fullName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            title: GestureDetector(
+              onTap: () => _navigateToUserProfile(friend),
+              child: Text(
+                friend.fullName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             subtitle: Text(
@@ -658,7 +656,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       isScrollControlled: true,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: const Color.fromARGB(255, 21, 21, 21),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
@@ -725,11 +723,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                             alignment: Alignment.center,
                             children: [
                               // Centered text
-                              Center(
+                              const Center(
                                 child: Text(
                                   'View Profile',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.95),
+                                    color: Colors.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -807,11 +805,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                       width: 1,
                     ),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -969,11 +967,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         context: context,
       );
 
-      // Update local state
-      setState(() {
-        friendRequests.removeWhere((request) => request.userId == senderId);
-      });
-
       // Refresh data from server
       userProvider.fetchFriendsList();
       userProvider.fetchFriendRequests();
@@ -1003,11 +996,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       }
 
       if (!mounted) return;
-
-      // Update local state
-      setState(() {
-        friendRequests.removeWhere((request) => request.userId == senderId);
-      });
 
       // Refresh data from server
       userProvider.fetchFriendRequests();

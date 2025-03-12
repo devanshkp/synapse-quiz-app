@@ -55,6 +55,7 @@ dependencies:
   cached_network_image: ^3.4.1
   collection: ^1.18.0
   shared_preferences: ^2.5.2
+  persistent_bottom_nav_bar_v2: ^5.3.1
 
 dev_dependencies:
   flutter_test:

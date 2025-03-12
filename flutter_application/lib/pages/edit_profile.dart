@@ -5,13 +5,9 @@ import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:path/path.dart' as path;
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 
-// Reusable widget for labeled fields
 class LabeledField extends StatelessWidget {
   final String label;
   final Widget field;
@@ -58,13 +54,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _lastNameController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isFormValid = false;
+  bool _hasChanges = false;
   String? _avatarUrl;
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
+  String _originalFirstName = '';
+  String _originalLastName = '';
+
   @override
   void initState() {
     super.initState();
+    // Add listeners to update form validity when text changes
+    _firstNameController.addListener(_onTextChanged);
+    _lastNameController.addListener(_onTextChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserData();
     });
@@ -72,9 +77,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
+    // Remove listeners before disposing controllers
+    _firstNameController.removeListener(_onTextChanged);
+    _lastNameController.removeListener(_onTextChanged);
     _firstNameController.dispose();
     _lastNameController.dispose();
     super.dispose();
+  }
+
+  // Called when text changes in any field
+  void _onTextChanged() {
+    _updateFormValidity();
   }
 
   void _loadUserData() {
@@ -88,6 +101,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _lastNameController.text =
           nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
       _avatarUrl = userProfile.avatarUrl;
+
+      // Store original values
+      _originalFirstName = _firstNameController.text;
+      _originalLastName = _lastNameController.text;
+
+      // Explicitly set _hasChanges to false after loading data
+      setState(() {
+        _hasChanges = false;
+      });
+
+      // Validate the form and update button state
+      Future.microtask(() {
+        if (mounted) {
+          _formKey.currentState?.validate();
+          _updateFormValidity();
+        }
+      });
     }
   }
 
@@ -103,6 +133,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (pickedFile != null) {
         setState(() {
           _imageFile = File(pickedFile.path);
+          _hasChanges = true;
+          _updateFormValidity();
         });
       }
     } catch (e) {
@@ -115,36 +147,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<String?> _uploadImage() async {
-    if (_imageFile == null) return _avatarUrl;
-
-    try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final userId = userProvider.currentUserId;
-
-      final fileName = path.basename(_imageFile!.path);
-      final destination = 'profile_images/$userId/$fileName';
-
-      final ref = FirebaseStorage.instance.ref().child(destination);
-      final uploadTask = ref.putFile(_imageFile!);
-
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      return downloadUrl;
-    } catch (e) {
-      if (mounted) {
-        floatingSnackBar(
-          context: context,
-          message: 'Error uploading image: $e',
-        );
-      }
-      return null;
-    }
-  }
-
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate() || !_hasChanges) return;
 
     setState(() {
       _isLoading = true;
@@ -152,36 +156,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final userProfile = userProvider.userProfile;
-
-      if (userProfile == null) {
-        throw Exception('User profile not found');
-      }
 
       // Upload image if a new one was selected
       String? newAvatarUrl = _avatarUrl;
       if (_imageFile != null) {
-        newAvatarUrl = await _uploadImage();
+        newAvatarUrl = await userProvider.uploadProfileImage(_imageFile!);
         if (newAvatarUrl == null) {
           throw Exception('Failed to upload profile image');
         }
       }
 
-      // Update user profile in Firestore
-      final Map<String, dynamic> updateData = {
-        'fullName':
-            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-      };
+      // Create the full name by combining first and last name
+      final fullName =
+          '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
 
-      // Only update avatarUrl if it changed
-      if (newAvatarUrl != userProfile.avatarUrl) {
-        updateData['avatarUrl'] = newAvatarUrl;
-      }
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userProvider.currentUserId)
-          .update(updateData);
+      // Update the user profile in Firestore
+      await userProvider.updateUserProfileInFirestore(
+        fullName: fullName,
+        avatarUrl: newAvatarUrl != _avatarUrl ? newAvatarUrl : null,
+      );
 
       if (mounted) {
         floatingSnackBar(
@@ -204,6 +197,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
         });
       }
     }
+  }
+
+  void _updateFormValidity() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    final hasTextChanges = _firstNameController.text != _originalFirstName ||
+        _lastNameController.text != _originalLastName;
+    final hasImageChanges = _imageFile != null;
+    final hasChanges = hasTextChanges || hasImageChanges;
+
+    if (_isFormValid != isValid || _hasChanges != hasChanges) {
+      setState(() {
+        _isFormValid = isValid;
+        _hasChanges = hasChanges;
+      });
+    }
+  }
+
+  String? _validateFirstName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'First name is required';
+    }
+    if (value.trim().length > 15) {
+      return 'First name must be less than 15 characters';
+    }
+    return null;
+  }
+
+  String? _validateLastName(String? value) {
+    if (value == null) return null;
+    if (value.trim().length > 15) {
+      return 'Last name must be less than 15 characters';
+    }
+    return null;
   }
 
   @override
@@ -239,66 +265,109 @@ class _EditProfilePageState extends State<EditProfilePage> {
             padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.disabled,
+              onChanged: _updateFormValidity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 30),
                   // Profile Image with edit capability
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            border: Border.all(
-                                width: 1.5,
-                                color: Colors.white.withOpacity(0.2)),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(1.0),
-                            child: _imageFile != null
-                                ? CircleAvatar(
-                                    radius: 55,
-                                    backgroundImage: FileImage(_imageFile!),
-                                  )
-                                : AvatarImage(
-                                    avatarUrl: userProfile.avatarUrl,
-                                    avatarRadius: 55,
-                                  ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: appColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
+                  Column(
+                    children: [
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(
+                                  width: 1.5,
+                                  color: Colors.white.withOpacity(0.2)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(1.0),
+                              child: _imageFile != null
+                                  ? CircleAvatar(
+                                      radius: 55,
+                                      backgroundImage: FileImage(_imageFile!),
+                                    )
+                                  : UserAvatar(
+                                      avatarUrl: userProfile.avatarUrl,
+                                      avatarRadius: 55,
+                                    ),
                             ),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 18,
+                          GestureDetector(
+                            onTap: () {
+                              if (_imageFile != null) {
+                                // If an image is selected, clear it
+                                setState(() {
+                                  _imageFile = null;
+                                  _updateFormValidity();
+                                });
+                              } else {
+                                // If no image is selected, pick a new one
+                                _pickImage();
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color:
+                                    _imageFile != null ? Colors.red : appColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                _imageFile != null
+                                    ? Icons.close
+                                    : Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Preview indicator text
+                      if (_imageFile != null)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Preview - Click Save to apply changes',
+                                style: TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
 
                   const SizedBox(height: 30),
 
-                  // Username (non-editable)
                   LabeledField(
                     label: 'Username',
                     field: Container(
@@ -336,9 +405,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   // First Name
                   LabeledField(
                     label: 'First Name',
-                    field: CustomTextField(
+                    field: CustomTextFormField(
                       controller: _firstNameController,
                       labelText: '',
+                      validator: _validateFirstName,
                     ),
                   ),
 
@@ -347,9 +417,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   // Last Name
                   LabeledField(
                     label: 'Last Name',
-                    field: CustomTextField(
+                    field: CustomTextFormField(
                       controller: _lastNameController,
                       labelText: '',
+                      validator: _validateLastName,
                     ),
                   ),
 
@@ -360,26 +431,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
+                      onPressed: (_formKey.currentState?.validate() == true &&
+                              _hasChanges == true &&
+                              _isLoading == false)
+                          ? _saveProfile
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
+                        disabledBackgroundColor: Colors.grey[700],
+                        disabledForegroundColor: Colors.grey[500],
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 5,
                       ),
                       child: _isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CustomCircularProgressIndicator(),
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.black54),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Saving...',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
                             )
-                          : const Text(
+                          : Text(
                               'Save Changes',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
+                                color: (_hasChanges)
+                                    ? Colors.black
+                                    : Colors.grey[500],
                               ),
                             ),
                     ),

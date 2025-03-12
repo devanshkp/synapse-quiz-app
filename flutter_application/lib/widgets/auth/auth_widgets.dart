@@ -49,65 +49,83 @@ class ThirdPartySignInButton extends StatelessWidget {
   }
 }
 
-class CustomTextField extends StatefulWidget {
+class CustomTextFormField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool isPasswordField;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
 
-  const CustomTextField({
+  const CustomTextFormField({
     super.key,
     required this.controller,
     required this.labelText,
     this.isPasswordField = false,
+    this.validator,
+    this.onChanged,
   });
 
   @override
-  CustomTextFieldState createState() => CustomTextFieldState();
+  State<CustomTextFormField> createState() => _CustomTextFormFieldState();
 }
 
-class CustomTextFieldState extends State<CustomTextField> {
-  bool isPasswordVisible = false;
+class _CustomTextFormFieldState extends State<CustomTextFormField> {
+  bool _passwordVisible = false;
 
   @override
   Widget build(BuildContext context) {
-    Color color = Colors.white.withOpacity(0.6);
-    double fontSize = 13;
-
-    return TextField(
+    return TextFormField(
       controller: widget.controller,
-      obscureText: widget.isPasswordField && !isPasswordVisible,
+      obscureText: widget.isPasswordField && !_passwordVisible,
       cursorColor: Colors.white,
       cursorWidth: 1.0,
+      style: const TextStyle(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(
         labelText: widget.labelText,
-        labelStyle: TextStyle(color: color, fontSize: fontSize),
+        labelStyle: TextStyle(
+          color: Colors.white.withOpacity(0.6),
+          fontSize: 13,
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.white, width: .5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: color, width: .5),
+          borderSide: BorderSide(
+            color: Colors.white.withOpacity(0.6),
+            width: .5,
+          ),
         ),
-        floatingLabelBehavior: FloatingLabelBehavior.never,
+        errorMaxLines: 2,
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.red.shade300, width: .5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.red.shade300, width: .5),
+        ),
         suffixIcon: widget.isPasswordField
             ? IconButton(
                 icon: Icon(
-                  isPasswordVisible
+                  _passwordVisible
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: color,
+                  color: Colors.white70,
                   size: 19,
                 ),
                 onPressed: () {
                   setState(() {
-                    isPasswordVisible = !isPasswordVisible;
+                    _passwordVisible = !_passwordVisible;
                   });
                 },
               )
             : null,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
-      style: TextStyle(color: Colors.white, fontSize: fontSize),
+      validator: widget.validator,
+      onChanged: widget.onChanged,
     );
   }
 }
@@ -197,7 +215,7 @@ class AuthRedirectText extends StatelessWidget {
 
 class ForgotPasswordDialog extends StatefulWidget {
   final Function(String) onSendResetLink;
-  final Function(String) validateEmail;
+  final String? Function(String?) validateEmail;
 
   const ForgotPasswordDialog({
     super.key,
@@ -211,7 +229,8 @@ class ForgotPasswordDialog extends StatefulWidget {
 
 class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   final TextEditingController _emailController = TextEditingController();
-  String? _emailError;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isFormValid = false;
 
   @override
   void dispose() {
@@ -219,18 +238,14 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
     super.dispose();
   }
 
-  void _validateEmail(String value) {
-    if (value.isEmpty) {
-      setState(() {
-        _emailError = 'Please enter your email address';
-      });
-      return;
-    }
+  void _updateFormValidity() {
+    final isValid = _formKey.currentState?.validate() ?? false;
 
-    final isValid = widget.validateEmail(value);
-    setState(() {
-      _emailError = isValid ? null : 'Please enter a valid email address';
-    });
+    if (_isFormValid != isValid && _emailController.text.isNotEmpty) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
   }
 
   @override
@@ -245,49 +260,25 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
         'Reset Password',
         style: TextStyle(color: Colors.white, fontSize: 18),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Enter your email address and we\'ll send you a link to reset your password.',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _emailController,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-            decoration: InputDecoration(
-              labelText: 'Email Address',
-              labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-              errorText: _emailError,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.white),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.red.shade300),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.red.shade300),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.05),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your email address and we\'ll send you a link to reset your password.',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
-            onChanged: (value) {
-              if (_emailError != null) {
-                _validateEmail(value);
-              }
-            },
-          ),
-        ],
+            const SizedBox(height: 20),
+            CustomTextFormField(
+              controller: _emailController,
+              labelText: 'Email Address',
+              validator: widget.validateEmail,
+              onChanged: (_) => _updateFormValidity(),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -298,18 +289,17 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           ),
         ),
         TextButton(
-          onPressed: () {
-            final email = _emailController.text.trim();
-            _validateEmail(email);
-
-            if (_emailError == null) {
-              Navigator.pop(context);
-              widget.onSendResetLink(email);
-            }
-          },
-          child: const Text(
+          onPressed: _isFormValid
+              ? () async {
+                  await widget.onSendResetLink(_emailController.text.trim());
+                  Navigator.pop(context);
+                }
+              : () {},
+          child: Text(
             'Send Reset Link',
-            style: TextStyle(color: Colors.blue),
+            style: TextStyle(
+              color: _isFormValid ? Colors.blue : Colors.white38,
+            ),
           ),
         ),
       ],

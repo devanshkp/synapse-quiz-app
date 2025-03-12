@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/services/friend_service.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -18,11 +19,13 @@ class BadgesSection extends StatefulWidget {
 class _BadgesSectionState extends State<BadgesSection> {
   Map<String, int> _topicCounts = {};
   bool _isLoading = true;
+  int friendCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadTopicCounts();
+    _loadFriendCount();
   }
 
   Future<void> _loadTopicCounts() async {
@@ -37,6 +40,15 @@ class _BadgesSectionState extends State<BadgesSection> {
       setState(() {
         _topicCounts = topicCounts;
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadFriendCount() async {
+    final friends = await FriendService().getFriends(widget.userProfile.userId);
+    if (mounted) {
+      setState(() {
+        friendCount = friends.length;
       });
     }
   }
@@ -134,7 +146,7 @@ class _BadgesSectionState extends State<BadgesSection> {
                         'name': 'Social Butterfly',
                         'icon': Icons.people,
                         'color': const Color(0xFF0984E3),
-                        'unlocked': userProvider.friends.length >= 10,
+                        'unlocked': friendCount >= 10,
                         'description': 'Added 10 friends'
                       },
                       {
@@ -156,27 +168,13 @@ class _BadgesSectionState extends State<BadgesSection> {
                         // Show badge details
                         showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: const Color(0xFF2C2C2C),
-                            title: Text(
-                              badge['name'] as String,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            content: Text(
-                              badge['description'] as String,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
-                              ),
-                            ],
+                          builder: (context) => CustomAlertDialog(
+                            title: badge['name'] as String,
+                            content: badge['description'] as String,
+                            confirmationButtonText: '',
+                            cancelButtonText: 'Close',
+                            isConfirmationButtonEnabled: false,
+                            onPressed: () => Navigator.pop(context),
                           ),
                         );
                       },
@@ -239,7 +237,7 @@ class _BadgesSectionState extends State<BadgesSection> {
               const SizedBox(height: 30),
 
               // Progress section
-              _buildProgressSection(userProvider),
+              _buildProgressSection(userProfile),
             ],
           ),
         );
@@ -247,9 +245,7 @@ class _BadgesSectionState extends State<BadgesSection> {
     );
   }
 
-  Widget _buildProgressSection(UserProvider userProvider) {
-    // Calculate unlocked badges count
-    final userProfile = userProvider.userProfile!;
+  Widget _buildProgressSection(UserProfile userProfile) {
     int unlockedCount = 0;
 
     // First Steps is always unlocked
@@ -265,7 +261,7 @@ class _BadgesSectionState extends State<BadgesSection> {
     if (userProfile.questionsSolved >= 100) unlockedCount++;
 
     // Social Butterfly (10 friends)
-    if (userProvider.friends.length >= 10) unlockedCount++;
+    if (friendCount >= 10) unlockedCount++;
 
     // Perfect Score (all questions in any topic)
     bool hasPerfectScore = false;

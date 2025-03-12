@@ -396,7 +396,7 @@ class _OtherProfilePageState extends State<OtherProfilePage>
           ),
           child: Padding(
             padding: const EdgeInsets.all(1.0),
-            child: AvatarImage(
+            child: UserAvatar(
               avatarUrl: widget.friend.avatarUrl,
               avatarRadius: 55,
             ),

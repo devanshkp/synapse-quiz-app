@@ -1,0 +1,101 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_application/services/auth_service.dart';
+import 'package:flutter_application/widgets/auth/auth_widgets.dart';
+import 'package:flutter_application/constants.dart';
+
+class UsernamePage extends StatefulWidget {
+  const UsernamePage({super.key});
+
+  @override
+  State<UsernamePage> createState() => _UsernamePageState();
+}
+
+class _UsernamePageState extends State<UsernamePage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController = TextEditingController();
+  final AuthService _authService = AuthService();
+  bool _isFormValid = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  String? _validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Username is required';
+    }
+    return _authService.validateUsername(value);
+  }
+
+  void _updateFormValidity() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (_isFormValid != isValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundPageColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Center(
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              onChanged: _updateFormValidity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Set your username',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Choose a unique username for your account',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  CustomTextFormField(
+                    controller: _usernameController,
+                    labelText: 'Username',
+                    validator: _validateUsername,
+                  ),
+                  const SizedBox(height: 30),
+                  CustomAuthButton(
+                    label: 'Continue',
+                    onPressed: () {
+                      if (_formKey.currentState?.validate() == true) {
+                        _authService.setUsername(
+                          context,
+                          _usernameController.text.trim(),
+                        );
+                      }
+                    },
+                    isEnabled: _isFormValid,
+                    backgroundColor: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

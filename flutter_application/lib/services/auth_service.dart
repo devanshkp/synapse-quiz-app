@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/restart_service.dart';
-import 'package:flutter_application/widgets/shared.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application/services/user_service.dart';
@@ -11,7 +10,10 @@ import 'package:provider/provider.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    forceCodeForRefreshToken: true,
+  );
   final UserService _userService = UserService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -37,6 +39,16 @@ class AuthService {
       // The server-side validation will catch duplicates if they exist
       return true;
     }
+  }
+
+  String? validateUsername(String username) {
+    if (username.length < 4) {
+      return 'Username must be at least 4 characters';
+    }
+    if (username.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      return 'Username cannot contain special characters';
+    }
+    return null;
   }
 
   // Validate password
@@ -74,46 +86,18 @@ class AuthService {
   Future<void> sendPasswordResetEmail(
       BuildContext context, String email) async {
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CustomCircularProgressIndicator()),
-      );
-
-      // Validate email
-      if (email.isEmpty) {
-        if (context.mounted) {
-          Navigator.pop(context); // Hide loading
-          floatingSnackBar(
-              message: 'Please enter your email address', context: context);
-        }
-        return;
-      }
-
-      if (!isValidEmail(email)) {
-        if (context.mounted) {
-          Navigator.pop(context); // Hide loading
-          floatingSnackBar(
-              message: 'Please enter a valid email address', context: context);
-        }
-        return;
-      }
-
       // Send password reset email
       await _auth.sendPasswordResetEmail(email: email);
 
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         floatingSnackBar(
-          message: 'Password reset email sent. Please check your inbox.',
+          message:
+              'If this email is registered, a password reset link will be sent to your inbox.',
           context: context,
         );
       }
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         String errorMessage;
 
         switch (e.code) {
@@ -130,14 +114,15 @@ class AuthService {
         floatingSnackBar(message: errorMessage, context: context);
       }
     } catch (e) {
+      debugPrint('General exception in sendPasswordResetEmail: $e');
+
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
       }
     }
   }
 
-  Future<void> registerUser(
+  Future<void> register(
       {required BuildContext context,
       required String email,
       required String password,
@@ -145,54 +130,14 @@ class AuthService {
       required String userName,
       required String fullName}) async {
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CustomCircularProgressIndicator()),
-      );
-
-      // Validate inputs
-      if (email.isEmpty ||
-          password.isEmpty ||
-          userName.isEmpty ||
-          fullName.isEmpty) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(
-            message: 'Please fill in all fields.', context: context);
-        return;
-      }
-
-      // Validate email format
-      if (!isValidEmail(email)) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(
-            message: 'Please enter a valid email address.', context: context);
-        return;
-      }
-
-      // Check password strength
-      String? passwordError = validatePassword(password);
-      if (passwordError != null) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(message: passwordError, context: context);
-        return;
-      }
-
-      if (password != confirmPassword) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(message: 'Passwords do not match.', context: context);
-        return;
-      }
-
       // Check if username is unique
       bool isUnique = await isUsernameUnique(userName);
       if (!isUnique) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(
-            message: 'Username is already taken. Please choose another.',
-            context: context);
+        if (context.mounted) {
+          floatingSnackBar(
+              message: 'Username is already taken. Please choose another.',
+              context: context);
+        }
         return;
       }
 
@@ -213,21 +158,17 @@ class AuthService {
         await _userService.createUserProfile(
             user: user, userName: userName, fullName: fullName);
 
-        // Navigate to the email verification screen
         if (context.mounted) {
-          Navigator.pop(context); // Hide loading
           Navigator.pushReplacementNamed(context, '/email-verification');
         }
       }
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         String errorMessage;
 
         switch (e.code) {
           case 'email-already-in-use':
-            errorMessage =
-                'This email is already registered. Please use another email or sign in.';
+            errorMessage = 'An account with this email already exists.';
             break;
           case 'weak-password':
             errorMessage = 'The password provided is too weak.';
@@ -244,104 +185,18 @@ class AuthService {
     } catch (e) {
       debugPrint('Error registering user: $e');
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
       }
     }
   }
 
-  Future<void> signInWithGoogle(BuildContext context) async {
-    try {
-      showDialog(
-        context: context,
-        builder: (context) =>
-            const Center(child: CustomCircularProgressIndicator()),
-      );
-
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        if (context.mounted) Navigator.pop(context); // Hide loading
-        return;
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-      final User? user = userCredential.user;
-
-      if (user != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (context.mounted) {
-          // First dismiss the loading dialog
-          Navigator.pop(context); // Hide loading
-
-          // Then handle navigation with microtask
-          Future.microtask(() {
-            if (context.mounted) {
-              if (!userDoc.exists) {
-                _showUsernameDialog(context, user);
-              } else {
-                Navigator.pushReplacementNamed(context, '/');
-              }
-            }
-          });
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(
-            message: 'Error signing in with Google: $e', context: context);
-      }
-    }
-  }
-
-  Future<void> signInWithEmailAndPassword(
+  Future<void> signIn(
       BuildContext context, String email, String password) async {
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CustomCircularProgressIndicator()),
-      );
-
-      if (email.isEmpty || password.isEmpty) {
-        if (context.mounted) {
-          Navigator.pop(context); // Hide loading
-          floatingSnackBar(
-              message: 'Please fill in all fields', context: context);
-        }
-        return;
-      }
-
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      if (context.mounted) {
-        // First dismiss the loading dialog
-        Navigator.pop(context); // Hide loading
-
-        // Then navigate using microtask to ensure dialog is fully dismissed
-        Future.microtask(() {
-          if (context.mounted) {
-            Navigator.pushReplacementNamed(context, '/');
-          }
-        });
-      }
+      await Future.delayed(const Duration(seconds: 1));
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         String errorMessage;
 
         switch (e.code) {
@@ -358,226 +213,107 @@ class AuthService {
             errorMessage = 'The email address is not valid.';
             break;
           default:
-            errorMessage = 'Login failed: ${e.message}';
+            errorMessage = 'Error signing in. Please try again.';
         }
-
         floatingSnackBar(message: errorMessage, context: context);
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
-        floatingSnackBar(message: 'Error signing in: $e', context: context);
+        floatingSnackBar(
+            message: 'Error signing in. Please try again.', context: context);
       }
     }
   }
 
-  void _showUsernameDialog(BuildContext context, User user) {
-    if (!context.mounted) return;
-    final TextEditingController usernameController = TextEditingController();
-    bool isChecking = false;
-    bool isUnique = true;
-    String errorMessage = '';
+  Future<void> signInWithGoogle(BuildContext context) async {
+    try {
+      // Sign out first to force the account picker to show
+      await _googleSignIn.signOut();
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Choose a Username'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: usernameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your username',
-                      errorText: !isUnique ? errorMessage : null,
-                    ),
-                    onChanged: (value) async {
-                      if (value.length > 3) {
-                        setState(() {
-                          isChecking = true;
-                          errorMessage = '';
-                        });
+      // Set additional parameters to force account selection
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        await Future.delayed(const Duration(seconds: 1));
+        return;
+      }
 
-                        try {
-                          bool unique = await isUsernameUnique(value);
+      // Get authentication tokens
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-                          if (context.mounted) {
-                            setState(() {
-                              isUnique = unique;
-                              isChecking = false;
-                              errorMessage =
-                                  unique ? '' : 'Username already taken';
-                            });
-                          }
-                        } catch (e) {
-                          debugPrint('Error checking username in dialog: $e');
-                          if (context.mounted) {
-                            setState(() {
-                              isUnique = true; // Assume unique on error
-                              isChecking = false;
-                              errorMessage = '';
-                            });
-                          }
-                        }
-                      }
-                    },
-                  ),
-                  if (isChecking)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text('Checking username availability...'),
-                    ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isChecking
-                      ? null
-                      : () async {
-                          final userName = usernameController.text.trim();
-                          if (userName.isEmpty) {
-                            setState(() {
-                              errorMessage = 'Username cannot be empty';
-                              isUnique = false;
-                            });
-                            return;
-                          }
+      // Create credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-                          if (userName.length < 4) {
-                            setState(() {
-                              errorMessage =
-                                  'Username must be at least 4 characters';
-                              isUnique = false;
-                            });
-                            return;
-                          }
-
-                          setState(() {
-                            isChecking = true;
-                          });
-
-                          try {
-                            bool unique = await isUsernameUnique(userName);
-
-                            if (!unique) {
-                              if (context.mounted) {
-                                setState(() {
-                                  isUnique = false;
-                                  isChecking = false;
-                                  errorMessage = 'Username already taken';
-                                });
-                              }
-                              return;
-                            }
-
-                            // Show loading
-                            if (context.mounted) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => const Center(
-                                    child: CustomCircularProgressIndicator()),
-                              );
-                            }
-
-                            await _userService.createUserProfile(
-                                user: user, userName: userName);
-
-                            if (context.mounted) {
-                              Navigator.pop(context); // Hide loading
-                              Navigator.pop(
-                                  dialogContext); // Close username dialog
-
-                              // Use microtask for navigation
-                              Future.microtask(() {
-                                if (context.mounted) {
-                                  Navigator.pushReplacementNamed(context, '/');
-                                }
-                              });
-                            }
-                          } catch (e) {
-                            debugPrint('Error in username dialog submit: $e');
-                            if (context.mounted) {
-                              setState(() {
-                                isChecking = false;
-                                // Allow proceeding even on error
-                                isUnique = true;
-                              });
-
-                              // Show loading
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => const Center(
-                                    child: CustomCircularProgressIndicator()),
-                              );
-
-                              try {
-                                await _userService.createUserProfile(
-                                    user: user, userName: userName);
-
-                                if (context.mounted) {
-                                  Navigator.pop(context); // Hide loading
-                                  Navigator.pop(
-                                      dialogContext); // Close username dialog
-
-                                  // Use microtask for navigation
-                                  Future.microtask(() {
-                                    if (context.mounted) {
-                                      Navigator.pushReplacementNamed(
-                                          context, '/');
-                                    }
-                                  });
-                                }
-                              } catch (e2) {
-                                if (context.mounted) {
-                                  Navigator.pop(context); // Hide loading
-                                  floatingSnackBar(
-                                      message: 'Error creating profile: $e2',
-                                      context: context);
-                                }
-                              }
-                            }
-                          }
-                        },
-                  child: const Text('Submit'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+      // Sign in to Firebase with the Google credential
+      await _auth.signInWithCredential(credential);
+    } catch (e) {
+      if (context.mounted) {
+        floatingSnackBar(
+            message: 'Error signing in with Google: $e', context: context);
+      }
+    }
   }
 
   Future<void> signOut(BuildContext context) async {
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CustomCircularProgressIndicator()),
-      );
-
       Provider.of<UserProvider>(context, listen: false).disposeListeners();
       await FirebaseAuth.instance.signOut();
 
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         RestartService.restartApp(context);
       }
       debugPrint("Signed out successfully");
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Hide loading
         floatingSnackBar(message: 'Error signing out: $e', context: context);
       }
       debugPrint("Error signing out: $e");
+    }
+  }
+
+  // Set username for Third-Party Sign-In
+  Future<void> setUsername(BuildContext context, String username) async {
+    try {
+      // Check if username is unique
+      bool isUnique = await isUsernameUnique(username);
+      if (!isUnique) {
+        if (context.mounted) {
+          floatingSnackBar(
+              message: 'Username is already taken. Please choose another.',
+              context: context);
+        }
+        return;
+      }
+
+      // Get current user
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        if (context.mounted) {
+          floatingSnackBar(
+              message: 'No authenticated user found.', context: context);
+        }
+        return;
+      }
+
+      // Create user profile in Firestore
+      await _userService.createUserProfile(
+        user: user,
+        userName: username,
+        fullName: user.displayName,
+        avatarUrl: user.photoURL,
+      );
+
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      }
+    } catch (e) {
+      debugPrint('Error setting username: $e');
+      if (context.mounted) {
+        floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
+      }
     }
   }
 }

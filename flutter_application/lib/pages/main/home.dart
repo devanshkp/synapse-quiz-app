@@ -270,8 +270,8 @@ class BottomPortion extends StatelessWidget {
                 section: 'grid',
               ),
               TopicButton(
-                title: 'swe_fundamentals',
-                iconName: 'swe_fundamentals.png',
+                title: 'SWE_fundamentals',
+                iconName: 'SWE_fundamentals.png',
                 iconSize: 65,
                 color: sweFundamentalsColor,
                 radius: 18,

@@ -29,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage>
   late UserProvider userProvider;
   UserProfile? userProfile;
   final double expandedHeight = 110.0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(60.0),
         child: ProfileAppBar(),
@@ -55,10 +57,7 @@ class _ProfilePageState extends State<ProfilePage>
       endDrawer: const SettingsDrawer(),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh user data
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
-          await userProvider.refreshUserProfile();
+          setState(() {});
         },
         color: Colors.white,
         backgroundColor: const Color(0xFF2C2C2C),
@@ -76,23 +75,19 @@ class _ProfilePageState extends State<ProfilePage>
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                const UserProfileHeader(),
+                Consumer<UserProvider>(
+                  builder: (context, userProvider, child) {
+                    return UserProfileHeader(scaffoldKey: _scaffoldKey);
+                  },
+                ),
                 const SizedBox(height: 25),
 
                 // Main stats section
-                Consumer<UserProvider>(
-                  builder: (context, userProvider, child) {
-                    final userProfile = userProvider.userProfile;
-                    if (userProfile == null) {
-                      return const SizedBox.shrink();
-                    }
-                    return MainStats(
-                      userProfile: userProfile,
-                      totalQuestions:
-                          Provider.of<TriviaProvider>(context, listen: false)
-                              .totalQuestions,
-                    );
-                  },
+                MainStats(
+                  userProfile: userProvider.userProfile!,
+                  totalQuestions:
+                      Provider.of<TriviaProvider>(context, listen: false)
+                          .totalQuestions,
                 ),
 
                 const SizedBox(height: 25),
@@ -111,16 +106,7 @@ class _ProfilePageState extends State<ProfilePage>
                 ContentSizeTabBarView(
                   controller: _tabController,
                   children: [
-                    Consumer<UserProvider>(
-                      builder: (context, userProvider, child) {
-                        final userProfile = userProvider.userProfile;
-                        if (userProfile == null) {
-                          return const Center(
-                              child: CustomCircularProgressIndicator());
-                        }
-                        return StatsSection(userProfile: userProfile);
-                      },
-                    ),
+                    StatsSection(userProfile: userProvider.userProfile!),
                     BadgesSection(userProfile: userProvider.userProfile!),
                     TopicsSection(userProfile: userProvider.userProfile!),
                   ],

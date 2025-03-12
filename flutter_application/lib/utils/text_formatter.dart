@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 class TextFormatter {
-  /// Formats text with subscripts (t_{0}) and superscripts (t^{2})
-  /// Returns a RichText widget with properly formatted text
-  /// Supports nested subscripts and superscripts like a_{b_{c}} or a^{b^{c}}
   static Widget formatText(
     String text, {
     TextStyle? style,
@@ -134,5 +131,35 @@ class TextFormatter {
     }
 
     return spans;
+  }
+
+  /// Formats a title string by replacing underscores with spaces while preserving capitalization
+  static String formatTitlePreservingCase(String title) {
+    if (title.isEmpty) return title;
+
+    // Replace underscores with spaces
+    String result = title.replaceAll('_', ' ');
+
+    // Split the string into words
+    List<String> words = result.split(' ');
+
+    // Process each word to capitalize first letter if not already capitalized
+    for (int i = 0; i < words.length; i++) {
+      if (words[i].isNotEmpty) {
+        // Check if the word is an acronym (all uppercase)
+        bool isAcronym =
+            words[i].toUpperCase() == words[i] && words[i].length > 1;
+
+        // If it's not an acronym, capitalize only the first letter
+        if (!isAcronym) {
+          words[i] = words[i][0].toUpperCase() +
+              (words[i].length > 1 ? words[i].substring(1) : '');
+        }
+        // If it is an acronym, leave it as is
+      }
+    }
+
+    // Join the words back together
+    return words.join(' ');
   }
 }

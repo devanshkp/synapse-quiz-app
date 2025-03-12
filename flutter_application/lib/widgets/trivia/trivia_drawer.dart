@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/widgets/trivia/bottom_buttons.dart';
-import 'package:string_extensions/string_extensions.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 
 class TriviaDrawer extends StatefulWidget {
@@ -116,10 +115,8 @@ class TriviaDrawerState extends State<TriviaDrawer> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
-                    widget.question['topic']
-                        .toString()
-                        .replaceAll('_', ' ')
-                        .toTitleCase,
+                    TextFormatter.formatTitlePreservingCase(
+                        widget.question['topic'].toString()),
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 12,

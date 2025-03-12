@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/pages/topic.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/home/home_widgets.dart';
-import 'package:string_extensions/string_extensions.dart';
 
 class CustomHorizontalDivider extends StatelessWidget {
   final double padding;
@@ -164,7 +164,6 @@ class TopicButton extends StatelessWidget {
                 iconName: iconName,
                 topicColor: color,
                 buttonType: buttonType,
-                heroBaseTag: heroBaseTag,
               ),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
@@ -201,16 +200,13 @@ class TopicButton extends StatelessWidget {
               Positioned(
                 bottom: bottomOffset ?? -10,
                 right: rightOffset ?? -10,
-                child: Hero(
-                  tag: 'topic_icon_$heroBaseTag',
-                  child: Transform.rotate(
-                    angle: 0.3,
-                    child: Image.asset(
-                      'assets/images/topics/$iconName',
-                      width: iconSize,
-                      height: iconSize,
-                      fit: BoxFit.cover,
-                    ),
+                child: Transform.rotate(
+                  angle: 0.3,
+                  child: Image.asset(
+                    'assets/images/topics/$iconName',
+                    width: iconSize,
+                    height: iconSize,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -219,25 +215,22 @@ class TopicButton extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Align(
                   alignment: Alignment.topLeft,
-                  child: Hero(
-                    tag: 'topic_title_$heroBaseTag',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 100),
-                        child: Text(
-                          title.replaceAll('_', ' ').toTitleCase,
-                          style: TextStyle(
-                            fontSize: titleFontSize,
-                            fontWeight: radius != null
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.left,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 100),
+                      child: Text(
+                        TextFormatter.formatTitlePreservingCase(title),
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: radius != null
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: Colors.white,
                         ),
+                        textAlign: TextAlign.left,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
@@ -598,6 +591,7 @@ class CustomAlertDialog extends StatelessWidget {
   final String content;
   final String confirmationButtonText;
   final String cancelButtonText;
+  final bool isConfirmationButtonEnabled;
   final VoidCallback onPressed;
   const CustomAlertDialog(
       {super.key,
@@ -605,7 +599,8 @@ class CustomAlertDialog extends StatelessWidget {
       required this.content,
       required this.confirmationButtonText,
       required this.cancelButtonText,
-      required this.onPressed});
+      required this.onPressed,
+      this.isConfirmationButtonEnabled = true});
 
   @override
   Widget build(BuildContext context) {
@@ -631,16 +626,18 @@ class CustomAlertDialog extends StatelessWidget {
             style: TextStyle(color: Colors.blue[200]),
           ),
         ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            onPressed();
-          },
-          child: Text(
-            confirmationButtonText,
-            style: const TextStyle(color: Colors.red),
+        if (isConfirmationButtonEnabled) ...[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onPressed();
+            },
+            child: Text(
+              confirmationButtonText,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -657,13 +654,15 @@ class GradientElevatedButton extends StatelessWidget {
   final double? height;
   final double borderRadius;
   final double elevation;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
   final double iconSize;
   final double fontSize;
   final FontWeight fontWeight;
   final double iconSpacing;
   final MainAxisAlignment mainAxisAlignment;
   final bool fullWidth;
+  final bool allowTextWrap;
+  final int? maxLines;
 
   // Touch interaction properties
   final Color splashColor;
@@ -686,13 +685,15 @@ class GradientElevatedButton extends StatelessWidget {
     this.height,
     this.borderRadius = 12.0,
     this.elevation = 8.0,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+    this.padding,
     this.iconSize = 22.0,
     this.fontSize = 14.0,
     this.fontWeight = FontWeight.w600,
     this.iconSpacing = 8.0,
     this.mainAxisAlignment = MainAxisAlignment.center,
     this.fullWidth = false,
+    this.allowTextWrap = true,
+    this.maxLines = 2,
 
     // Default values for touch interaction
     this.splashColor = Colors.white24,
@@ -742,7 +743,8 @@ class GradientElevatedButton extends StatelessWidget {
                   ),
                 ),
                 child: Container(
-                  padding: padding,
+                  padding: padding ??
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   child: Row(
                     mainAxisSize:
                         fullWidth ? MainAxisSize.max : MainAxisSize.min,
@@ -756,12 +758,20 @@ class GradientElevatedButton extends StatelessWidget {
                         ),
                         SizedBox(width: iconSpacing),
                       ],
-                      Text(
-                        text,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: fontWeight,
-                          color: textColor,
+                      Flexible(
+                        child: Text(
+                          text,
+                          style: TextStyle(
+                            fontSize: fontSize,
+                            fontWeight: fontWeight,
+                            color: textColor,
+                          ),
+                          overflow: allowTextWrap
+                              ? TextOverflow.ellipsis
+                              : TextOverflow.visible,
+                          maxLines: allowTextWrap ? maxLines : 1,
+                          textAlign: TextAlign.center,
+                          softWrap: allowTextWrap,
                         ),
                       ),
                     ],

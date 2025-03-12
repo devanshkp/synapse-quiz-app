@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/login.dart';
 import 'package:flutter_application/pages/auth/register.dart';
+import 'package:flutter_application/pages/auth/username.dart';
 import 'package:flutter_application/providers/auth_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginPage(),
             '/register': (context) => const RegistrationPage(),
             '/email-verification': (context) => const EmailVerificationPage(),
+            '/username-dialog': (context) => const UsernamePage(),
             '/trivia': (context) => const TriviaPage(quickPlay: true),
             '/search': (context) => const SearchPage(fromHome: true),
             '/edit_profile': (context) => const EditProfilePage(),
@@ -80,9 +82,8 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class BottomNavBarState extends State<BottomNavBar> {
-  int _currentIndex = 0; // Track the current tab index
+  int _currentIndex = 0;
 
-  // List of pages (widgets) to display
   final List<Widget> _screens = [
     const HomePage(),
     const SearchPage(),
@@ -91,7 +92,6 @@ class BottomNavBarState extends State<BottomNavBar> {
     const ProfilePage(),
   ];
 
-  // List of icon paths (for filled and outlined versions)
   final List<Map<String, String>> _icons = [
     {
       'filled': 'assets/icons/navbar/Home_Filled.svg',
@@ -115,7 +115,6 @@ class BottomNavBarState extends State<BottomNavBar> {
     },
   ];
 
-  // Function to update the selected index
   void _onTap(int index) {
     setState(() {
       _currentIndex = index;
@@ -125,36 +124,47 @@ class BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex], // Display the current page
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: navbarColor,
-        currentIndex: _currentIndex,
-        onTap: _onTap,
-        items: List.generate(5, (index) {
-          return BottomNavigationBarItem(
-            icon: Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: SvgPicture.asset(
-                _currentIndex == index
-                    ? _icons[index]['filled']! // Filled version of the icon
-                    : _icons[index]['outline']!, // Outline version
-                width: 24, // Set icon size
-                height: 24,
-              ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 15,
+              spreadRadius: 5,
             ),
-            label: [
-              'Home',
-              'Search',
-              'Trivia',
-              'Leaderboard',
-              'Profile'
-            ][index], // Labels
-          );
-        }),
-        showUnselectedLabels: false,
-        showSelectedLabels: false,
-        iconSize: 0.0,
-        type: BottomNavigationBarType.fixed, // Ensures all 5 items are visible
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: navbarColor,
+          elevation: 0,
+          currentIndex: _currentIndex,
+          onTap: _onTap,
+          items: List.generate(5, (index) {
+            return BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SvgPicture.asset(
+                  _icons[index]['outline']!,
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+              activeIcon: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SvgPicture.asset(
+                  _icons[index]['filled']!,
+                  width: 28,
+                  height: 28,
+                ),
+              ),
+              label: '',
+            );
+          }),
+          showUnselectedLabels: false,
+          showSelectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+        ),
       ),
     );
   }

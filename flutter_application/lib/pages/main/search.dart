@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/pages/topic.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/shared.dart';
 import '../../constants.dart';
 
@@ -25,8 +26,8 @@ class _SearchPageState extends State<SearchPage> {
       'section': 'all'
     },
     {
-      'title': 'swe_fundamentals',
-      'iconName': 'swe_fundamentals.png',
+      'title': 'SWE_fundamentals',
+      'iconName': 'SWE_fundamentals.png',
       'iconSize': 65.0,
       'color': sweFundamentalsColor,
       'bottomOffset': -10.0,
@@ -195,17 +196,6 @@ class _SearchPageState extends State<SearchPage> {
         }).toList();
       }
     });
-  }
-
-  // Add helper method for title case conversion
-  String toTitleCase(String text) {
-    if (text.isEmpty) return text;
-    return text
-        .split(' ')
-        .map((word) => word.isEmpty
-            ? word
-            : word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join(' ');
   }
 
   @override
@@ -401,9 +391,8 @@ class _SearchPageState extends State<SearchPage> {
                                       ),
                                     ),
                                     title: Text(
-                                      toTitleCase(topic['title']
-                                          .toString()
-                                          .replaceAll('_', ' ')),
+                                      TextFormatter.formatTitlePreservingCase(
+                                          topic['title'].toString()),
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -426,8 +415,6 @@ class _SearchPageState extends State<SearchPage> {
                                             iconName: topic['iconName'],
                                             topicColor: topic['color'],
                                             buttonType: "search",
-                                            heroBaseTag:
-                                                "${topic['title']}_search",
                                           ),
                                           transitionsBuilder: (context,
                                               animation,

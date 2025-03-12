@@ -419,6 +419,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     final bool hasChanges =
         !const SetEquality().equals(currentTopics, tempTopics);
     final bool hasMinimumTopics = _tempSelectedTopics.isNotEmpty;
+    final bool isLoading = triviaProvider.isLoadingQuestions;
 
     return Container(
       width: double.infinity,
@@ -433,16 +434,18 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
         ),
       ),
       child: GestureDetector(
-        onTap: (hasChanges && hasMinimumTopics) ? _saveSelection : null,
+        onTap: (hasChanges && hasMinimumTopics && !isLoading)
+            ? _saveSelection
+            : null,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: hasChanges && hasMinimumTopics
+            color: hasChanges && hasMinimumTopics && !isLoading
                 ? Colors.white
                 : Colors.grey.withOpacity(0.3),
             border: Border.all(
-              color: (hasChanges && hasMinimumTopics)
+              color: (hasChanges && hasMinimumTopics && !isLoading)
                   ? Colors.white.withOpacity(0.2)
                   : Colors.white.withOpacity(0.05),
               width: 1,
@@ -450,9 +453,9 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
           ),
           child: Center(
             child: Text(
-              "SAVE SELECTION",
+              isLoading ? "PLEASE WAIT..." : "SAVE SELECTION",
               style: TextStyle(
-                color: (hasChanges && hasMinimumTopics)
+                color: (hasChanges && hasMinimumTopics && !isLoading)
                     ? Colors.black
                     : Colors.white.withOpacity(0.4),
                 fontSize: 14,

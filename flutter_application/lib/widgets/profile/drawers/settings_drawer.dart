@@ -160,7 +160,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
         title: 'Refresh Topics',
         content: 'Refresh topics metadata?',
         confirmationButtonText: 'Confirm',
-        cancelButtonText: 'Cancel', 
+        cancelButtonText: 'Cancel',
         onPressed: () async {
           await triviaProvider.refreshTopicsMetadata();
           if (mounted) {
