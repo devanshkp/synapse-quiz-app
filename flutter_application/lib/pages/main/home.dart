@@ -4,9 +4,9 @@ import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/home/home_widgets.dart';
 import 'package:flutter_application/widgets/shared.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
+import 'package:flutter_application/pages/main/search.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -27,22 +27,24 @@ class HomePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          color: backgroundPageColor,
-          image: DecorationImage(
-            image: AssetImage('assets/images/shapes.png'),
-            opacity: 0.2,
-            repeat: ImageRepeat.repeat,
+      body: SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: backgroundPageColor,
+            image: DecorationImage(
+              image: AssetImage('assets/images/shapes.png'),
+              opacity: 0.2,
+              repeat: ImageRepeat.repeat,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
-          child: ListView.builder(
-            itemCount: sections.length,
-            itemBuilder: (context, index) {
-              return sections[index];
-            },
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
+            child: ListView.builder(
+              itemCount: sections.length,
+              itemBuilder: (context, index) {
+                return sections[index];
+              },
+            ),
           ),
         ),
       ),
@@ -99,7 +101,11 @@ class TopPortion extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 5),
                 child: GestureDetector(
                   onTap: () => debugPrint("$questionCount"),
-                  child: SvgPicture.asset('assets/icons/home/Bolt.svg'),
+                  child: Image.asset(
+                    'assets/images/logos/synapse_no_bg.png',
+                    height: 15,
+                    width: 15,
+                  ),
                 ),
               ),
             ],
@@ -163,7 +169,12 @@ class BottomPortion extends StatelessWidget {
           GestureDetector(
             // animate to page
             onTap: () => {
-              Navigator.pushNamed(context, '/search'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SearchPage(fromHome: true),
+                ),
+              ),
             },
             child: const Text(
               'Topics >',

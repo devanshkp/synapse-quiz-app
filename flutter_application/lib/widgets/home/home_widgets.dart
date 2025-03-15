@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/pages/main/trivia.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/home/session_history.dart';
@@ -25,15 +24,30 @@ Widget customHomeButton({
     height: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
+      border: Border.all(color: Colors.white.withOpacity(0.12)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.3),
-          blurRadius: 5,
-          offset: const Offset(0, 4),
+          color: Colors.black.withOpacity(0.25),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+          spreadRadius: 1,
+        ),
+        BoxShadow(
+          color: Colors.white.withOpacity(0.03),
+          blurRadius: 0.5,
+          offset: const Offset(0, 1),
+          spreadRadius: 0,
         ),
       ],
-      gradient: buttonGradient,
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.fromARGB(255, 40, 40, 40),
+          Color.fromARGB(255, 28, 28, 28),
+        ],
+        stops: [0.1, 1.0],
+      ),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -52,15 +66,24 @@ Widget customHomeButton({
                     color: Colors.white,
                     fontSize: titleFontSize,
                     fontWeight: titleFontWeight,
+                    letterSpacing: 0.2,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.5),
+                        offset: const Offset(0, 1),
+                        blurRadius: 2,
+                      ),
+                    ],
                   ),
                 ),
                 if (subtitle != null && subtitle.isNotEmpty)
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.white.withOpacity(0.8),
                       fontSize: subtitleFontSize,
                       fontWeight: FontWeight.normal,
+                      letterSpacing: 0.1,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -71,11 +94,20 @@ Widget customHomeButton({
         ),
         Padding(
           padding: iconPadding,
-          child: SvgPicture.asset(
-            iconPath,
-            color: Colors.white,
-            width: iconSize,
-            height: iconSize,
+          child: ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.white70],
+              ).createShader(bounds);
+            },
+            child: SvgPicture.asset(
+              iconPath,
+              color: Colors.white,
+              width: iconSize,
+              height: iconSize,
+            ),
           ),
         ),
       ],
@@ -97,9 +129,16 @@ Widget customHomeButton({
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 1,
+      elevation: 0,
       backgroundColor: Colors.transparent,
-      shadowColor: Colors.black.withOpacity(0.3),
+      shadowColor: Colors.transparent,
+      splashFactory: InkRipple.splashFactory,
+    ).copyWith(
+      overlayColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) {
+          return Colors.white.withOpacity(0.05);
+        },
+      ),
     ),
     child: buttonContent,
   );

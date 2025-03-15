@@ -9,13 +9,13 @@ import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/observer_service.dart';
 import 'package:flutter_application/services/restart_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'pages/main/home.dart';
 import 'pages/main/search.dart';
 import 'pages/main/profile.dart';
 import 'pages/main/leaderboard.dart';
 import 'pages/main/trivia.dart';
+import 'pages/landing.dart';
 import 'constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             fontFamily: 'Poppins',
             scaffoldBackgroundColor: backgroundPageColor,
+            primaryColor: lightPurpleAccent,
             splashFactory: NoSplash.splashFactory,
             highlightColor: Colors.transparent,
           ),
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
           initialRoute: '/', // Start with AuthProvider logic
           routes: {
             '/': (context) => const AuthProvider(),
+            '/landing': (context) => const LandingPage(),
             '/login': (context) => const LoginPage(),
             '/register': (context) => const RegistrationPage(),
             '/email-verification': (context) => const EmailVerificationPage(),
@@ -92,26 +94,26 @@ class BottomNavBarState extends State<BottomNavBar> {
     const ProfilePage(),
   ];
 
-  final List<Map<String, String>> _icons = [
+  final List<Map<String, Icon>> _icons = [
     {
-      'filled': 'assets/icons/navbar/Home_Filled.svg',
-      'outline': 'assets/icons/navbar/Home.svg'
+      'filled': const Icon(Icons.home_rounded),
+      'outline': const Icon(Icons.home_outlined)
     },
     {
-      'filled': 'assets/icons/navbar/Discover_Filled.svg',
-      'outline': 'assets/icons/navbar/Discover.svg'
+      'filled': const Icon(Icons.search_rounded),
+      'outline': const Icon(Icons.search_outlined)
     },
     {
-      'filled': 'assets/icons/navbar/Scroll_Filled.svg',
-      'outline': 'assets/icons/navbar/Scroll.svg'
+      'filled': const Icon(Icons.keyboard_double_arrow_down_sharp),
+      'outline': const Icon(Icons.keyboard_double_arrow_down_outlined)
     },
     {
-      'filled': 'assets/icons/navbar/Leaderboard_Filled.svg',
-      'outline': 'assets/icons/navbar/Leaderboard.svg'
+      'filled': const Icon(Icons.leaderboard),
+      'outline': const Icon(Icons.leaderboard_outlined)
     },
     {
-      'filled': 'assets/icons/navbar/Profile_Filled.svg',
-      'outline': 'assets/icons/navbar/Profile.svg'
+      'filled': const Icon(Icons.person),
+      'outline': const Icon(Icons.person_outline)
     },
   ];
 
@@ -144,18 +146,15 @@ class BottomNavBarState extends State<BottomNavBar> {
             return BottomNavigationBarItem(
               icon: Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: SvgPicture.asset(
-                  _icons[index]['outline']!,
-                  width: 24,
-                  height: 24,
-                ),
+                child: Icon(_icons[index]['outline']!.icon,
+                    size: 26, color: Colors.white70),
               ),
               activeIcon: Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: SvgPicture.asset(
-                  _icons[index]['filled']!,
-                  width: 28,
-                  height: 28,
+                child: Icon(
+                  _icons[index]['filled']!.icon,
+                  size: 30,
+                  color: Colors.white,
                 ),
               ),
               label: '',

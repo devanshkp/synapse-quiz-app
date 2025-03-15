@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/widgets/shared.dart';
 
 class BottomButtons extends StatelessWidget {
   final bool answered;
@@ -25,25 +26,21 @@ class SkipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    return GradientButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(200, 5),
-        backgroundColor: Colors.orange.withOpacity(0.8),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 9,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        elevation: 5,
-        shadowColor: Colors.black.withOpacity(0.4),
-      ),
-      child: const Text(
-        "SKIP QUESTION",
-        style: TextStyle(fontSize: 13),
+      minimumSize: const Size(200, 0),
+      borderRadius: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      text: "SKIP QUESTION",
+      textColor: Colors.white,
+      fontSize: 13,
+      gradient: LinearGradient(
+        colors: [
+          const Color.fromARGB(255, 255, 174, 0).withOpacity(0.9),
+          Colors.orange.withOpacity(0.8),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
     );
   }
@@ -58,28 +55,21 @@ class NextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
+    return GradientButton(
       onPressed: onPressed,
-      icon: const Icon(Icons.arrow_forward, size: 18),
-      label: const Text(
-        'NEXT QUESTION',
-        style: TextStyle(fontSize: 13),
-      ),
-      style: ElevatedButton.styleFrom(
-        minimumSize:
-            (drawerButton) ? const Size.fromHeight(5) : const Size(200, 5),
-        animationDuration: const Duration(milliseconds: 10),
-        backgroundColor: Colors.grey[200],
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 9,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        elevation: 5,
-        shadowColor: Colors.black.withOpacity(0.4),
+      minimumSize: const Size(200, 0),
+      borderRadius: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      text: "NEXT QUESTION",
+      icon: Icons.arrow_forward,
+      textColor: Colors.black,
+      fullWidth: drawerButton ? true : false,
+      fontSize: 13,
+      gradient: const LinearGradient(
+        colors: [
+          Colors.white,
+          Colors.white,
+        ],
       ),
     );
   }

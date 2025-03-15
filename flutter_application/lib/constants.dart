@@ -35,7 +35,7 @@ const Color databaseColor = Color.fromARGB(255, 42, 167, 198);
 const Color algorithmsColor = Color.fromARGB(255, 130, 102, 214);
 const Color sweFundamentalsColor = Color.fromARGB(255, 214, 116, 24);
 const Color discreteMathColor = Color.fromARGB(255, 222, 96, 87);
-const Color cyberSecurityColor = Color.fromARGB(255, 87, 102, 93);
+const Color cyberSecurityColor = Color.fromARGB(255, 63, 67, 60);
 const Color artificialIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
 
 // Leaderboard Colors

@@ -155,6 +155,7 @@ class _OptionButtonState extends State<OptionButton>
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: TextFormatter.formatText(
+                              maxLines: 3,
                               widget.option,
                               style: TextStyle(
                                 fontSize: 13,

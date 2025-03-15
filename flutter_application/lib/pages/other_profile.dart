@@ -543,7 +543,7 @@ class FriendshipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientElevatedButton(
+    return GradientButton(
       text: text,
       icon: icon,
       gradient: gradient,
@@ -555,11 +555,8 @@ class FriendshipButton extends StatelessWidget {
       borderRadius: 10.0,
       elevation: 0,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      iconSize: 15,
       fontSize: 13,
       fontWeight: FontWeight.w500,
-      iconSpacing: 8,
-      mainAxisAlignment: MainAxisAlignment.center,
       fullWidth: false,
     );
   }

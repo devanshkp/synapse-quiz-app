@@ -18,6 +18,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   final AuthService _authService = AuthService();
   late UserProvider userProvider;
   late TriviaProvider triviaProvider;
+  final String packageVersion = '0.9.0';
 
   @override
   void initState() {
@@ -29,16 +30,23 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: backgroundPageColor),
+      width: MediaQuery.of(context).size.width * 0.85,
+      decoration: const BoxDecoration(
+        color: backgroundPageColor,
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(16),
+          bottomRight: Radius.circular(16),
+        ),
+      ),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            const SizedBox(height: 20),
             Expanded(
               child: _buildSettingsContent(),
             ),
+            _buildFooter(),
           ],
         ),
       ),
@@ -46,26 +54,42 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return Container(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Settings',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white70,
+                  size: 24,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Container(
             width: 60,
             height: 3,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Theme.of(context).primaryColor.withOpacity(0.7),
               borderRadius: BorderRadius.circular(1.5),
             ),
           ),
@@ -75,39 +99,97 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   }
 
   Widget _buildSettingsContent() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildSectionTitle('Account'),
+          const SizedBox(height: 16),
           CustomCard(
             icon: Icons.logout,
             text: 'Sign Out',
             color: warningRed,
             onTap: () => _showSignOutConfirmation(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            trailingIcon: Icons.arrow_forward_ios_rounded,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 32),
+          _buildSectionTitle('Trivia Data'),
+          const SizedBox(height: 16),
           CustomCard(
             icon: Icons.restore,
             text: 'Reset Encountered Questions',
-            color: const Color.fromARGB(255, 255, 175, 64).withOpacity(0.8),
+            subtitle: "This will also reset your 'Total Solved Questions'",
+            color: const Color.fromARGB(255, 255, 175, 64),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             onTap: _showResetEncounteredQuestionsConfirmation,
+            trailingIcon: Icons.arrow_forward_ios_rounded,
           ),
           if (userProvider.isDeveloper) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 32),
+            _buildSectionTitle('Developer Options'),
+            const SizedBox(height: 16),
             CustomCard(
               icon: Icons.shuffle_rounded,
               text: 'Randomize Questions',
-              color: const Color.fromARGB(255, 131, 255, 114).withOpacity(0.8),
+              color: const Color.fromARGB(255, 131, 255, 114),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               onTap: _showRandomizeQuestionsConfirmation,
+              trailingIcon: Icons.arrow_forward_ios_rounded,
             ),
             const SizedBox(height: 12),
             CustomCard(
               icon: Icons.refresh_outlined,
               text: 'Refresh Topics',
-              color: Colors.lightBlueAccent.withOpacity(0.8),
+              color: Colors.lightBlueAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               onTap: _showRefreshTopicsMetadataConfirmation,
+              trailingIcon: Icons.arrow_forward_ios_rounded,
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.7),
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/logos/synapse_no_bg.png',
+            height: 15,
+            width: 15,
+            color: Colors.white.withOpacity(0.5),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Synapse v$packageVersion',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

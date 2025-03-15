@@ -45,6 +45,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Container(
+          width: MediaQuery.of(context).size.width * 0.85,
           decoration: const BoxDecoration(color: backgroundPageColor),
           child: SafeArea(
             child: Column(
@@ -66,7 +67,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   Widget _buildHeader() {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       child: Row(
         children: [
           Column(
@@ -76,17 +77,17 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 'Friends',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Container(
                 width: 60,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).primaryColor.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
@@ -282,49 +283,52 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
-        child: Container(
-          height: 72,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.085),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: ListTile(
-            leading: GestureDetector(
-              onTap: () => _navigateToUserProfile(friend),
-              child: UserAvatar(
-                avatarUrl: friend.avatarUrl,
-                avatarRadius: 20,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.085),
+                  Colors.white.withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(15),
             ),
-            title: GestureDetector(
-              onTap: () => _navigateToUserProfile(friend),
-              child: Text(
-                friend.fullName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+            child: ListTile(
+              leading: GestureDetector(
+                onTap: () => _navigateToUserProfile(friend),
+                child: UserAvatar(
+                  avatarUrl: friend.avatarUrl,
+                  avatarRadius: 20,
                 ),
               ),
-            ),
-            subtitle: Text(
-              friend.userName,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 12,
+              title: GestureDetector(
+                onTap: () => _navigateToUserProfile(friend),
+                child: Text(
+                  friend.fullName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
-            trailing: IconButton(
-              icon: Icon(Icons.more_vert, color: Colors.white.withOpacity(0.5)),
-              onPressed: () => _showFriendOptions(friend.userId),
+              subtitle: Text(
+                friend.userName,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 12,
+                ),
+              ),
+              trailing: IconButton(
+                icon:
+                    Icon(Icons.more_vert, color: Colors.white.withOpacity(0.5)),
+                onPressed: () => _showFriendOptions(friend.userId),
+              ),
             ),
           ),
         ),

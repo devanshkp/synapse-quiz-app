@@ -210,10 +210,10 @@ class TriviaProvider extends ChangeNotifier {
             fetchQuestions(topics: _selectedTopics);
           }
         });
+      } else {
+        // Shuffle the questions
+        preserveAndShuffleQuestions();
       }
-
-      // Shuffle the questions
-      preserveCurrentQuestionAndShuffle(currentQuestion);
 
       // Reset session state
       _cachedQuestions = [];
@@ -474,41 +474,6 @@ class TriviaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> excludeTopic(BuildContext context) async {
-    try {
-      if (_selectedTopics.length == 1) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cannot exclude last topic'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return;
-      }
-
-      stopTimer(); // Explicitly stop the timer
-
-      String currentTopic = currentQuestion['topic'];
-      _selectedTopics.remove(currentTopic);
-
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-        'selectedTopics': _selectedTopics,
-      });
-
-      cacheQuestionsForTopic(currentTopic);
-
-      // Remove questions from the excluded topic
-      _questions.removeWhere((q) => q['topic'] == currentTopic);
-
-      removeDuplicateQuestions();
-      nextQuestion();
-    } catch (e) {
-      debugPrint('Error excluding topic: $e');
-    }
-  }
-
   // Fetch topic counts from metadata
   Future<void> fetchTopicCounts() async {
     try {
@@ -709,14 +674,38 @@ class TriviaProvider extends ChangeNotifier {
         (question) => !_selectedTopics.contains(question['topic']));
   }
 
-  /// Preserves the current question at its index and shuffles the rest of the questions
-  void preserveCurrentQuestionAndShuffle(
-      Map<String, dynamic>? currentQuestion) {
+  /// Preserves the first few questions and shuffles the rest of the questions
+  void preserveAndShuffleQuestions() {
     if (_questions.isEmpty) return;
 
-    var currentQ = _questions.removeAt(0);
-    _questions.shuffle();
-    _questions.insert(0, currentQ);
+    int questionsToPreserve = 5;
+
+    // Determine how many questions to preserve (up to questionsToPreserve)
+    int preserveCount = min(questionsToPreserve, _questions.length);
+
+    // If we have fewer than 'questionsToPreserve' questions, don't shuffle at all
+    if (_questions.length <= questionsToPreserve) {
+      debugPrint(
+          "Not shuffling as we have fewer than $questionsToPreserve questions");
+      return;
+    }
+
+    // Extract the questions to preserve
+    List<Map<String, dynamic>> preservedQuestions =
+        _questions.sublist(0, preserveCount).toList();
+
+    // Get the remaining questions to shuffle
+    List<Map<String, dynamic>> remainingQuestions =
+        _questions.sublist(preserveCount).toList();
+
+    // Shuffle only the remaining questions
+    remainingQuestions.shuffle();
+
+    // Combine the preserved questions with the shuffled remaining questions
+    _questions = [...preservedQuestions, ...remainingQuestions];
+
+    debugPrint(
+        "Preserved first $preserveCount questions and shuffled the rest");
   }
 
   Future<void> fetchQuestions(
@@ -734,11 +723,14 @@ class TriviaProvider extends ChangeNotifier {
     User? user = _auth.currentUser;
     _isFetching = true;
 
+    // Only set loading state if we have no questions or it's a temporary session
     if (_questions.isEmpty || temporarySession) {
-      debugPrint("is loading set to true");
+      debugPrint("Setting loading state to true");
       _isLoadingQuestions = true;
+      notifyListeners();
     }
 
+    // Try to get cached questions first
     for (String topic in topics) {
       retrieveCachedQuestionsForTopic(topic, limit: 5);
     }
@@ -762,6 +754,7 @@ class TriviaProvider extends ChangeNotifier {
             return;
           }
 
+          // Only fetch from Firebase if we need more questions
           if (_questions.where((q) => topics!.contains(q['topic'])).isEmpty ||
               _questions.length < minQuestions) {
             await fetchQuestionsFromFirebase(encounteredQuestions, topics);
@@ -779,7 +772,10 @@ class TriviaProvider extends ChangeNotifier {
                 topics: topics);
           }
 
-          preserveCurrentQuestionAndShuffle(currentQuestion);
+          // Only shuffle if it's not a temporary session
+          if (!temporarySession) {
+            preserveAndShuffleQuestions();
+          }
         }
       }
     } catch (e) {
@@ -788,7 +784,6 @@ class TriviaProvider extends ChangeNotifier {
       if (_isTriviaActive && _questions.isNotEmpty && _isLoadingQuestions) {
         _isLoadingQuestions = false;
         resumeTimer();
-        notifyListeners();
       }
       _isLoadingQuestions = false;
       _isFetching = false;
@@ -998,20 +993,30 @@ class TriviaProvider extends ChangeNotifier {
     _answered = false;
     _selectedAnswer = '';
 
-    _questions.removeAt(0);
+    // Remove the current question (first in the list)
+    if (_questions.isNotEmpty) {
+      _questions.removeAt(0);
+    }
 
-    // If questions list is empty or getting low, fetch more questions
-    if (_questions.isEmpty || _questions.length <= minQuestions) {
+    // If questions list is getting low, fetch more questions
+    // but don't disrupt the current flow by setting a higher threshold
+    if (_questions.length < minQuestions) {
       debugPrint(
           "Fetching more questions because count is low: ${_questions.length}");
-      await fetchQuestions(topics: _selectedTopics);
+
+      // Use a microtask to avoid blocking the UI
+      Future.microtask(() async {
+        await fetchQuestions(topics: _selectedTopics);
+      });
     }
 
     // Only start the timer if we have questions
     if (_questions.isNotEmpty) {
       startQuestionTimer(resume: false);
     } else {
-      debugPrint("ERROR: Still no questions after fetching in nextQuestion()!");
+      debugPrint("ERROR: No questions available in nextQuestion()!");
+      // Try to fetch questions immediately if we have none
+      await fetchQuestions(topics: _selectedTopics);
     }
 
     notifyListeners();

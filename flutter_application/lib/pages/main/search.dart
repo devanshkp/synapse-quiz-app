@@ -221,7 +221,12 @@ class _SearchPageState extends State<SearchPage> {
                 ? Padding(
                     padding: const EdgeInsets.only(left: 16.0, top: 20.0),
                     child: IconButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        // Ensure we're popping back to the correct screen
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                      },
                       icon: const Icon(
                         Icons.arrow_back_rounded,
                         color: Colors.white,

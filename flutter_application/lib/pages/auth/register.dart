@@ -18,7 +18,6 @@ class RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   bool _formValid = false;
 
@@ -31,7 +30,6 @@ class RegistrationPageState extends State<RegistrationPage> {
       _emailError == null &&
       _passwordController.text.isNotEmpty &&
       _confirmPasswordController.text == _passwordController.text &&
-      _userNameController.text.isNotEmpty &&
       _fullNameController.text.isNotEmpty;
 
   void _updateFormValidity() {
@@ -39,7 +37,6 @@ class RegistrationPageState extends State<RegistrationPage> {
 
     if (_formValid != isValid &&
         _fullNameController.text.isNotEmpty &&
-        _userNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty) {
@@ -60,7 +57,6 @@ class RegistrationPageState extends State<RegistrationPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _userNameController.dispose();
     _fullNameController.dispose();
 
     super.dispose();
@@ -135,7 +131,6 @@ class RegistrationPageState extends State<RegistrationPage> {
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
       confirmPassword: _confirmPasswordController.text.trim(),
-      userName: _userNameController.text.trim(),
       fullName: _fullNameController.text.trim(),
     );
   }
@@ -144,11 +139,31 @@ class RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundPageColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset(
+              'assets/images/logos/synapse_no_bg.png',
+              height: 15,
+              width: 15,
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height,
+            maxHeight: MediaQuery.of(context).size.height -
+                (AppBar().preferredSize.height +
+                    MediaQuery.of(context).padding.top),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -160,7 +175,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Spacer(),
+                  const Spacer(flex: 1),
                   const Text(
                     "Hello! Register to get started",
                     style: TextStyle(
@@ -176,14 +191,6 @@ class RegistrationPageState extends State<RegistrationPage> {
                     controller: _fullNameController,
                     labelText: 'Full Name',
                     validator: _validateName,
-                  ),
-                  const SizedBox(height: 12.5),
-
-                  // USERNAME
-                  CustomTextFormField(
-                    controller: _userNameController,
-                    labelText: 'Username',
-                    validator: _validateUsername,
                   ),
                   const SizedBox(height: 12.5),
 
@@ -247,7 +254,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                       ),
                     ],
                   ),
-                  const Spacer(),
+                  const Spacer(flex: 3),
                   AuthRedirectText(
                       regularText: 'Already have an account?',
                       highlightedText: 'Login',

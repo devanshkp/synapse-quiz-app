@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class TextFormatter {
@@ -5,30 +6,44 @@ class TextFormatter {
     String text, {
     TextStyle? style,
     TextAlign textAlign = TextAlign.center,
+    int? maxLines,
   }) {
     if (text.isEmpty) {
       return Text('', style: style, textAlign: textAlign);
     }
 
     // Ensure the style includes Poppins font family
-    final TextStyle baseStyle = (style ?? const TextStyle()).copyWith(
-      fontFamily: 'Poppins',
-    );
+    final TextStyle baseStyle =
+        (style ?? const TextStyle()).copyWith(fontFamily: 'Poppins');
 
     // If there are no subscripts or superscripts, return regular text
     if (!text.contains('_{') && !text.contains('^{')) {
-      return Text(text, style: baseStyle, textAlign: textAlign);
+      return AutoSizeText(
+        text,
+        style: baseStyle,
+        textAlign: textAlign,
+        minFontSize: 12,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        wrapWords: true,
+        stepGranularity: 1,
+      );
     }
 
     // Parse the text and create spans
     List<InlineSpan> spans = _parseText(text, baseStyle);
 
-    return RichText(
-      text: TextSpan(
+    return AutoSizeText.rich(
+      TextSpan(
         style: baseStyle,
         children: spans,
       ),
+      minFontSize: 12,
+      maxLines: maxLines,
       textAlign: textAlign,
+      overflow: TextOverflow.ellipsis,
+      wrapWords: true,
+      stepGranularity: 1,
     );
   }
 
@@ -96,22 +111,14 @@ class TextFormatter {
               fontSize: (style.fontSize ?? 14) * 0.7,
             ));
 
-        // Create the script widget
-        spans.add(WidgetSpan(
-          alignment: isSubscript
-              ? PlaceholderAlignment.bottom
-              : PlaceholderAlignment.top,
-          child: Transform.translate(
-            offset: Offset(0, isSubscript ? 4 : -7),
-            child: RichText(
-              text: TextSpan(
-                style: style.copyWith(
-                  fontSize: (style.fontSize ?? 14) * 0.7,
-                ),
-                children: nestedSpans,
-              ),
-            ),
+        // Create a TextSpan for the subscript/superscript instead of WidgetSpan
+        spans.add(TextSpan(
+          style: style.copyWith(
+            fontSize: (style.fontSize ?? 14) * 0.7,
+            height: isSubscript ? 1.7 : 0.7, // Adjust vertical position
+            textBaseline: TextBaseline.alphabetic,
           ),
+          children: nestedSpans,
         ));
 
         currentIndex = closeIndex;

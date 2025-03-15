@@ -147,10 +147,6 @@ class TopicButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String heroBaseTag = section != null
-        ? '${title}_${buttonType}_$section'
-        : '${title}_$buttonType';
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius ?? 10),
       child: GestureDetector(
@@ -493,14 +489,14 @@ class CustomCircularProgressIndicator extends StatelessWidget {
     return Container(
       decoration: const ShapeDecoration(
         shape: CircleBorder(),
-        color: Color(0xFF2C2C2C),
+        color: Color.fromARGB(255, 58, 58, 58),
       ),
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(6),
       child: const SizedBox(
         width: 30,
         height: 30,
         child: CircularProgressIndicator(
-          strokeWidth: 2,
+          strokeWidth: 3,
           color: Colors.white,
         ),
       ),
@@ -511,42 +507,50 @@ class CustomCircularProgressIndicator extends StatelessWidget {
 class CustomCard extends StatelessWidget {
   final IconData icon;
   final String text;
+  final String? subtitle;
   final Color color;
   final VoidCallback onTap;
+  final IconData? trailingIcon;
   final EdgeInsets padding;
   final BorderRadius borderRadius;
+
   const CustomCard({
     super.key,
     required this.icon,
     required this.text,
+    this.subtitle,
     required this.color,
     required this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    this.borderRadius = const BorderRadius.all(Radius.circular(15)),
+    this.trailingIcon,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    this.borderRadius = const BorderRadius.all(Radius.circular(16)),
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 8,
-      shadowColor: Colors.black45,
+      shadowColor: Colors.black26,
       color: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius,
       ),
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withOpacity(0.085),
+                Colors.white.withOpacity(0.1),
                 Colors.white.withOpacity(0.05),
               ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
             borderRadius: borderRadius,
             border: Border.all(
@@ -557,10 +561,10 @@ class CustomCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
@@ -569,15 +573,43 @@ class CustomCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.3,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
               ),
+              if (trailingIcon != null) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  trailingIcon,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 16,
+                ),
+              ],
             ],
           ),
         ),
@@ -643,71 +675,59 @@ class CustomAlertDialog extends StatelessWidget {
   }
 }
 
-class GradientElevatedButton extends StatelessWidget {
+class GradientButton extends StatelessWidget {
   final IconData? icon;
   final String text;
   final LinearGradient gradient;
   final Color textColor;
-  final Color borderColor;
   final VoidCallback onPressed;
+
+  // Core styling
   final double? width;
   final double? height;
   final double borderRadius;
   final double elevation;
-  final EdgeInsetsGeometry? padding;
-  final double iconSize;
+  final EdgeInsetsGeometry padding;
+
+  // Typography
   final double fontSize;
   final FontWeight fontWeight;
-  final double iconSpacing;
-  final MainAxisAlignment mainAxisAlignment;
+
+  // Layout options
   final bool fullWidth;
-  final bool allowTextWrap;
-  final int? maxLines;
+  final bool showBorder;
+  final Color? borderColor;
+  final Size minimumSize;
 
-  // Touch interaction properties
-  final Color splashColor;
-  final Color highlightColor;
-  final InteractiveInkFeatureFactory? splashFactory;
+  // Animation
+  final bool enableScale;
   final Duration animationDuration;
-  final bool enableFeedback;
-  final HitTestBehavior hitTestBehavior;
-  final bool enableScale; // New property to enable/disable scale animation
 
-  const GradientElevatedButton({
+  const GradientButton({
     super.key,
     this.icon,
     required this.text,
     required this.gradient,
     required this.textColor,
-    required this.borderColor,
     required this.onPressed,
     this.width,
     this.height,
     this.borderRadius = 12.0,
-    this.elevation = 8.0,
-    this.padding,
-    this.iconSize = 22.0,
+    this.elevation = 3.0,
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
     this.fontSize = 14.0,
     this.fontWeight = FontWeight.w600,
-    this.iconSpacing = 8.0,
-    this.mainAxisAlignment = MainAxisAlignment.center,
     this.fullWidth = false,
-    this.allowTextWrap = true,
-    this.maxLines = 2,
-
-    // Default values for touch interaction
-    this.splashColor = Colors.white24,
-    this.highlightColor = Colors.white10,
-    this.splashFactory = InkRipple.splashFactory,
-    this.animationDuration = const Duration(milliseconds: 200),
-    this.enableFeedback = true,
-    this.hitTestBehavior = HitTestBehavior.opaque,
+    this.showBorder = false,
+    this.borderColor,
     this.enableScale = true,
+    this.animationDuration = const Duration(milliseconds: 200),
+    this.minimumSize = const Size(0, 0),
   });
 
   @override
   Widget build(BuildContext context) {
-    return _ScaleOnPress(
+    return _ButtonScaleWrapper(
       duration: animationDuration,
       onPressed: onPressed,
       enabled: enableScale,
@@ -715,67 +735,54 @@ class GradientElevatedButton extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(borderRadius),
         elevation: elevation,
-        child: Container(
-          width: fullWidth ? double.infinity : width,
-          height: height,
-          decoration: BoxDecoration(
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: InkWell(
+            onTap: onPressed,
             borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(borderRadius),
-              splashColor: splashColor,
-              highlightColor: highlightColor,
-              splashFactory: splashFactory,
-              enableFeedback: enableFeedback,
-              hoverColor: Colors.white.withOpacity(0.1),
-              focusColor: Colors.white.withOpacity(0.1),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(borderRadius),
-                  border: Border.all(
-                    color: borderColor,
-                    width: 1,
-                  ),
+            splashColor: Colors.white24,
+            highlightColor: Colors.white10,
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: gradient,
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: showBorder
+                    ? Border.all(
+                        color: borderColor ?? textColor.withOpacity(0.5),
+                        width: 1)
+                    : null,
+              ),
+              child: Container(
+                width: fullWidth ? double.infinity : width,
+                height: height,
+                padding: padding,
+                constraints: BoxConstraints(
+                  minWidth: minimumSize.width,
+                  minHeight: minimumSize.height,
                 ),
-                child: Container(
-                  padding: padding ??
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  child: Row(
-                    mainAxisSize:
-                        fullWidth ? MainAxisSize.max : MainAxisSize.min,
-                    mainAxisAlignment: mainAxisAlignment,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(
-                          icon,
-                          size: iconSize,
+                child: Row(
+                  mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: fontSize * 1.5, color: textColor),
+                      const SizedBox(width: 8),
+                    ],
+                    Flexible(
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: fontWeight,
                           color: textColor,
                         ),
-                        SizedBox(width: iconSpacing),
-                      ],
-                      Flexible(
-                        child: Text(
-                          text,
-                          style: TextStyle(
-                            fontSize: fontSize,
-                            fontWeight: fontWeight,
-                            color: textColor,
-                          ),
-                          overflow: allowTextWrap
-                              ? TextOverflow.ellipsis
-                              : TextOverflow.visible,
-                          maxLines: allowTextWrap ? maxLines : 1,
-                          textAlign: TextAlign.center,
-                          softWrap: allowTextWrap,
-                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -786,14 +793,13 @@ class GradientElevatedButton extends StatelessWidget {
   }
 }
 
-// Helper widget to add scale animation on press
-class _ScaleOnPress extends StatefulWidget {
+class _ButtonScaleWrapper extends StatefulWidget {
   final Widget child;
   final VoidCallback onPressed;
   final Duration duration;
   final bool enabled;
 
-  const _ScaleOnPress({
+  const _ButtonScaleWrapper({
     required this.child,
     required this.onPressed,
     required this.duration,
@@ -801,10 +807,10 @@ class _ScaleOnPress extends StatefulWidget {
   });
 
   @override
-  _ScaleOnPressState createState() => _ScaleOnPressState();
+  _ButtonScaleWrapperState createState() => _ButtonScaleWrapperState();
 }
 
-class _ScaleOnPressState extends State<_ScaleOnPress>
+class _ButtonScaleWrapperState extends State<_ButtonScaleWrapper>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -841,12 +847,10 @@ class _ScaleOnPressState extends State<_ScaleOnPress>
       onTap: widget.onPressed,
       child: AnimatedBuilder(
         animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          );
-        },
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
+        ),
         child: widget.child,
       ),
     );

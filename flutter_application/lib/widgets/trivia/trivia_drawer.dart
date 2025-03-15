@@ -136,6 +136,7 @@ class TriviaDrawerState extends State<TriviaDrawer> {
                   height: 1.6,
                   fontWeight: FontWeight.w400,
                 ),
+                maxLines: 20,
                 textAlign: TextAlign.left,
               ),
             ],

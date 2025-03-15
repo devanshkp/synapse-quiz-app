@@ -26,6 +26,9 @@ class _UsernamePageState extends State<UsernamePage> {
     if (value == null || value.isEmpty) {
       return 'Username is required';
     }
+    if (value.length > 10) {
+      return 'Username must be less than 10 characters';
+    }
     return _authService.validateUsername(value);
   }
 
@@ -51,9 +54,17 @@ class _UsernamePageState extends State<UsernamePage> {
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onChanged: _updateFormValidity,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 20),
+                  Center(
+                    child: Image.asset(
+                      'assets/images/logos/synapse_no_bg.png',
+                      height: 140,
+                      width: 140,
+                    ),
+                  ),
+                  const Spacer(flex: 1),
                   const Text(
                     'Set your username',
                     style: TextStyle(
@@ -64,7 +75,7 @@ class _UsernamePageState extends State<UsernamePage> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Choose a unique username for your account',
+                    'Choose a unique username for your account. This can\'t be changed later.',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
@@ -90,6 +101,7 @@ class _UsernamePageState extends State<UsernamePage> {
                     isEnabled: _isFormValid,
                     backgroundColor: Colors.white,
                   ),
+                  const Spacer(flex: 4),
                 ],
               ),
             ),

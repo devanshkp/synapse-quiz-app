@@ -127,20 +127,8 @@ class AuthService {
       required String email,
       required String password,
       required String confirmPassword,
-      required String userName,
       required String fullName}) async {
     try {
-      // Check if username is unique
-      bool isUnique = await isUsernameUnique(userName);
-      if (!isUnique) {
-        if (context.mounted) {
-          floatingSnackBar(
-              message: 'Username is already taken. Please choose another.',
-              context: context);
-        }
-        return;
-      }
-
       // Create user in Firebase Auth
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -151,15 +139,15 @@ class AuthService {
       final user = userCredential.user;
 
       if (user != null) {
+        // Update the user's display name
+        await user.updateDisplayName(fullName);
+
         // Send email verification
         await user.sendEmailVerification();
 
-        // Store user details in Firestore
-        await _userService.createUserProfile(
-            user: user, userName: userName, fullName: fullName);
-
         if (context.mounted) {
-          Navigator.pushReplacementNamed(context, '/email-verification');
+          Navigator.pushNamedAndRemoveUntil(
+              context, '/email-verification', (route) => false);
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -195,6 +183,9 @@ class AuthService {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       await Future.delayed(const Duration(seconds: 1));
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
         String errorMessage;
@@ -249,6 +240,9 @@ class AuthService {
 
       // Sign in to Firebase with the Google credential
       await _auth.signInWithCredential(credential);
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
     } catch (e) {
       if (context.mounted) {
         floatingSnackBar(
@@ -298,16 +292,20 @@ class AuthService {
         return;
       }
 
+      // Use the stored full name if available, otherwise fall back to display name
+      String fullName = user.displayName ?? 'User';
+
       // Create user profile in Firestore
       await _userService.createUserProfile(
         user: user,
         userName: username,
-        fullName: user.displayName,
+        fullName: fullName,
         avatarUrl: user.photoURL,
       );
 
       if (context.mounted) {
-        Navigator.pushReplacementNamed(context, '/');
+        // Clear the entire navigation stack and start fresh at the home route
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
       debugPrint('Error setting username: $e');

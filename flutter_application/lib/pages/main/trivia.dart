@@ -40,13 +40,11 @@ class _TriviaPageState extends State<TriviaPage>
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
   late AnimationController _topicAnimationController;
-  late AnimationController _closeAnimController;
 
-  // Swipe and Drawer State
-  double _iconAnimationValue = 1.0;
-  double _dragExtent = 0.0;
-  final double _swipeThreshold = 100.0;
-  double _drawerOffset = 0.0;
+  bool _movingToNextQuestion = false;
+
+  // Drawer State
+  final double _drawerOffset = 0.0;
 
   @override
   void initState() {
@@ -58,41 +56,28 @@ class _TriviaPageState extends State<TriviaPage>
   void _initializeAnimations() {
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 300),
     );
 
-    // Create a sequence of animations for a snappier feel
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.95, end: 1.02).chain(
-          CurveTween(curve: Curves.easeOutCubic),
-        ),
-        weight: 100,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.02, end: 1.0).chain(
-          CurveTween(curve: Curves.easeInOutCubic),
-        ),
-        weight: 100,
-      ),
-    ]).animate(_animationController);
-
-    // Add a slide animation for more dynamic entry
-    _slideAnimation = Tween<double>(begin: 20.0, end: 0.0).animate(
+    // Simplified scale animation with a subtle effect
+    _scaleAnimation = Tween<double>(begin: 0.98, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+        curve: Curves.easeOutQuint,
+      ),
+    );
+
+    // Simplified slide animation with minimal movement
+    _slideAnimation = Tween<double>(begin: 10.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuint,
       ),
     );
 
     _topicAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _closeAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 250),
     );
 
     _animationController.forward();
@@ -103,7 +88,6 @@ class _TriviaPageState extends State<TriviaPage>
     _pageController.dispose();
     _animationController.dispose();
     _topicAnimationController.dispose();
-    _closeAnimController.dispose();
 
     // Use a microtask to ensure state updates happen after disposal
     Future.microtask(() {
@@ -170,125 +154,25 @@ class _TriviaPageState extends State<TriviaPage>
     }
   }
 
-  // ============================== SWIPE GESTURE HANDLERS ==============================
-
-  void _onDragUpdate(DragUpdateDetails details) {
-    if (widget.isTemporarySession ||
-        _triviaProvider.selectedTopics.length == 1) {
-      return;
-    }
-    if (details.primaryDelta != null && details.primaryDelta! > 0) {
-      setState(() {
-        _dragExtent += details.primaryDelta!;
-        _drawerOffset = _dragExtent.clamp(0.0, _swipeThreshold);
-        _topicAnimationController.value =
-            (_drawerOffset / _swipeThreshold).clamp(0.0, 1.0);
-      });
-    }
-  }
-
-  void _onDragEnd(DragEndDetails details) {
-    if (widget.isTemporarySession ||
-        _triviaProvider.selectedTopics.length == 1) {
-      return;
-    }
-    if (_dragExtent.abs() > _swipeThreshold) {
-      _handleTopicExclusion();
-    } else {
-      _resetDragState();
-    }
-  }
-
-  void _handleTopicExclusion() {
-    // First complete the animation to the threshold
-    _topicAnimationController.forward().then((_) {
-      final startOffset = _drawerOffset;
-
-      _closeAnimController.reset();
-
-      Animation<double> closeAnimation = Tween<double>(
-        begin: 1.0,
-        end: 0.0,
-      ).animate(
-        CurvedAnimation(
-          parent: _closeAnimController,
-          curve: Curves.easeOutQuint,
-        ),
-      );
-
-      // Update the drawer offset and icon animation value during the animation
-      _closeAnimController.addListener(() {
-        setState(() {
-          _drawerOffset = startOffset * closeAnimation.value;
-          _iconAnimationValue = closeAnimation.value;
-        });
-      });
-
-      // Clean up when animation is done
-      _closeAnimController.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          setState(() {
-            _dragExtent = 0.0;
-            _drawerOffset = 0.0;
-            _iconAnimationValue = 1.0;
-          });
-          _topicAnimationController.reset();
-        }
-      });
-
-      _triviaProvider.excludeTopic(context);
-
-      _closeAnimController.forward();
-    });
-  }
-
-  void _resetDragState() {
-    // For smaller drags, animate back to original position
-    final startOffset = _drawerOffset;
-    _closeAnimController.reset();
-
-    Animation<double> closeAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _closeAnimController,
-        curve: Curves.easeOut,
-      ),
-    );
-
-    _closeAnimController.addListener(() {
-      setState(() {
-        _drawerOffset = startOffset * closeAnimation.value;
-        _iconAnimationValue = closeAnimation.value;
-      });
-    });
-
-    _closeAnimController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() {
-          _dragExtent = 0.0;
-          _drawerOffset = 0.0;
-          _iconAnimationValue = 1.0;
-        });
-        _topicAnimationController.reset();
-      }
-    });
-
-    _closeAnimController.forward();
-  }
-
   // ============================== QUESTION LOGIC ==============================
 
   void _handleNextQuestion() {
-    // First, animate out the current question
-    _animationController.reverse().then((_) {
+    if (_movingToNextQuestion) {
+      return;
+    }
+
+    _movingToNextQuestion = true;
+
+    // Use a faster reverse animation for a cleaner transition
+    _animationController.reverse(from: 1.0).then((_) {
       // Update the question index
       _triviaProvider.nextQuestion();
       _advancedDrawerController.hideDrawer();
 
+      _movingToNextQuestion = false;
+
       // Animate in the new question
-      _animationController.forward();
+      _animationController.forward(from: 0.0);
     });
   }
 
@@ -373,175 +257,48 @@ class _TriviaPageState extends State<TriviaPage>
   Widget _buildTriviaPage(TriviaProvider triviaProvider) {
     return Scaffold(
       body: SafeArea(
-        child: GestureDetector(
-          onVerticalDragUpdate: _onDragUpdate,
-          onVerticalDragEnd: _onDragEnd,
-          child: Stack(
-            children: [
-              Transform.translate(
-                offset: Offset(0, _drawerOffset),
-                child: AdvancedDrawer(
-                  drawer: TriviaDrawer(
-                    key: _drawerKey,
-                    question: triviaProvider.currentQuestion,
-                    isAnswered: triviaProvider.answered,
-                    onNextQuestion: _handleNextQuestion,
+        child: Transform.translate(
+          offset: Offset(0, _drawerOffset),
+          child: AdvancedDrawer(
+            drawer: TriviaDrawer(
+              key: _drawerKey,
+              question: triviaProvider.currentQuestion,
+              isAnswered: triviaProvider.answered,
+              onNextQuestion: _handleNextQuestion,
+            ),
+            controller: _advancedDrawerController,
+            animationDuration: const Duration(milliseconds: 200),
+            openRatio: .65,
+            initialDrawerScale: .95,
+            backdropColor: drawerColor,
+            openScale: 1,
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: cardGradient,
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/shapes.png'),
+                      opacity: 0.25,
+                      repeat: ImageRepeat.repeat,
+                    ),
                   ),
-                  controller: _advancedDrawerController,
-                  animationDuration: const Duration(milliseconds: 200),
-                  openRatio: .65,
-                  initialDrawerScale: .95,
-                  backdropColor: drawerColor,
-                  openScale: 1,
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          gradient: cardGradient,
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/shapes.png'),
-                            opacity: 0.25,
-                            repeat: ImageRepeat.repeat,
-                          ),
-                        ),
-                        child: _buildQuestionPageView(triviaProvider),
-                      ),
-                      if (widget.quickPlay || widget.isTemporarySession)
-                        Positioned(
-                          top: 20,
-                          left: 10,
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back_rounded,
-                                color: Colors.white),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-
-                      // Topics counter in top right
-                      Positioned(
-                        top: 20,
-                        right: 20,
-                        child: _buildTopicsCounter(triviaProvider),
-                      ),
-                    ],
-                  ),
+                  child: _buildQuestionPageView(triviaProvider),
                 ),
-              ),
-
-              // Red background that appears during swipe
-              if (_drawerOffset > 0 && _iconAnimationValue > 0)
-                Positioned.fill(
-                  child: Stack(
-                    children: [
-                      // Animated background
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: _drawerOffset,
-                        child: AnimatedBuilder(
-                          animation: _topicAnimationController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _iconAnimationValue,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.red.shade600,
-                                      Colors.red.shade800,
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          Colors.red.shade900.withOpacity(0.5),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    // Animated pattern overlay
-                                    Positioned.fill(
-                                      child: Opacity(
-                                        opacity: 0.1,
-                                        child: Image.asset(
-                                          'assets/images/shapes.png',
-                                          repeat: ImageRepeat.repeat,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    // Center content
-                                    Center(
-                                      child: Opacity(
-                                        opacity:
-                                            _topicAnimationController.value,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            // Icon with immediate scaling based on drag
-                                            Transform.scale(
-                                              scale: 0.6 +
-                                                  (0.4 *
-                                                      (_dragExtent /
-                                                              _swipeThreshold)
-                                                          .clamp(0.0, 1.0)),
-                                              child: Icon(
-                                                Icons
-                                                    .remove_circle_outline_rounded,
-                                                color: Colors.white,
-                                                size: 32 *
-                                                    _topicAnimationController
-                                                        .value,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                                width: 10 *
-                                                    _topicAnimationController
-                                                        .value),
-                                            // Text with fade animation
-                                            Text(
-                                              'Exclude Topic',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 17 *
-                                                    _topicAnimationController
-                                                        .value,
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.5,
-                                                shadows: [
-                                                  Shadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.3),
-                                                    offset: const Offset(0, 2),
-                                                    blurRadius: 4,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                if (widget.quickPlay || widget.isTemporarySession)
+                  Positioned(
+                    top: 20,
+                    left: 10,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded,
+                          color: Colors.white),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -550,7 +307,13 @@ class _TriviaPageState extends State<TriviaPage>
 
   Widget _buildQuestionPageView(TriviaProvider triviaProvider) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
       child: _buildQuestionPage(triviaProvider),
     );
   }
@@ -571,18 +334,28 @@ class _TriviaPageState extends State<TriviaPage>
                   opacity: _animationController.value,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Stack(
                       children: [
-                        const Spacer(),
-                        _buildQuestionHeader(triviaProvider, question),
-                        const Spacer(),
-                        _buildQuestionCard(question),
-                        const Spacer(),
-                        _buildOptions(triviaProvider, question),
-                        const Spacer(),
-                        _buildFooter(triviaProvider),
-                        const Spacer(flex: 1)
+                        // Topics counter in top right
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: _buildTopicsCounter(triviaProvider),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(),
+                            _buildQuestionHeader(triviaProvider, question),
+                            const Spacer(),
+                            _buildQuestionCard(question),
+                            const Spacer(),
+                            _buildOptions(triviaProvider, question),
+                            const Spacer(flex: 3),
+                            _buildFooter(triviaProvider),
+                            const SizedBox(height: 7.5),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -634,54 +407,155 @@ class _TriviaPageState extends State<TriviaPage>
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        // Create a bouncy effect for the card
-        final cardAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: const Interval(0.1, 0.5, curve: Curves.easeOutBack),
-          ),
+        // Simplified card animation with minimal scaling
+        final cardAnimation = CurvedAnimation(
+          parent: _animationController,
+          curve: Curves.easeOutQuint,
         );
 
         return Transform.scale(
-          scale: 0.8 + (0.2 * cardAnimation.value),
-          child: Card(
-            elevation: 8 * cardAnimation.value,
-            shadowColor: Colors.black45,
-            color: Colors.transparent,
-            shape: RoundedRectangleBorder(
+          scale: 0.95 + (0.05 * cardAnimation.value),
+          child: Material(
+            color: Colors.black12,
+            borderRadius: BorderRadius.circular(15),
+            child: InkWell(
+              onTap: () {
+                _showFullQuestionDialog(context, question);
+              },
+              splashColor: Colors.white.withOpacity(0.1),
+              highlightColor: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(15),
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.085 * cardAnimation.value),
-                    Colors.white.withOpacity(0.05 * cardAnimation.value),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        Colors.black12.withOpacity(cardAnimation.value * 0.12),
-                    blurRadius: 10 * cardAnimation.value,
-                    spreadRadius: 1 * cardAnimation.value,
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.08),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                ],
-              ),
-              child: TextFormatter.formatText(
-                question['question'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  height: 1.4,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12.withOpacity(0.08),
+                      blurRadius: 8 * cardAnimation.value,
+                      spreadRadius: 0.5 * cardAnimation.value,
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: TextFormatter.formatText(
+                          maxLines: 4,
+                          question['question'],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    // Add a subtle indicator to show the card is tappable
+                    const Positioned(
+                      right: 10,
+                      bottom: 10,
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.white54,
+                        size: 13,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Method to show the full question in a popup dialog
+  void _showFullQuestionDialog(
+      BuildContext context, Map<String, dynamic> question) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.95,
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 40, 40, 40),
+                  Color.fromARGB(255, 25, 25, 25),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 15,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Question text
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: TextFormatter.formatText(
+                      maxLines: 100,
+                      question['question'],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Close button
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -698,16 +572,16 @@ class _TriviaPageState extends State<TriviaPage>
       builder: (context, child) {
         return Column(
           children: List.generate(options.length, (i) {
-            // Stagger the animations for each option
-            final delay = i * 0.1;
-            final startInterval = 0.2 + delay;
-            final endInterval = min(1.0, startInterval + 0.3);
+            // More subtle staggered animations with consistent timing
+            final delay = i * 0.05;
+            final startInterval = 0.1 + delay;
+            final endInterval = min(1.0, startInterval + 0.2);
 
             final optionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                 parent: _animationController,
                 curve: Interval(startInterval, endInterval,
-                    curve: Curves.easeOutCubic),
+                    curve: Curves.easeOutQuint),
               ),
             );
 
@@ -724,8 +598,9 @@ class _TriviaPageState extends State<TriviaPage>
               }
             }
 
+            // Reduced horizontal movement for cleaner appearance
             return Transform.translate(
-              offset: Offset(30.0 * (1.0 - optionAnimation.value), 0),
+              offset: Offset(15.0 * (1.0 - optionAnimation.value), 0),
               child: Opacity(
                 opacity: optionAnimation.value,
                 child: Padding(

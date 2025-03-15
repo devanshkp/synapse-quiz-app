@@ -69,11 +69,31 @@ class LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundPageColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset(
+              'assets/images/logos/synapse_no_bg.png',
+              height: 15,
+              width: 15,
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height,
+            maxHeight: MediaQuery.of(context).size.height -
+                (AppBar().preferredSize.height +
+                    MediaQuery.of(context).padding.top),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -96,7 +116,7 @@ class LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Welcome back',
+                    'Welcome back,',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 22,
@@ -200,7 +220,7 @@ class LoginPageState extends State<LoginPage> {
                     regularText: 'Don\'t have an account?',
                     highlightedText: 'Register',
                     onTap: () {
-                      Navigator.pushNamed(context, '/register');
+                      Navigator.pushReplacementNamed(context, '/register');
                     },
                   ),
                   const SizedBox(height: 40),

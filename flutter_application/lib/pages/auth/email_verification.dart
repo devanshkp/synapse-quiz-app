@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/services/auth_service.dart';
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({super.key});
@@ -14,22 +16,33 @@ class EmailVerificationPage extends StatefulWidget {
 
 class EmailVerificationPageState extends State<EmailVerificationPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AuthService _authService = AuthService();
   bool _isEmailVerified = false;
   bool _canResendEmail = true;
   int _resendTimer = 60;
   Timer? _timer;
   Timer? _checkEmailTimer;
+  bool _isCheckingEmail = false;
 
   @override
   void initState() {
     super.initState();
-    // Check email verification status immediately
-    _checkEmailVerified();
-
-    // Set up a timer to periodically check email verification status
-    _checkEmailTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+    // Check if the user exists and if verification email was already sent
+    final user = _auth.currentUser;
+    if (user != null) {
+      // Check email verification status immediately
       _checkEmailVerified();
-    });
+
+      // Set up a timer to periodically check email verification status
+      _checkEmailTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        _checkEmailVerified();
+      });
+    } else {
+      // If no user is found, navigate back to login
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/login');
+      });
+    }
   }
 
   @override
@@ -44,14 +57,28 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
       final user = _auth.currentUser;
       if (user != null) {
         await user.reload(); // Refresh user info
+        final freshUser = _auth.currentUser; // Get fresh user data after reload
+
         setState(() {
-          _isEmailVerified = user.emailVerified;
+          _isEmailVerified = freshUser?.emailVerified ?? false;
         });
 
         if (_isEmailVerified) {
           _checkEmailTimer?.cancel();
           if (mounted) {
-            Navigator.pushReplacementNamed(context, '/');
+            // Check if user has a username set
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
+
+            if (!userDoc.exists) {
+              // If user doesn't have a profile, go to username page
+              Navigator.pushReplacementNamed(context, '/username-dialog');
+            } else {
+              // If user has a profile, go to home
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
           }
         }
       }
@@ -111,6 +138,33 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
     }
   }
 
+  Future<void> _manualCheckEmailVerified() async {
+    if (_isCheckingEmail) return;
+
+    setState(() {
+      _isCheckingEmail = true;
+    });
+
+    try {
+      await _checkEmailVerified();
+
+      // If we're still mounted and email is not verified, show a message
+      if (mounted && !_isEmailVerified) {
+        floatingSnackBar(
+          context: context,
+          message:
+              'Your email is not verified yet. Please check your inbox and click the verification link.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
@@ -122,6 +176,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text('Email Verification'),
+        automaticallyImplyLeading: false, // Remove back button
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -166,8 +221,14 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
             // Check email status button
             CustomAuthButton(
-              label: 'I\'ve Verified My Email',
-              onPressed: _checkEmailVerified,
+              label:
+                  _isCheckingEmail ? 'Checking...' : 'I\'ve Verified My Email',
+              onPressed: () {
+                if (!_isCheckingEmail) {
+                  _manualCheckEmailVerified();
+                }
+              },
+              isEnabled: !_isCheckingEmail,
             ),
             const SizedBox(height: 20),
 
@@ -189,9 +250,9 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
             // Sign out option
             TextButton(
               onPressed: () async {
-                await _auth.signOut();
+                // Use the AuthService's signOut method for proper cleanup
                 if (mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
+                  await _authService.signOut(context);
                 }
               },
               child: const Text(
