@@ -251,6 +251,57 @@ class AuthService {
     }
   }
 
+  Future<void> signInWithGithub(BuildContext context) async {
+    try {
+      final GithubAuthProvider githubAuth = GithubAuthProvider();
+
+      githubAuth.addScope('read:user');
+      githubAuth.addScope('user:email');
+
+      // Sign in with GitHub
+      final UserCredential userCredential =
+          await _auth.signInWithProvider(githubAuth);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Firebase Auth Exception: ${e.code} - ${e.message}');
+      if (context.mounted) {
+        String errorMessage;
+
+        switch (e.code) {
+          case 'account-exists-with-different-credential':
+            errorMessage =
+                'An account already exists with the same email address but different sign-in credentials.';
+            break;
+          case 'popup-closed-by-user':
+            errorMessage = 'Sign-in was cancelled by the user.';
+            break;
+          case 'popup-blocked':
+            errorMessage = 'The sign-in popup was blocked by the browser.';
+            break;
+          case 'web-storage-unsupported':
+            errorMessage = 'Web storage is not supported or is disabled.';
+            break;
+          default:
+            errorMessage = 'Error signing in with GitHub: ${e.message}';
+        }
+
+        floatingSnackBar(message: errorMessage, context: context);
+      }
+    } catch (e) {
+      debugPrint('General Exception: $e');
+      if (context.mounted) {
+        floatingSnackBar(
+            message: 'Error signing in with GitHub: $e', context: context);
+      }
+    }
+  }
+
   Future<void> signOut(BuildContext context) async {
     try {
       Provider.of<UserProvider>(context, listen: false).disposeListeners();

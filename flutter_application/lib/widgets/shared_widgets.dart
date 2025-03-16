@@ -440,6 +440,7 @@ class _DeveloperAvatarState extends State<DeveloperAvatar>
 
 class HorizontalDividerWithText extends StatelessWidget {
   final String text;
+  final double textPadding;
   final double dividerPadding;
   final Color dividerColor;
   final double dividerThickness;
@@ -449,9 +450,14 @@ class HorizontalDividerWithText extends StatelessWidget {
     super.key,
     required this.text,
     this.dividerPadding = 5.0,
+    this.textPadding = 16.0,
     this.dividerColor = Colors.white70,
     this.dividerThickness = 0.5,
-    this.textStyle = const TextStyle(color: Colors.white70, fontSize: 13),
+    this.textStyle = const TextStyle(
+      color: Colors.white70,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+    ),
   });
 
   @override
@@ -465,9 +471,12 @@ class HorizontalDividerWithText extends StatelessWidget {
             thickness: dividerThickness,
           ),
         ),
-        Text(
-          text,
-          style: textStyle,
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: textPadding),
+          child: Text(
+            text,
+            style: textStyle,
+          ),
         ),
         Expanded(
           child: CustomHorizontalDivider(
@@ -637,7 +646,7 @@ class CustomAlertDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: const Color.fromARGB(255, 20, 20, 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),

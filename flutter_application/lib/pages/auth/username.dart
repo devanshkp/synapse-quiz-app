@@ -26,8 +26,8 @@ class _UsernamePageState extends State<UsernamePage> {
     if (value == null || value.isEmpty) {
       return 'Username is required';
     }
-    if (value.length > 10) {
-      return 'Username must be less than 10 characters';
+    if (value.length > 15) {
+      return 'Username must be less than 15 characters';
     }
     return _authService.validateUsername(value);
   }
@@ -45,52 +45,66 @@ class _UsernamePageState extends State<UsernamePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundPageColor,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Center(
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: ConstrainedBox(
+          constraints:
+              BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onChanged: _updateFormValidity,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  Center(
-                    child: Image.asset(
-                      'assets/images/logos/synapse_no_bg.png',
-                      height: 140,
-                      width: 140,
+                  // Header with gradient
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Colors.white.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                    child: const Text(
+                      "Pick a Username",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                  const Spacer(flex: 1),
-                  const Text(
-                    'Set your username',
+                  const SizedBox(height: 16),
+                  Text(
+                    'This will be your unique identifier in the community.',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Choose a unique username for your account. This can\'t be changed later.',
-                    style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.white.withOpacity(0.8),
                       fontSize: 16,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 40),
+
+                  // Username field
                   CustomTextFormField(
                     controller: _usernameController,
                     labelText: 'Username',
                     validator: _validateUsername,
                   ),
+
                   const SizedBox(height: 30),
-                  CustomAuthButton(
+
+                  // Continue button with solid color
+                  LoadingStateButton(
                     label: 'Continue',
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState?.validate() == true) {
                         _authService.setUsername(
                           context,
@@ -99,9 +113,13 @@ class _UsernamePageState extends State<UsernamePage> {
                       }
                     },
                     isEnabled: _isFormValid,
-                    backgroundColor: Colors.white,
+                    backgroundColor: _isFormValid
+                        ? purpleAccent
+                        : darkPurpleAccent.withOpacity(0.5),
+                    textColor: Colors.white,
                   ),
-                  const Spacer(flex: 4),
+
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

@@ -38,10 +38,11 @@ const Color discreteMathColor = Color.fromARGB(255, 222, 96, 87);
 const Color cyberSecurityColor = Color.fromARGB(255, 63, 67, 60);
 const Color artificialIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
 
-// Leaderboard Colors
+// Random Colors
 const Color goldColor = Color(0xffFFD700);
 const Color silverColor = Color(0xFFC0C0C0);
 const Color bronzeColor = Color(0xffe38d4c);
+const Color githubColor = Color.fromARGB(255, 33, 40, 50);
 
 // Gradients
 

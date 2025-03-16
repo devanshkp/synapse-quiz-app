@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/home/home_widgets.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
 import 'package:flutter_application/pages/main/search.dart';

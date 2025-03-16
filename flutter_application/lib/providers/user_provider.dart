@@ -27,8 +27,9 @@ class UserProvider extends ChangeNotifier {
   List<Friend> _friends = [];
   List<Friend> _friendRequests = [];
 
-  // Is developer
+  // Booleans
   bool _isDeveloper = false;
+  bool _isDisposed = false;
 
   // Getters
   UserProfile? get userProfile => _userProfile;
@@ -40,7 +41,7 @@ class UserProvider extends ChangeNotifier {
   // Setters
   set isDeveloper(bool value) {
     _isDeveloper = value;
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   UserProvider() {
@@ -68,6 +69,13 @@ class UserProvider extends ChangeNotifier {
     _isDeveloper = false;
   }
 
+  @override
+  void dispose() {
+    disposeListeners();
+    _isDisposed = true;
+    super.dispose();
+  }
+
   void disposeListeners() {
     _friendsListener1.cancel();
     _friendsListener2.cancel();
@@ -90,7 +98,7 @@ class UserProvider extends ChangeNotifier {
 
       if (doc.exists) {
         _userProfile = UserProfile.fromMap(doc.data()!);
-        notifyListeners();
+        safeNotifyListeners();
       } else {
         _userProfile = null;
       }
@@ -118,7 +126,7 @@ class UserProvider extends ChangeNotifier {
       _isDeveloper = adminDoc.exists;
       debugPrint("User is developer: $_isDeveloper");
 
-      notifyListeners();
+      safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching admin status: $e");
       _isDeveloper = false;
@@ -129,7 +137,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> fetchFriendsList() async {
     try {
       _friends = await _friendService.getFriends(_currentUserId);
-      notifyListeners();
+      safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching friends: $e");
     }
@@ -140,7 +148,7 @@ class UserProvider extends ChangeNotifier {
     try {
       _friendRequests =
           await _friendService.getPendingFriendRequests(_currentUserId);
-      notifyListeners();
+      safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching friend requests: $e");
     }
@@ -181,7 +189,7 @@ class UserProvider extends ChangeNotifier {
           .listen((docSnapshot) {
         if (docSnapshot.exists) {
           _userProfile = UserProfile.fromMap(docSnapshot.data()!);
-          notifyListeners();
+          safeNotifyListeners();
         }
       });
     }
@@ -217,7 +225,7 @@ class UserProvider extends ChangeNotifier {
       maxStreak: maxStreak,
       topicQuestionsSolved: topicQuestionsSolved,
     );
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   Future<UserProfile?> getUserProfileById(String userId) async {
@@ -315,5 +323,9 @@ class UserProvider extends ChangeNotifier {
       debugPrint("Error uploading profile image: $e");
       return null;
     }
+  }
+
+  void safeNotifyListeners() {
+    if (!_isDisposed) notifyListeners();
   }
 }

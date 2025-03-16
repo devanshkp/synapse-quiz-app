@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 
 class TopicsSection extends StatefulWidget {

@@ -3,45 +3,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ThirdPartySignInButton extends StatelessWidget {
-  final String svgAssetPath;
+  final String title;
   final VoidCallback onPressed;
-  final double size;
-  final Color? color;
+  final Color backgroundColor;
+  final Color textColor;
+  final SvgPicture svgPicture;
 
   const ThirdPartySignInButton({
     super.key,
-    required this.svgAssetPath,
+    required this.title,
     required this.onPressed,
-    this.size = 32.0,
-    this.color,
+    this.backgroundColor = Colors.transparent,
+    this.textColor = Colors.white,
+    required this.svgPicture,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Stack(
-        alignment: Alignment.center,
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        fixedSize: const Size(double.infinity, 50),
+        backgroundColor: backgroundColor,
+        foregroundColor: textColor,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Border Container
-          Container(
-            width: 100,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.6),
-                width: 0.5,
-              ),
+          svgPicture,
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
-          ),
-          // SVG Icon
-          SvgPicture.asset(
-            svgAssetPath,
-            width: size,
-            height: size,
-            color: color,
           ),
         ],
       ),
@@ -55,6 +57,7 @@ class CustomTextFormField extends StatefulWidget {
   final bool isPasswordField;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final double borderRadius;
 
   const CustomTextFormField({
     super.key,
@@ -63,6 +66,7 @@ class CustomTextFormField extends StatefulWidget {
     this.isPasswordField = false,
     this.validator,
     this.onChanged,
+    this.borderRadius = 12,
   });
 
   @override
@@ -87,11 +91,11 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           fontSize: 13,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           borderSide: const BorderSide(color: Colors.white, width: .5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           borderSide: BorderSide(
             color: Colors.white.withOpacity(0.6),
             width: .5,
@@ -99,11 +103,11 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         ),
         errorMaxLines: 2,
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           borderSide: BorderSide(color: Colors.red.shade300, width: .5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           borderSide: BorderSide(color: Colors.red.shade300, width: .5),
         ),
         suffixIcon: widget.isPasswordField
@@ -130,42 +134,103 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   }
 }
 
-class CustomAuthButton extends StatelessWidget {
+class LoadingStateButton extends StatefulWidget {
   final String label;
-  final VoidCallback onPressed;
+  final Future<void> Function() onPressed;
   final Color backgroundColor;
   final Color textColor;
   final bool isEnabled;
+  final bool showBorder;
+  final Color borderColor;
 
-  const CustomAuthButton({
+  const LoadingStateButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.backgroundColor = Colors.white,
     this.textColor = Colors.black,
     this.isEnabled = true,
+    this.showBorder = false,
+    this.borderColor = Colors.transparent,
   });
 
   @override
+  State<LoadingStateButton> createState() => _LoadingStateButtonState();
+}
+
+class _LoadingStateButtonState extends State<LoadingStateButton> {
+  bool _isLoading = false;
+
+  @override
   Widget build(BuildContext context) {
+    final bool isButtonEnabled = widget.isEnabled && !_isLoading;
+
     return ElevatedButton(
-      onPressed: isEnabled ? onPressed : () {},
+      onPressed: isButtonEnabled
+          ? () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              try {
+                await widget.onPressed();
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            }
+          : null,
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isEnabled ? backgroundColor : backgroundColor.withOpacity(0.5),
+        fixedSize: const Size(double.infinity, 50),
+        backgroundColor: isButtonEnabled
+            ? widget.backgroundColor
+            : widget.backgroundColor.withOpacity(0.5),
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
+          side: widget.showBorder
+              ? BorderSide(color: widget.borderColor, width: 1)
+              : BorderSide.none,
         ),
+        disabledBackgroundColor: widget.backgroundColor.withOpacity(0.5),
+        disabledForegroundColor: widget.textColor.withOpacity(0.5),
       ),
       child: SizedBox(
         width: double.infinity,
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-                color: isEnabled ? textColor : textColor.withOpacity(0.5)),
-          ),
+          child: _isLoading
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(widget.textColor),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      widget.label,
+                      style: TextStyle(
+                        color: widget.textColor,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: isButtonEnabled
+                        ? widget.textColor
+                        : widget.textColor.withOpacity(0.5),
+                  ),
+                ),
         ),
       ),
     );
@@ -251,7 +316,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: const Color.fromARGB(255, 20, 20, 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: BorderSide(color: Colors.white.withOpacity(0.1)),

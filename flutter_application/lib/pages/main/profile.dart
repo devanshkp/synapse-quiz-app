@@ -8,7 +8,7 @@ import 'package:flutter_application/widgets/profile/custom_app_bar.dart';
 import 'package:flutter_application/widgets/profile/drawers/settings_drawer.dart';
 import 'package:flutter_application/widgets/profile/tabs/topics_section.dart';
 import 'package:flutter_application/widgets/profile/user_profile_header.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:flutter_application/widgets/profile/tabs/stats_section.dart';
 import 'package:flutter_application/widgets/profile/tabs/badges_section.dart';
 import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';

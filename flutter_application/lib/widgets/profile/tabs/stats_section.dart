@@ -22,7 +22,7 @@ class _StatsSectionState extends State<StatsSection> {
         children: [
           _buildUserStatsCards(),
           const SizedBox(height: 24),
-          _buildSolveRate(),
+          _buildAccuracy(),
         ],
       ),
     );
@@ -173,13 +173,21 @@ class _StatsSectionState extends State<StatsSection> {
     );
   }
 
-  Widget _buildSolveRate() {
+  Widget _buildAccuracy() {
     // Calculate solve rate percentage
     final totalEncountered = widget.userProfile.encounteredQuestions.length;
-    final solveRate = totalEncountered > 0
+    final accuracy = totalEncountered > 0
         ? (widget.userProfile.questionsSolved / totalEncountered * 100)
             .clamp(0, 100)
         : 0.0;
+    // Format accuracy to show up to 2 decimal places
+    final String formattedAccuracy = accuracy.toStringAsFixed(2);
+    // Remove trailing zeros after decimal point
+    final String displayAccuracy = formattedAccuracy.endsWith('.00')
+        ? formattedAccuracy.substring(0, formattedAccuracy.length - 3)
+        : formattedAccuracy
+            .replaceAll(RegExp(r'0+$'), '')
+            .replaceAll(RegExp(r'\.$'), '');
 
     return Container(
       decoration: BoxDecoration(
@@ -216,7 +224,7 @@ class _StatsSectionState extends State<StatsSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${solveRate.toStringAsFixed(1)}% Solve Rate',
+                        '$displayAccuracy% Solve Rate',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -228,7 +236,7 @@ class _StatsSectionState extends State<StatsSection> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: solveRate / 100,
+                          value: accuracy / 100,
                           backgroundColor: backgroundPageColor,
                           valueColor: const AlwaysStoppedAnimation<Color>(
                             Colors.white, // Green color for solve rate
@@ -263,7 +271,7 @@ class _StatsSectionState extends State<StatsSection> {
                         width: 78,
                         height: 78,
                         child: CircularProgressIndicator(
-                          value: solveRate / 100,
+                          value: accuracy / 100,
                           backgroundColor: Colors.grey[800],
                           valueColor: const AlwaysStoppedAnimation<Color>(
                             Color(0xFF00B894), // Green color for solve rate
@@ -272,7 +280,7 @@ class _StatsSectionState extends State<StatsSection> {
                         ),
                       ),
                       Text(
-                        '${solveRate.round()}%',
+                        '${accuracy.round()}%',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

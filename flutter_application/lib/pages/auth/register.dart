@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/services/auth_service.dart';
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -47,18 +48,12 @@ class RegistrationPageState extends State<RegistrationPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     // Dispose controllers
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _fullNameController.dispose();
-
     super.dispose();
   }
 
@@ -123,7 +118,7 @@ class RegistrationPageState extends State<RegistrationPage> {
     return null;
   }
 
-  void _registerUser() async {
+  Future<void> _registerUser() async {
     if (!_isFormValid) return;
 
     await _authService.register(
@@ -148,7 +143,7 @@ class RegistrationPageState extends State<RegistrationPage> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(right: 24.0),
             child: Image.asset(
               'assets/images/logos/synapse_no_bg.png',
               height: 15,
@@ -158,7 +153,7 @@ class RegistrationPageState extends State<RegistrationPage> {
         ],
       ),
       body: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height -
@@ -176,15 +171,36 @@ class RegistrationPageState extends State<RegistrationPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Spacer(flex: 1),
-                  const Text(
-                    "Hello! Register to get started",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
+                  // Header with gradient
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Colors.white.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                    child: const Text(
+                      "Create Account",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Join our community and start your learning journey!',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
 
                   // FULLNAME
                   CustomTextFormField(
@@ -192,7 +208,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                     labelText: 'Full Name',
                     validator: _validateName,
                   ),
-                  const SizedBox(height: 12.5),
+                  const SizedBox(height: 16),
 
                   // EMAIL
                   CustomTextFormField(
@@ -201,7 +217,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                     validator: _validateEmail,
                   ),
 
-                  const SizedBox(height: 12.5),
+                  const SizedBox(height: 16),
 
                   // PASSWORD
                   CustomTextFormField(
@@ -210,7 +226,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                     isPasswordField: true,
                     validator: _validatePassword,
                   ),
-                  const SizedBox(height: 12.5),
+                  const SizedBox(height: 16),
 
                   // CONFIRM PASSWORD
                   CustomTextFormField(
@@ -219,48 +235,95 @@ class RegistrationPageState extends State<RegistrationPage> {
                     isPasswordField: true,
                     validator: _validateConfirmPassword,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                  CustomAuthButton(
-                    label: 'Register',
-                    onPressed: _registerUser,
-                    isEnabled: _isFormValid,
-                    backgroundColor: Colors.white,
+                  // Register button with solid color instead of gradient and glow
+                  LoadingStateButton(
+                    label: 'Create',
+                    onPressed: () async {
+                      await _registerUser();
+                    },
+                    isEnabled: _formValid,
+                    backgroundColor: _formValid
+                        ? purpleAccent
+                        : darkPurpleAccent.withOpacity(0.5),
+                    textColor: Colors.white,
                   ),
-                  const SizedBox(height: 25),
-                  const HorizontalDividerWithText(text: 'or Sign up with'),
-                  const SizedBox(height: 25),
-                  // Social Sign-In Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ThirdPartySignInButton(
-                        svgAssetPath: 'assets/icons/auth/facebook_logo.svg',
-                        onPressed: () => {},
-                        size: 27.5,
-                      ),
-                      const SizedBox(width: 5),
-                      ThirdPartySignInButton(
-                        svgAssetPath: 'assets/icons/auth/google_logo.svg',
-                        onPressed: () => _authService.signInWithGoogle(context),
-                        size: 40.0,
-                      ),
-                      const SizedBox(width: 5),
-                      ThirdPartySignInButton(
-                        svgAssetPath: 'assets/icons/auth/github_logo.svg',
-                        color: Colors.white,
-                        onPressed: () => {},
-                        size: 27.5,
-                      ),
-                    ],
+
+                  const SizedBox(height: 10),
+
+                  const HorizontalDividerWithText(
+                    text: 'OR',
                   ),
+
+                  const SizedBox(height: 10),
+
+                  // Social Sign-In Buttons with improved styling
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ThirdPartySignInButton(
+                      title: 'Continue with Google',
+                      svgPicture: SvgPicture.asset(
+                        'assets/icons/auth/google_logo.svg',
+                        width: 24,
+                        height: 24,
+                      ),
+                      onPressed: () => _authService.signInWithGoogle(context),
+                      backgroundColor: Colors.white,
+                      textColor: Colors.black87,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ThirdPartySignInButton(
+                      title: 'Continue with GitHub',
+                      svgPicture: SvgPicture.asset(
+                        'assets/icons/auth/github_logo.svg',
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      onPressed: () => _authService.signInWithGithub(context),
+                      backgroundColor: githubColor,
+                      textColor: Colors.white,
+                    ),
+                  ),
+
                   const Spacer(flex: 3),
-                  AuthRedirectText(
+
+                  // Improved redirect text
+                  Center(
+                    child: AuthRedirectText(
                       regularText: 'Already have an account?',
                       highlightedText: 'Login',
                       onTap: () =>
-                          {Navigator.pushReplacementNamed(context, '/login')}),
-
+                          Navigator.pushReplacementNamed(context, '/login'),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),

@@ -4,7 +4,7 @@ import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/services/friend_service.dart';
 import 'package:flutter_application/widgets/profile/tabs/topics_section.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -551,11 +551,11 @@ class FriendshipButton extends StatelessWidget {
       borderColor: Colors.white.withOpacity(0.3),
       onPressed: onTap ?? () {},
       width: width,
-      height: 40,
+      height: 35,
       borderRadius: 10.0,
       elevation: 0,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: FontWeight.w500,
       fullWidth: false,
     );

@@ -172,98 +172,156 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
     return Scaffold(
       backgroundColor: backgroundPageColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Email Verification'),
-        automaticallyImplyLeading: false, // Remove back button
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.mark_email_unread_outlined,
-              size: 100,
-              color: Colors.white70,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/shapes.png'),
+            opacity: 0.15,
+            repeat: ImageRepeat.repeat,
+          ),
+        ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height,
             ),
-            const SizedBox(height: 30),
-            const Text(
-              "Verify your email",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'We\'ve sent a verification email to\n$email',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Check your inbox and click the verification link to continue.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
 
-            // Check email status button
-            CustomAuthButton(
-              label:
-                  _isCheckingEmail ? 'Checking...' : 'I\'ve Verified My Email',
-              onPressed: () {
-                if (!_isCheckingEmail) {
-                  _manualCheckEmailVerified();
-                }
-              },
-              isEnabled: !_isCheckingEmail,
-            ),
-            const SizedBox(height: 20),
+                  // Email icon
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: purpleAccent.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mark_email_unread_outlined,
+                      size: 80,
+                      color: purpleAccent,
+                    ),
+                  ),
 
-            // Resend email button
-            TextButton(
-              onPressed: _canResendEmail ? sendVerificationEmail : null,
-              child: Text(
-                _canResendEmail
-                    ? 'Resend Verification Email'
-                    : 'Resend Email in $_resendTimer seconds',
-                style: TextStyle(
-                  color: _canResendEmail ? Colors.white : Colors.white60,
-                  fontSize: 16,
-                ),
+                  const SizedBox(height: 30),
+
+                  // Header with gradient
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Colors.white.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                    child: const Text(
+                      "Verify Your Email",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'We\'ve sent a verification email to',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  Text(
+                    email,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    'Check your inbox and click the verification link to continue.',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Check email status button
+                  LoadingStateButton(
+                    label: 'I\'ve Verified My Email',
+                    onPressed: () async {
+                      await _manualCheckEmailVerified();
+                    },
+                    isEnabled: !_isCheckingEmail,
+                    backgroundColor: purpleAccent,
+                    textColor: Colors.white,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Resend email button
+                  LoadingStateButton(
+                    label: _canResendEmail
+                        ? 'Resend Verification Email'
+                        : 'Resend in $_resendTimer seconds',
+                    onPressed: () async {
+                      await sendVerificationEmail();
+                    },
+                    isEnabled: _canResendEmail,
+                    backgroundColor: Colors.transparent,
+                    showBorder: true,
+                    borderColor: Colors.white.withOpacity(0.5),
+                    textColor: Colors.white,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Sign out option
+                  TextButton(
+                    onPressed: () async {
+                      // Use the AuthService's signOut method for proper cleanup
+                      if (mounted) {
+                        await _authService.signOut(context);
+                      }
+                    },
+                    child: Text(
+                      'Back to Login',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Sign out option
-            TextButton(
-              onPressed: () async {
-                // Use the AuthService's signOut method for proper cleanup
-                if (mounted) {
-                  await _authService.signOut(context);
-                }
-              },
-              child: const Text(
-                'Back to Login',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

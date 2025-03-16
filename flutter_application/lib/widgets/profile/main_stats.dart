@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/constants.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 
 class MainStats extends StatelessWidget {
   final UserProfile userProfile;
@@ -15,9 +15,18 @@ class MainStats extends StatelessWidget {
     // Calculate accuracy - if no questions encountered yet, show 0%
     final int questionsEncountered = userProfile.encounteredQuestions.length;
     final int questionsSolved = userProfile.questionsSolved;
-    final int accuracy = questionsEncountered > 0
-        ? ((questionsSolved / questionsEncountered) * 100).round()
+    final double accuracy = questionsEncountered > 0
+        ? ((questionsSolved / questionsEncountered) * 100)
         : 0;
+
+    // Format accuracy to show up to 2 decimal places
+    final String formattedAccuracy = accuracy.toStringAsFixed(2);
+    // Remove trailing zeros after decimal point
+    final String displayAccuracy = formattedAccuracy.endsWith('.00')
+        ? formattedAccuracy.substring(0, formattedAccuracy.length - 3)
+        : formattedAccuracy
+            .replaceAll(RegExp(r'0+$'), '')
+            .replaceAll(RegExp(r'\.$'), '');
 
     return Container(
       height: 100,
@@ -33,7 +42,7 @@ class MainStats extends StatelessWidget {
         children: [
           _buildMainStatCard(
             'ACCURACY',
-            '$accuracy%',
+            '$displayAccuracy%',
             Icons.gps_fixed,
             globalRankColor,
           ),

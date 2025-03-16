@@ -6,7 +6,7 @@ import 'package:flutter_application/pages/auth/username.dart';
 import 'package:flutter_application/pages/landing.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -58,7 +58,9 @@ class _AuthProviderState extends State<AuthProvider> {
           _refreshCurrentUser();
 
           // Check if email is verified
-          if (user != null && !user.emailVerified) {
+          if (user != null &&
+              user.providerData[0].providerId == 'password' &&
+              !user.emailVerified) {
             // If email is not verified, redirect to email verification page
             return const EmailVerificationPage();
           }

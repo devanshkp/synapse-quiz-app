@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
@@ -427,60 +427,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: 40),
 
                   // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: (_formKey.currentState?.validate() == true &&
-                              _hasChanges == true &&
-                              _isLoading == false)
-                          ? _saveProfile
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        disabledBackgroundColor: Colors.grey[700],
-                        disabledForegroundColor: Colors.grey[500],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: _isLoading
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.black54),
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'Saving...',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              'Save Changes',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: (_hasChanges)
-                                    ? Colors.black
-                                    : Colors.grey[500],
-                              ),
-                            ),
-                    ),
+                  LoadingStateButton(
+                    label: 'Save Changes',
+                    onPressed: _saveProfile,
+                    isEnabled: (_formKey.currentState?.validate() == true &&
+                        _hasChanges == true &&
+                        _isLoading == false),
+                    backgroundColor: purpleAccent,
+                    textColor: Colors.white,
                   ),
                 ],
               ),

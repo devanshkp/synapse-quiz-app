@@ -36,6 +36,7 @@ class TriviaProvider extends ChangeNotifier {
   bool _isLoadingQuestions = true;
   bool _isLoadingTopics = true;
   bool _isFetching = false;
+  bool _disposed = false;
 
   //Others
   final ValueNotifier<double> _timeNotifier = ValueNotifier<double>(totalTime);
@@ -78,6 +79,8 @@ class TriviaProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     _timeNotifier.dispose();
+    _fetchQuestionsDebounceTimer?.cancel();
+    _disposed = true;
     super.dispose();
   }
 
@@ -132,7 +135,7 @@ class TriviaProvider extends ChangeNotifier {
 
     _isTemporarySession = true;
     _isLoadingQuestions = true;
-    notifyListeners();
+    safeNotifyListeners();
 
     // Cache current state
     _cachedQuestions = List.from(_questions);
@@ -174,7 +177,7 @@ class TriviaProvider extends ChangeNotifier {
       if (_questions.isNotEmpty) {
         startQuestionTimer(resume: false);
       }
-      notifyListeners();
+      safeNotifyListeners();
     });
   }
 
@@ -223,7 +226,7 @@ class TriviaProvider extends ChangeNotifier {
 
       _isTemporarySession = false;
 
-      notifyListeners();
+      safeNotifyListeners();
     });
   }
 
@@ -350,7 +353,7 @@ class TriviaProvider extends ChangeNotifier {
       _selectedAnswer = '';
       getAnswer();
       updateQuestionData(false);
-      notifyListeners();
+      safeNotifyListeners();
     }
   }
 
@@ -360,7 +363,7 @@ class TriviaProvider extends ChangeNotifier {
       _isLoadingQuestions = false;
       debugPrint(
           "Forced loading state to complete. Questions count: ${_questions.length}");
-      notifyListeners();
+      safeNotifyListeners();
     }
   }
 
@@ -376,7 +379,7 @@ class TriviaProvider extends ChangeNotifier {
         .map((topic) => TextFormatter.formatTitlePreservingCase(topic))
         .toList();
     _isLoadingTopics = false;
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   void syncTopics(List<String> newTopics, {bool isTopicAdded = true}) async {
@@ -471,7 +474,7 @@ class TriviaProvider extends ChangeNotifier {
       _lastSavedTime = totalTime;
     }
 
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   // Fetch topic counts from metadata
@@ -510,7 +513,7 @@ class TriviaProvider extends ChangeNotifier {
   Future<void> getTopicCounts() async {
     try {
       await fetchTopicCounts();
-      notifyListeners();
+      safeNotifyListeners();
     } catch (e) {
       debugPrint('Error updating topic counts: $e');
     }
@@ -526,7 +529,7 @@ class TriviaProvider extends ChangeNotifier {
           .get(); // Only fetches the count
 
       _totalQuestions = countQuery.count ?? 0; // Store the count
-      notifyListeners(); // Notify UI of changes
+      safeNotifyListeners(); // Notify UI of changes
     } catch (e) {
       debugPrint("Error fetching total questions: $e");
     }
@@ -727,7 +730,7 @@ class TriviaProvider extends ChangeNotifier {
     if (_questions.isEmpty || temporarySession) {
       debugPrint("Setting loading state to true");
       _isLoadingQuestions = true;
-      notifyListeners();
+      safeNotifyListeners();
     }
 
     // Try to get cached questions first
@@ -750,7 +753,7 @@ class TriviaProvider extends ChangeNotifier {
             debugPrint("No topics selected");
             _questions = [];
             _isLoadingQuestions = false;
-            notifyListeners();
+            safeNotifyListeners();
             return;
           }
 
@@ -787,7 +790,7 @@ class TriviaProvider extends ChangeNotifier {
       }
       _isLoadingQuestions = false;
       _isFetching = false;
-      notifyListeners();
+      safeNotifyListeners();
     }
   }
 
@@ -969,7 +972,7 @@ class TriviaProvider extends ChangeNotifier {
       updateProfileStats();
     }
     updateQuestionData(isCorrect);
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   Future<void> updateQuestionData(bool isCorrect) async {
@@ -1019,7 +1022,7 @@ class TriviaProvider extends ChangeNotifier {
       await fetchQuestions(topics: _selectedTopics);
     }
 
-    notifyListeners();
+    safeNotifyListeners();
   }
 
   // ============================== ADMIN UTILITY FUNCTIONS ==============================
@@ -1089,12 +1092,16 @@ class TriviaProvider extends ChangeNotifier {
           .map((topic) => TextFormatter.formatTitlePreservingCase(topic))
           .toList();
 
-      notifyListeners();
+      safeNotifyListeners();
       return topics;
     } catch (e, stackTrace) {
       debugPrint('Error refreshing topics metadata: $e');
       debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to refresh topics metadata: $e');
     }
+  }
+
+  void safeNotifyListeners() {
+    if (!_disposed) notifyListeners();
   }
 }

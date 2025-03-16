@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
-import 'package:flutter_application/widgets/shared.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LandingPage extends StatelessWidget {
@@ -9,15 +9,14 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundPageColor,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1E1E1E),
-              Color(0xFF121212),
+              Color.fromARGB(255, 24, 24, 24),
+              Color.fromARGB(255, 16, 16, 16),
             ],
           ),
           image: DecorationImage(
@@ -160,7 +159,7 @@ class LandingPage extends StatelessWidget {
                           Navigator.pushNamed(context, '/register'),
                       width: double.infinity,
                       height: 50,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                     const SizedBox(height: 15),
@@ -168,15 +167,15 @@ class LandingPage extends StatelessWidget {
                       text: "I Already Have an Account",
                       gradient: LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.1),
-                          Colors.white.withOpacity(0.05),
+                          Colors.white.withOpacity(0.075),
+                          Colors.white.withOpacity(0.075),
                         ],
                       ),
                       textColor: Colors.white,
                       onPressed: () => Navigator.pushNamed(context, '/login'),
                       width: double.infinity,
                       height: 50,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                       showBorder: true,
                       borderColor: Colors.white.withOpacity(0.3),
