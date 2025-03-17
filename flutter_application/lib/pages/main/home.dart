@@ -141,7 +141,7 @@ class MiddlePortion extends StatelessWidget {
             const SizedBox(width: 15), // Space between the two columns
             const Expanded(
               flex: 4,
-              child: SessionHistoryButton(),
+              child: QuestionHistoryButton(),
             ),
           ],
         ),

@@ -592,7 +592,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                 Consumer<TriviaProvider>(
                                   builder: (context, triviaProvider, child) {
                                     final bool isLoading =
-                                        triviaProvider.isLoadingQuestions;
+                                        triviaProvider.isLoadingQuestions ||
+                                            triviaProvider.isLoadingEncounteredQuestions || triviaProvider.isFetching;
 
                                     return GradientButton(
                                       icon: isLoading

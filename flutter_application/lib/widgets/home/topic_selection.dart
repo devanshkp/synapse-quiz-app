@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -65,7 +66,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
   }
 
   Future<void> _saveSelection() async {
-    triviaProvider.syncTopics(_tempSelectedTopics);
+    await triviaProvider.syncTopics(_tempSelectedTopics);
     Navigator.pop(context);
   }
 
@@ -433,38 +434,12 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
           ),
         ),
       ),
-      child: GestureDetector(
-        onTap: (hasChanges && hasMinimumTopics && !isLoading)
-            ? _saveSelection
-            : null,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: hasChanges && hasMinimumTopics && !isLoading
-                ? Colors.white
-                : Colors.grey.withOpacity(0.3),
-            border: Border.all(
-              color: (hasChanges && hasMinimumTopics && !isLoading)
-                  ? Colors.white.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.05),
-              width: 1,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              isLoading ? "PLEASE WAIT..." : "SAVE SELECTION",
-              style: TextStyle(
-                color: (hasChanges && hasMinimumTopics && !isLoading)
-                    ? Colors.black
-                    : Colors.white.withOpacity(0.4),
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-        ),
+      child: LoadingStateButton(
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+        label: isLoading ? "Please wait..." : "Save selection",
+        isEnabled: hasChanges && hasMinimumTopics && !isLoading,
+        onPressed: _saveSelection,
       ),
     );
   }

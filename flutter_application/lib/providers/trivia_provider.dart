@@ -51,6 +51,11 @@ class TriviaProvider extends ChangeNotifier {
   // Add this timer at the class level
   Timer? _fetchQuestionsDebounceTimer;
 
+  // Add these new state variables
+  List<Map<String, dynamic>> _encounteredQuestions = [];
+  bool _isLoadingEncounteredQuestions = false;
+  bool _hasMoreEncounteredQuestions = true;
+
   // Getters
   int get totalQuestions => _totalQuestions;
   List<Map<String, dynamic>> get questions => _questions;
@@ -62,6 +67,7 @@ class TriviaProvider extends ChangeNotifier {
   bool get isTemporarySession => _isTemporarySession;
   bool get isLoadingQuestions => _isLoadingQuestions;
   bool get isLoadingTopics => _isLoadingTopics;
+  bool get isFetching => _isFetching;
 
   ValueNotifier<double> get timeNotifier => _timeNotifier;
   bool get answered => _answered;
@@ -70,6 +76,10 @@ class TriviaProvider extends ChangeNotifier {
   Map<String, dynamic>? get currentUserData => _currentUserData;
   Map<String, dynamic> get currentQuestion =>
       _questions.isNotEmpty ? _questions.first : {};
+
+  List<Map<String, dynamic>> get encounteredQuestions => _encounteredQuestions;
+  bool get isLoadingEncounteredQuestions => _isLoadingEncounteredQuestions;
+  bool get hasMoreEncounteredQuestions => _hasMoreEncounteredQuestions;
 
   TriviaProvider(this.userProvider) {
     initialize();
@@ -382,7 +392,8 @@ class TriviaProvider extends ChangeNotifier {
     safeNotifyListeners();
   }
 
-  void syncTopics(List<String> newTopics, {bool isTopicAdded = true}) async {
+  Future<void> syncTopics(List<String> newTopics,
+      {bool isTopicAdded = true}) async {
     // Find removed topics
     final removedTopics =
         _selectedTopics.where((topic) => !newTopics.contains(topic)).toList();
@@ -454,7 +465,7 @@ class TriviaProvider extends ChangeNotifier {
     });
 
     // Filter out questions from unselected topics immediately
-    filterQuestionsBySelectedTopics();
+    await filterQuestionsBySelectedTopics();
 
     // Cancel any pending timer
     _fetchQuestionsDebounceTimer?.cancel();
@@ -671,7 +682,7 @@ class TriviaProvider extends ChangeNotifier {
     _questions.retainWhere((x) => ids.add(x['questionId']));
   }
 
-  void filterQuestionsBySelectedTopics() async {
+  Future<void> filterQuestionsBySelectedTopics() async {
     debugPrint("filtering questions by selected topics");
     _questions.removeWhere(
         (question) => !_selectedTopics.contains(question['topic']));
@@ -725,6 +736,7 @@ class TriviaProvider extends ChangeNotifier {
 
     User? user = _auth.currentUser;
     _isFetching = true;
+    safeNotifyListeners(); // Add this line to notify about fetching state
 
     // Only set loading state if we have no questions or it's a temporary session
     if (_questions.isEmpty || temporarySession) {
@@ -753,6 +765,7 @@ class TriviaProvider extends ChangeNotifier {
             debugPrint("No topics selected");
             _questions = [];
             _isLoadingQuestions = false;
+            _isFetching = false;
             safeNotifyListeners();
             return;
           }
@@ -769,6 +782,7 @@ class TriviaProvider extends ChangeNotifier {
                 "No questions fetched, retrying (attempt ${retryCount + 1})...");
             _isFetching = false;
             _isLoadingQuestions = false;
+            safeNotifyListeners(); // Add this line
             return fetchQuestions(
                 retryCount: retryCount + 1,
                 temporarySession: temporarySession,
@@ -981,12 +995,16 @@ class TriviaProvider extends ChangeNotifier {
     DocumentReference userRef = _firestore.collection('users').doc(user.uid);
     WriteBatch batch = _firestore.batch();
 
+    // Add to Firestore
     batch.update(userRef, {
       'encounteredQuestions':
           FieldValue.arrayUnion([currentQuestion['questionId']])
     });
 
     await batch.commit();
+
+    // Add to local list
+    addToEncounteredQuestions(currentQuestion);
   }
 
   Future<void> nextQuestion() async {
@@ -1102,6 +1120,162 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   void safeNotifyListeners() {
-    if (!_disposed) notifyListeners();
+    if (_disposed) return;
+
+    try {
+      // Check if we're in a build phase
+      if (WidgetsBinding.instance.buildOwner?.debugBuilding ?? false) {
+        // Schedule the notification for the next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_disposed) notifyListeners();
+        });
+        return;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error in safeNotifyListeners: $e');
+    }
+  }
+
+  // Modify the loadEncounteredQuestions method
+  Future<void> loadEncounteredQuestions({bool refresh = false}) async {
+    if (_isLoadingEncounteredQuestions) return;
+
+    User? user = _auth.currentUser;
+    if (user == null) return;
+
+    _isLoadingEncounteredQuestions = true;
+    if (refresh) {
+      _encounteredQuestions = [];
+      _hasMoreEncounteredQuestions = true;
+    }
+    safeNotifyListeners();
+
+    try {
+      // Get the user's encountered question IDs
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
+      List<dynamic> encounteredIds =
+          (userDoc.data() as Map<String, dynamic>)['encounteredQuestions'] ??
+              [];
+
+      // For initial load, get first 15 questions
+      int endIndex = 15;
+      if (endIndex >= encounteredIds.length) {
+        endIndex = encounteredIds.length;
+        _hasMoreEncounteredQuestions = false;
+      }
+
+      List<String> idsToFetch =
+          encounteredIds.take(endIndex).map((id) => id.toString()).toList();
+
+      if (idsToFetch.isEmpty) {
+        _isLoadingEncounteredQuestions = false;
+        safeNotifyListeners();
+        return;
+      }
+
+      await _fetchAndAddQuestions(idsToFetch, encounteredIds);
+    } catch (e) {
+      debugPrint('Error loading encountered questions: $e');
+    } finally {
+      _isLoadingEncounteredQuestions = false;
+      safeNotifyListeners();
+    }
+  }
+
+  // Add new method for loading more questions
+  Future<void> loadMoreEncounteredQuestions() async {
+    if (_isLoadingEncounteredQuestions || !_hasMoreEncounteredQuestions) return;
+
+    User? user = _auth.currentUser;
+    if (user == null) return;
+
+    _isLoadingEncounteredQuestions = true;
+    safeNotifyListeners();
+
+    try {
+      // Get the user's encountered question IDs
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
+      List<dynamic> encounteredIds =
+          (userDoc.data() as Map<String, dynamic>)['encounteredQuestions'] ??
+              [];
+
+      // Get the IDs of questions we already have
+      Set<String> existingIds =
+          _encounteredQuestions.map((q) => q['questionId'].toString()).toSet();
+
+      // Filter out IDs we already have
+      List<String> remainingIds = encounteredIds
+          .where((id) => !existingIds.contains(id.toString()))
+          .map((id) => id.toString())
+          .toList();
+
+      if (remainingIds.isEmpty) {
+        _hasMoreEncounteredQuestions = false;
+        _isLoadingEncounteredQuestions = false;
+        safeNotifyListeners();
+        return;
+      }
+
+      // Take next 15 questions from remaining IDs
+      List<String> idsToFetch = remainingIds.take(15).toList();
+
+      if (idsToFetch.length < 15) {
+        _hasMoreEncounteredQuestions = false;
+      }
+
+      await _fetchAndAddQuestions(idsToFetch, encounteredIds);
+    } catch (e) {
+      debugPrint('Error loading more encountered questions: $e');
+    } finally {
+      _isLoadingEncounteredQuestions = false;
+      safeNotifyListeners();
+    }
+  }
+
+  // Helper method to fetch and add questions
+  Future<void> _fetchAndAddQuestions(
+      List<String> idsToFetch, List<dynamic> encounteredIds) async {
+    List<Map<String, dynamic>> newQuestions = [];
+
+    // Fetch questions in batches of 10
+    for (int i = 0; i < idsToFetch.length; i += 10) {
+      int end = (i + 10 < idsToFetch.length) ? i + 10 : idsToFetch.length;
+      List<String> batch = idsToFetch.sublist(i, end);
+
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('questions')
+          .where(FieldPath.documentId, whereIn: batch)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        newQuestions.add({
+          'questionId': doc.id,
+          ...doc.data() as Map<String, dynamic>,
+        });
+      }
+    }
+
+    // Sort questions to match the order in encounteredIds
+    newQuestions.sort((a, b) {
+      int indexA = encounteredIds.indexOf(a['questionId']);
+      int indexB = encounteredIds.indexOf(b['questionId']);
+      return indexB.compareTo(indexA); // Reverse order (newest first)
+    });
+
+    _encounteredQuestions.addAll(newQuestions);
+  }
+
+  // Add this method to add newly encountered questions to the history
+  void addToEncounteredQuestions(Map<String, dynamic> question) {
+    // Only add if it's not already at the top of the list
+    if (_encounteredQuestions.isEmpty ||
+        _encounteredQuestions.first['questionId'] != question['questionId']) {
+      _encounteredQuestions.insert(0, question);
+      safeNotifyListeners();
+    }
   }
 }

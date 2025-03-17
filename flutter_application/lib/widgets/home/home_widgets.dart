@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/pages/main/trivia.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/home/session_history.dart';
+import 'package:flutter_application/widgets/home/question_history.dart';
 import 'package:flutter_application/widgets/home/topic_selection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
@@ -292,17 +292,17 @@ class TopicSelectionButton extends StatelessWidget {
   }
 }
 
-class SessionHistoryButton extends StatelessWidget {
-  const SessionHistoryButton({super.key});
+class QuestionHistoryButton extends StatelessWidget {
+  const QuestionHistoryButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 72,
       child: customHomeButton(
-        title: 'Session History',
+        title: 'Question History',
         titleFontSize: 16,
-        subtitle: 'Explore your most recent gameplay sessions.',
+        subtitle: 'Explore your most recently encountered questions.',
         subtitleFontSize: 9,
         iconPath: 'assets/icons/home/History.svg',
         iconSize: 25,
@@ -312,7 +312,7 @@ class SessionHistoryButton extends StatelessWidget {
           Navigator.of(context).push(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  const SessionHistoryPage(),
+                  const QuestionHistoryPage(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 const begin = Offset(1.0, 0.0);
