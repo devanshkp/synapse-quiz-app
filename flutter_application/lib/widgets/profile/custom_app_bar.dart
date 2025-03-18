@@ -9,7 +9,7 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4), // Shadow color
+            color: Colors.black.withValues(alpha: 0.4), // Shadow color
             blurRadius: 10, // Spread of the shadow
             offset: const Offset(0, 8), // Positioning of the shadow
           ),

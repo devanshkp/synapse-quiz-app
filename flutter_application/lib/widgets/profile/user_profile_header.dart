@@ -31,7 +31,7 @@ class UserProfileHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(100),
                     border: Border.all(
-                        width: 1.5, color: Colors.white.withOpacity(0.2)),
+                        width: 1.5, color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Padding(
                       padding: const EdgeInsets.all(1.0),
@@ -47,7 +47,7 @@ class UserProfileHeader extends StatelessWidget {
                   bottom: 0,
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/edit_profile');
+                      Navigator.pushNamed(context, '/edit-profile');
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),
@@ -56,7 +56,7 @@ class UserProfileHeader extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 5,
                             offset: const Offset(0, 2),
                           ),
@@ -92,7 +92,7 @@ class UserProfileHeader extends StatelessWidget {
                 Text(
                   '${userProfile.fullName} • ',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 12,
                     letterSpacing: 0.5,
                   ),
@@ -114,7 +114,7 @@ class UserProfileHeader extends StatelessWidget {
                         TextSpan(
                             text: friendCount == 1 ? ' Friend' : ' Friends',
                             style: TextStyle(
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 fontSize: 12,
                                 letterSpacing: 0.4))
                       ])),

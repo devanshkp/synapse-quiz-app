@@ -87,7 +87,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           fontSize: 13,
         ),
         focusedBorder: OutlineInputBorder(
@@ -97,7 +97,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             width: .5,
           ),
         ),
@@ -187,7 +187,7 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
         fixedSize: const Size(double.infinity, 50),
         backgroundColor: isButtonEnabled
             ? widget.backgroundColor
-            : widget.backgroundColor.withOpacity(0.5),
+            : widget.backgroundColor.withValues(alpha: 0.5),
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -195,8 +195,8 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
               ? BorderSide(color: widget.borderColor, width: 1)
               : BorderSide.none,
         ),
-        disabledBackgroundColor: widget.backgroundColor.withOpacity(0.5),
-        disabledForegroundColor: widget.textColor.withOpacity(0.5),
+        disabledBackgroundColor: widget.backgroundColor.withValues(alpha: 0.5),
+        disabledForegroundColor: widget.textColor.withValues(alpha: 0.5),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -228,7 +228,7 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
                   style: TextStyle(
                     color: isButtonEnabled
                         ? widget.textColor
-                        : widget.textColor.withOpacity(0.5),
+                        : widget.textColor.withValues(alpha: 0.5),
                   ),
                 ),
         ),
@@ -319,7 +319,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
       backgroundColor: const Color.fromARGB(255, 20, 20, 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       title: const Text(
         'Reset Password',

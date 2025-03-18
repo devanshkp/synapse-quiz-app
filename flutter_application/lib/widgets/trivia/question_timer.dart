@@ -39,14 +39,14 @@ class _QuestionTimerState extends State<QuestionTimer>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.black.withOpacity(0.4),
-                      Colors.black.withOpacity(0.3),
+                      Colors.black.withValues(alpha: 0.4),
+                      Colors.black.withValues(alpha: 0.3),
                     ],
                     stops: const [0.5, 1.0],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
@@ -71,7 +71,7 @@ class _QuestionTimerState extends State<QuestionTimer>
                     child: CircularProgressIndicator(
                       value: value,
                       strokeWidth: 5,
-                      backgroundColor: Colors.grey.withOpacity(0.2),
+                      backgroundColor: Colors.grey.withValues(alpha: 0.2),
                       valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                     ),
                   );
@@ -87,14 +87,14 @@ class _QuestionTimerState extends State<QuestionTimer>
                   style: TextStyle(
                     color: isLowTime
                         ? Colors.white
-                        : Colors.white.withOpacity(0.9),
+                        : Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.bold,
                     fontSize: 26,
                     shadows: [
                       Shadow(
                         color: isLowTime
-                            ? Colors.redAccent.withOpacity(0.7)
-                            : Colors.black.withOpacity(0.5),
+                            ? Colors.redAccent.withValues(alpha: 0.7)
+                            : Colors.black.withValues(alpha: 0.5),
                         blurRadius: isLowTime ? 5 : 3,
                         offset: const Offset(0, 1),
                       ),

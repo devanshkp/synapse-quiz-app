@@ -36,8 +36,8 @@ class SkipButton extends StatelessWidget {
       fontSize: 13,
       gradient: LinearGradient(
         colors: [
-          const Color.fromARGB(255, 255, 174, 0).withOpacity(0.9),
-          Colors.orange.withOpacity(0.8),
+          const Color.fromARGB(255, 255, 174, 0).withValues(alpha: 0.9),
+          Colors.orange.withValues(alpha: 0.8),
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

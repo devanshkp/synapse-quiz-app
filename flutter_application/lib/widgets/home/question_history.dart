@@ -84,24 +84,24 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.sort_rounded,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Sorted by most recently encountered',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -218,13 +218,13 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: purpleAccent.withOpacity(0.2),
+                      color: purpleAccent.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       topic,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -233,7 +233,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                   const Spacer(),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ],
               ),
@@ -263,12 +263,12 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: isCorrect
-                          ? Colors.green.withOpacity(0.15)
-                          : Colors.white.withOpacity(0.05),
+                          ? Colors.green.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isCorrect
-                            ? Colors.green.withOpacity(0.3)
+                            ? Colors.green.withValues(alpha: 0.3)
                             : Colors.transparent,
                       ),
                     ),
@@ -279,8 +279,8 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                           height: 24,
                           decoration: BoxDecoration(
                             color: isCorrect
-                                ? Colors.green.withOpacity(0.15)
-                                : Colors.white.withOpacity(0.1),
+                                ? Colors.green.withValues(alpha: 0.15)
+                                : Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Center(
@@ -289,7 +289,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                               style: TextStyle(
                                 color: isCorrect
                                     ? Colors.green
-                                    : Colors.white.withOpacity(0.9),
+                                    : Colors.white.withValues(alpha: 0.9),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -303,7 +303,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                             style: TextStyle(
                               color: isCorrect
                                   ? Colors.green
-                                  : Colors.white.withOpacity(0.9),
+                                  : Colors.white.withValues(alpha: 0.9),
                               fontSize: 14,
                               fontWeight:
                                   isCorrect ? FontWeight.w600 : FontWeight.w400,
@@ -327,10 +327,10 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                       ),
                     ),
                     child: Column(
@@ -340,14 +340,14 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                           children: [
                             Icon(
                               Icons.lightbulb_outline,
-                              color: Colors.yellow.withOpacity(0.8),
+                              color: Colors.yellow.withValues(alpha: 0.8),
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Explanation',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -358,7 +358,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                         Text(
                           widget.question['explanation'],
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 14,
                             height: 1.5,
                           ),

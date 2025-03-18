@@ -49,7 +49,7 @@ class LandingPage extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   width: 1.5,
                                 ),
                               ),
@@ -64,7 +64,7 @@ class LandingPage extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     width: 1.5,
                                   ),
                                 ),
@@ -101,7 +101,7 @@ class LandingPage extends StatelessWidget {
                       "Expand your knowledge with interactive quizzes",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.3,
@@ -114,10 +114,10 @@ class LandingPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
                   child: Column(
@@ -167,8 +167,8 @@ class LandingPage extends StatelessWidget {
                       text: "I Already Have an Account",
                       gradient: LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.075),
-                          Colors.white.withOpacity(0.075),
+                          Colors.white.withValues(alpha: 0.075),
+                          Colors.white.withValues(alpha: 0.075),
                         ],
                       ),
                       textColor: Colors.white,
@@ -178,7 +178,7 @@ class LandingPage extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       showBorder: true,
-                      borderColor: Colors.white.withOpacity(0.3),
+                      borderColor: Colors.white.withValues(alpha: 0.3),
                     ),
                   ],
                 ),
@@ -201,7 +201,7 @@ class LandingPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: purpleAccent.withOpacity(0.2),
+            color: purpleAccent.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -227,7 +227,7 @@ class LandingPage extends StatelessWidget {
               Text(
                 description,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),

@@ -101,23 +101,6 @@ class RegistrationPageState extends State<RegistrationPage> {
     return null;
   }
 
-  String? _validateUsername(String? value) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-
-    // Check minimum length
-    if (value.length < 4) {
-      return 'Username must be at least 4 characters';
-    }
-
-    // Check for spaces and special characters
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-      return 'Username can only contain letters, numbers, and underscores';
-    }
-    return null;
-  }
-
   Future<void> _registerUser() async {
     if (!_isFormValid) return;
 
@@ -176,7 +159,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0.85),
+                        Colors.white.withValues(alpha: 0.85),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -195,7 +178,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                   Text(
                     'Join our community and start your learning journey!',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 16,
                       height: 1.4,
                     ),
@@ -243,10 +226,10 @@ class RegistrationPageState extends State<RegistrationPage> {
                     onPressed: () async {
                       await _registerUser();
                     },
-                    isEnabled: _formValid,
+                      isEnabled: _formValid,  
                     backgroundColor: _formValid
                         ? purpleAccent
-                        : darkPurpleAccent.withOpacity(0.5),
+                        : darkPurpleAccent.withValues(alpha: 0.5),
                     textColor: Colors.white,
                   ),
 
@@ -264,7 +247,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -290,7 +273,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

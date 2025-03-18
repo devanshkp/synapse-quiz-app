@@ -31,13 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.0.16
-  sliver_tools: ^0.2.12
-  flutter_card_swiper: ^7.0.2
   firebase_core: ^3.10.1
   cloud_firestore: ^5.6.2
   firebase_auth: ^5.4.1
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  firebase_storage: ^12.4.4
   cupertino_icons: ^1.0.8
   google_sign_in: ^6.2.2
   provider: ^6.1.2
@@ -46,17 +43,16 @@ dependencies:
   font_awesome_flutter: ^10.8.0
   string_extensions: ^0.7.3
   flutter_advanced_drawer: ^1.4.0
-  flutter_zoom_drawer: ^3.2.0
   intl: ^0.19.0
   contentsize_tabbarview: ^0.0.2
   image_picker: ^1.1.2
-  firebase_storage: ^12.4.4
   path: ^1.9.0
   cached_network_image: ^3.4.1
   collection: ^1.18.0
   shared_preferences: ^2.5.2
   auto_size_text: ^3.0.0
   google_fonts: ^6.2.1
+  async: ^2.12.0
 
 dev_dependencies:
   flutter_test:

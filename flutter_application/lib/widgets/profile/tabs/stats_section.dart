@@ -41,12 +41,12 @@ class _StatsSectionState extends State<StatsSection> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -108,11 +108,11 @@ class _StatsSectionState extends State<StatsSection> {
           color: backgroundPageColor,
           borderRadius: BorderRadius.circular(16.0),
           border: isHighlighted
-              ? Border.all(color: color.withOpacity(0.5), width: 2)
+              ? Border.all(color: color.withValues(alpha: 0.5), width: 2)
               : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -146,7 +146,7 @@ class _StatsSectionState extends State<StatsSection> {
             isHighlighted
                 ? ShaderMask(
                     shaderCallback: (bounds) => LinearGradient(
-                      colors: [color, color.withOpacity(0.7)],
+                      colors: [color, color.withValues(alpha: 0.7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ).createShader(bounds),
@@ -191,12 +191,12 @@ class _StatsSectionState extends State<StatsSection> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

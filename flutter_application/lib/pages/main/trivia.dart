@@ -422,15 +422,15 @@ class _TriviaPageState extends State<TriviaPage>
               onTap: () {
                 _showFullQuestionDialog(context, question);
               },
-              splashColor: Colors.white.withOpacity(0.1),
-              highlightColor: Colors.white.withOpacity(0.05),
+              splashColor: Colors.white.withValues(alpha: 0.1),
+              highlightColor: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(15),
               child: Ink(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(0.08),
-                      Colors.white.withOpacity(0.05),
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.05),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -438,7 +438,7 @@ class _TriviaPageState extends State<TriviaPage>
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12.withOpacity(0.08),
+                      color: Colors.black12.withValues(alpha: 0.08),
                       blurRadius: 8 * cardAnimation.value,
                       spreadRadius: 0.5 * cardAnimation.value,
                     ),
@@ -509,7 +509,7 @@ class _TriviaPageState extends State<TriviaPage>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 15,
                   spreadRadius: 5,
                 ),
@@ -540,7 +540,7 @@ class _TriviaPageState extends State<TriviaPage>
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -654,15 +654,15 @@ class _TriviaPageState extends State<TriviaPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.4),
+        color: Colors.black.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 4,
             spreadRadius: 0,
             offset: const Offset(0, 2),
@@ -674,14 +674,14 @@ class _TriviaPageState extends State<TriviaPage>
         children: [
           Icon(
             Icons.category_rounded,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             size: 16,
           ),
           const SizedBox(width: 6),
           Text(
             '$topicsCount ${topicsCount == 1 ? 'Topic' : 'Topics'}',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w500,
               fontSize: 13,
             ),

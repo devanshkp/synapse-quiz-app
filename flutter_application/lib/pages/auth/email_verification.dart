@@ -198,7 +198,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: purpleAccent.withOpacity(0.1),
+                      color: purpleAccent.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -215,7 +215,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0.85),
+                        Colors.white.withValues(alpha: 0.85),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -237,7 +237,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                   Text(
                     'We\'ve sent a verification email to',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 16,
                       height: 1.4,
                     ),
@@ -260,7 +260,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                   Text(
                     'Check your inbox and click the verification link to continue.',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 16,
                       height: 1.4,
                     ),
@@ -293,7 +293,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     isEnabled: _canResendEmail,
                     backgroundColor: Colors.transparent,
                     showBorder: true,
-                    borderColor: Colors.white.withOpacity(0.5),
+                    borderColor: Colors.white.withValues(alpha: 0.5),
                     textColor: Colors.white,
                   ),
 
@@ -310,7 +310,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     child: Text(
                       'Back to Login',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),

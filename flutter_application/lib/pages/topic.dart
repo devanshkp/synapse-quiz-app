@@ -147,8 +147,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                 end: Alignment.bottomRight,
                 colors: [
                   widget.topicColor,
-                  widget.topicColor.withOpacity(0.7),
-                  Colors.black.withOpacity(0.8),
+                  widget.topicColor.withValues(alpha: 0.7),
+                  Colors.black.withValues(alpha: 0.8),
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),
@@ -160,13 +160,13 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
             position: _slideAnimation,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.35),
+                color: Colors.black.withValues(alpha: 0.35),
                 image: DecorationImage(
                   image: const AssetImage('assets/images/shapes.png'),
                   opacity: 0.15,
                   repeat: ImageRepeat.repeat,
                   colorFilter: ColorFilter.mode(
-                    widget.topicColor.withOpacity(0.5),
+                    widget.topicColor.withValues(alpha: 0.5),
                     BlendMode.overlay,
                   ),
                 ),
@@ -198,12 +198,12 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                 color: Colors.black12,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   width: 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -225,12 +225,12 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                               color: Colors.black12,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -288,21 +288,22 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          Colors.white.withOpacity(0.2),
-                                          Colors.white.withOpacity(0.05),
+                                          Colors.white.withValues(alpha: 0.2),
+                                          Colors.white.withValues(alpha: 0.05),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(90),
                                       boxShadow: [
                                         BoxShadow(
                                           color: widget.topicColor
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                           blurRadius: 30,
                                           spreadRadius: 5,
                                         ),
                                       ],
                                       border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
                                         width: 1.5,
                                       ),
                                     ),
@@ -322,7 +323,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                               shaderCallback: (bounds) => LinearGradient(
                                 colors: [
                                   Colors.white,
-                                  Colors.white.withOpacity(0.8),
+                                  Colors.white.withValues(alpha: 0.8),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -357,18 +358,18 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.white.withOpacity(0.15),
-                                    Colors.white.withOpacity(0.05),
+                                    Colors.white.withValues(alpha: 0.15),
+                                    Colors.white.withValues(alpha: 0.05),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 8),
                                   ),
@@ -378,7 +379,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                 children: [
                                   Icon(
                                     Icons.info_outline_rounded,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     size: 24,
                                   ),
                                   const SizedBox(height: 8),
@@ -387,7 +388,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                         'Explore exciting questions about $formattedTopicName and test your knowledge!',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.9),
                                       height: 1.5,
                                       letterSpacing: 0.2,
                                     ),
@@ -407,18 +409,18 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.black.withOpacity(0.4),
-                                    Colors.black.withOpacity(0.2),
+                                    Colors.black.withValues(alpha: 0.4),
+                                    Colors.black.withValues(alpha: 0.2),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   width: 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -433,7 +435,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
                                           color: widget.topicColor
-                                              .withOpacity(0.2),
+                                              .withValues(alpha: 0.2),
                                           borderRadius:
                                               BorderRadius.circular(12),
                                         ),
@@ -489,7 +491,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                 'Questions Solved',
                                                 style: TextStyle(
                                                   color: Colors.white
-                                                      .withOpacity(0.8),
+                                                      .withValues(alpha: 0.8),
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -502,7 +504,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.1),
+                                                      .withValues(alpha: 0.1),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
@@ -526,7 +528,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                 width: double.infinity,
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey
-                                                      .withOpacity(0.2),
+                                                      .withValues(alpha: 0.2),
                                                   borderRadius:
                                                       BorderRadius.circular(10),
                                                 ),
@@ -545,7 +547,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                     end: Alignment.centerRight,
                                                     colors: [
                                                       widget.topicColor
-                                                          .withOpacity(0.7),
+                                                          .withValues(
+                                                              alpha: 0.7),
                                                       widget.topicColor,
                                                     ],
                                                   ),
@@ -554,7 +557,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: widget.topicColor
-                                                          .withOpacity(0.4),
+                                                          .withValues(
+                                                              alpha: 0.4),
                                                       blurRadius: 6,
                                                       offset:
                                                           const Offset(0, 2),
@@ -568,8 +572,8 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                           Text(
                                             '${percentage.toStringAsFixed(1)}% Complete',
                                             style: TextStyle(
-                                              color:
-                                                  Colors.white.withOpacity(0.7),
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.7),
                                               fontSize: 13,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -592,102 +596,116 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                 Consumer<TriviaProvider>(
                                   builder: (context, triviaProvider, child) {
                                     final bool isLoading =
-                                        triviaProvider.isLoadingQuestions ||
-                                            triviaProvider.isLoadingEncounteredQuestions || triviaProvider.isFetching;
+                                        triviaProvider.isFetchingQuestions;
 
-                                    return GradientButton(
-                                      icon: isLoading
-                                          ? Icons.hourglass_top
-                                          : Icons.play_circle_filled_rounded,
-                                      text: isLoading
-                                          ? 'Please wait...'
-                                          : 'Start Session',
-                                      gradient: isLoading
-                                          ? LinearGradient(
-                                              colors: [
-                                                Colors.grey.shade800,
-                                                Colors.grey.shade700,
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            )
-                                          : LinearGradient(
-                                              colors: [
-                                                widget.topicColor
-                                                    .withOpacity(0.7),
-                                                widget.topicColor,
-                                                widget.topicColor
-                                                    .withOpacity(0.8),
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                      borderColor: Colors.white
-                                          .withOpacity(isLoading ? 0.05 : 0.2),
-                                      textColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 16),
-                                      fontSize: 16,
-                                      borderRadius: 16,
-                                      elevation: 10,
-                                      fullWidth: true,
-                                      onPressed: isLoading
-                                          ? () {}
-                                          : () {
-                                              // Launch a temporary topic session
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      TriviaPage(
-                                                    topic: widget.topicName,
-                                                    isTemporarySession: true,
-                                                  ),
+                                    return Column(
+                                      children: [
+                                        GradientButton(
+                                          icon: isLoading
+                                              ? Icons.hourglass_top
+                                              : Icons
+                                                  .play_circle_filled_rounded,
+                                          text: isLoading
+                                              ? 'Please wait...'
+                                              : 'Start Session',
+                                          gradient: isLoading
+                                              ? LinearGradient(
+                                                  colors: [
+                                                    Colors.grey.shade800,
+                                                    Colors.grey.shade700,
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                )
+                                              : LinearGradient(
+                                                  colors: [
+                                                    widget.topicColor
+                                                        .withValues(alpha: 0.7),
+                                                    widget.topicColor,
+                                                    widget.topicColor
+                                                        .withValues(alpha: 0.8),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
                                                 ),
-                                              );
-                                            },
+                                          borderColor: Colors.white.withValues(
+                                              alpha: isLoading ? 0.05 : 0.2),
+                                          textColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 16),
+                                          fontSize: 16,
+                                          borderRadius: 16,
+                                          elevation: 10,
+                                          fullWidth: true,
+                                          onPressed: isLoading
+                                              ? () {}
+                                              : () {
+                                                  // Launch a temporary topic session
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          TriviaPage(
+                                                        topic: widget.topicName,
+                                                        isTemporarySession:
+                                                            true,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                        ),
+                                        const SizedBox(height: 16),
+
+                                        // Add/Remove Topic Button
+                                        GradientButton(
+                                          icon: isLoading
+                                              ? Icons.hourglass_top
+                                              : _isTopicSelected
+                                                  ? Icons
+                                                      .playlist_remove_rounded
+                                                  : Icons.playlist_add_rounded,
+                                          text: isLoading
+                                              ? 'Please wait...'
+                                              : _isTopicSelected
+                                                  ? 'Remove from My Topics'
+                                                  : 'Add to My Topics',
+                                          gradient: _isTopicSelected
+                                              ? const LinearGradient(
+                                                  colors: [
+                                                    Color.fromARGB(
+                                                        255, 180, 70, 70),
+                                                    warningRed,
+                                                    Color.fromARGB(
+                                                        255, 150, 40, 40),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                )
+                                              : const LinearGradient(
+                                                  colors: [
+                                                    Color.fromARGB(
+                                                        255, 70, 180, 90),
+                                                    Colors.green,
+                                                    Color.fromARGB(
+                                                        255, 40, 130, 50),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),
+                                          borderColor: Colors.white
+                                              .withValues(alpha: 0.2),
+                                          textColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 16),
+                                          fontSize: 16,
+                                          borderRadius: 16,
+                                          elevation: 8,
+                                          fullWidth: true,
+                                          onPressed: _toggleTopicSelection,
+                                        ),
+                                      ],
                                     );
                                   },
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Add/Remove Topic Button
-                                GradientButton(
-                                  icon: _isTopicSelected
-                                      ? Icons.playlist_remove_rounded
-                                      : Icons.playlist_add_rounded,
-                                  text: _isTopicSelected
-                                      ? 'Remove from My Topics'
-                                      : 'Add to My Topics',
-                                  gradient: _isTopicSelected
-                                      ? const LinearGradient(
-                                          colors: [
-                                            Color.fromARGB(255, 180, 70, 70),
-                                            warningRed,
-                                            Color.fromARGB(255, 150, 40, 40),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        )
-                                      : const LinearGradient(
-                                          colors: [
-                                            Color.fromARGB(255, 70, 180, 90),
-                                            Colors.green,
-                                            Color.fromARGB(255, 40, 130, 50),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                  borderColor: Colors.white.withOpacity(0.2),
-                                  textColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 16),
-                                  fontSize: 16,
-                                  borderRadius: 16,
-                                  elevation: 8,
-                                  fullWidth: true,
-                                  onPressed: _toggleTopicSelection,
                                 ),
 
                                 const SizedBox(height: 40),

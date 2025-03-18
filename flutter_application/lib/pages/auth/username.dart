@@ -66,7 +66,7 @@ class _UsernamePageState extends State<UsernamePage> {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0.85),
+                        Colors.white.withValues(alpha: 0.85),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -85,7 +85,7 @@ class _UsernamePageState extends State<UsernamePage> {
                   Text(
                     'This will be your unique identifier in the community.',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 16,
                       height: 1.4,
                     ),
@@ -115,7 +115,7 @@ class _UsernamePageState extends State<UsernamePage> {
                     isEnabled: _isFormValid,
                     backgroundColor: _isFormValid
                         ? purpleAccent
-                        : darkPurpleAccent.withOpacity(0.5),
+                        : darkPurpleAccent.withValues(alpha: 0.5),
                     textColor: Colors.white,
                   ),
 

@@ -70,7 +70,7 @@ class TriviaDrawerState extends State<TriviaDrawer> {
           width: 60,
           height: 3,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(1.5),
           ),
         ),
@@ -92,8 +92,8 @@ class TriviaDrawerState extends State<TriviaDrawer> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white.withOpacity(0.085),
-              Colors.white.withOpacity(0.05),
+              Colors.white.withValues(alpha: 0.085),
+              Colors.white.withValues(alpha: 0.05),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -118,7 +118,7 @@ class TriviaDrawerState extends State<TriviaDrawer> {
                     TextFormatter.formatTitlePreservingCase(
                         widget.question['topic'].toString()),
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1,

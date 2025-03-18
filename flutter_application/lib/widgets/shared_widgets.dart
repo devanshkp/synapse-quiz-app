@@ -79,7 +79,7 @@ class CustomTabBar extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: const Color.fromARGB(255, 34, 34, 34),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: TabBar(
           controller: controller,
@@ -185,7 +185,7 @@ class TopicButton extends StatelessWidget {
           height: buttonHeight ?? double.infinity,
           decoration: BoxDecoration(boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 6),
             ),
@@ -286,7 +286,7 @@ class UserAvatar extends StatelessWidget {
         width: avatarRadius * 2,
         height: avatarRadius * 2,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
       ),
@@ -382,12 +382,12 @@ class _DeveloperAvatarState extends State<DeveloperAvatar>
               color: glowColor,
               boxShadow: [
                 BoxShadow(
-                  color: glowColor.withOpacity(0.7),
+                  color: glowColor.withValues(alpha: 0.7),
                   blurRadius: 12,
                   spreadRadius: 3,
                 ),
                 BoxShadow(
-                  color: glowColor.withOpacity(0.3),
+                  color: glowColor.withValues(alpha: 0.3),
                   blurRadius: 18,
                   spreadRadius: 20,
                 ),
@@ -548,22 +548,22 @@ class CustomCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
-        splashColor: color.withOpacity(0.1),
-        highlightColor: color.withOpacity(0.05),
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
+                Colors.white.withValues(alpha: 0.1),
+                Colors.white.withValues(alpha: 0.05),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: borderRadius,
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -572,7 +572,7 @@ class CustomCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -600,7 +600,7 @@ class CustomCard extends StatelessWidget {
                       Text(
                         subtitle!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
@@ -615,7 +615,7 @@ class CustomCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(
                   trailingIcon,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   size: 16,
                 ),
               ],
@@ -649,7 +649,7 @@ class CustomAlertDialog extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 20, 20, 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       title: Text(
         title,
@@ -758,7 +758,7 @@ class GradientButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: showBorder
                     ? Border.all(
-                        color: borderColor ?? textColor.withOpacity(0.5),
+                        color: borderColor ?? textColor.withValues(alpha: 0.5),
                         width: 1)
                     : null,
               ),
@@ -862,6 +862,115 @@ class _ButtonScaleWrapperState extends State<_ButtonScaleWrapper>
         ),
         child: widget.child,
       ),
+    );
+  }
+}
+
+class DeleteAccountDialog extends StatefulWidget {
+  final VoidCallback onConfirm;
+
+  const DeleteAccountDialog({
+    super.key,
+    required this.onConfirm,
+  });
+
+  @override
+  State<DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
+  final TextEditingController _confirmController = TextEditingController();
+  bool _isConfirmEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _confirmController.addListener(_validateInput);
+  }
+
+  @override
+  void dispose() {
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _validateInput() {
+    setState(() {
+      _isConfirmEnabled = _confirmController.text == 'Delete Account';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color.fromARGB(255, 20, 20, 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      title: const Text(
+        'Delete Account',
+        style: TextStyle(color: Colors.white, fontSize: 18),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'This action cannot be undone. All your data will be permanently deleted.',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Type "Delete Account" to confirm:',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _confirmController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Delete Account',
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.1),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: Colors.blue[200]),
+          ),
+        ),
+        TextButton(
+          onPressed: _isConfirmEnabled
+              ? () {
+                  Navigator.pop(context);
+                  widget.onConfirm();
+                }
+              : null,
+          child: Text(
+            'Delete Account',
+            style: TextStyle(
+              color: _isConfirmEnabled
+                  ? Colors.red
+                  : Colors.red.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -213,6 +213,7 @@ class _SearchPageState extends State<SearchPage> {
           _searchFocusNode.unfocus();
         },
         child: Scaffold(
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
             elevation: 0,
             backgroundColor: backgroundPageColor,
@@ -376,7 +377,8 @@ class _SearchPageState extends State<SearchPage> {
                                 padding: const EdgeInsets.only(bottom: 12.0),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: topic['color'].withOpacity(0.2),
+                                    color:
+                                        topic['color'].withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: ListTile(
@@ -387,7 +389,8 @@ class _SearchPageState extends State<SearchPage> {
                                       height: 50,
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: topic['color'].withOpacity(0.3),
+                                        color: topic['color']
+                                            .withValues(alpha: 0.3),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Image.asset(

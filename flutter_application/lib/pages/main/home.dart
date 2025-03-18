@@ -27,24 +27,15 @@ class HomePage extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            color: backgroundPageColor,
-            image: DecorationImage(
-              image: AssetImage('assets/images/shapes.png'),
-              opacity: 0.2,
-              repeat: ImageRepeat.repeat,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
-            child: ListView.builder(
-              itemCount: sections.length,
-              itemBuilder: (context, index) {
-                return sections[index];
-              },
-            ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
+          child: ListView.builder(
+            itemCount: sections.length,
+            itemBuilder: (context, index) {
+              return sections[index];
+            },
           ),
         ),
       ),
@@ -330,7 +321,7 @@ class DailyTaskCard extends StatelessWidget {
                 width: 110,
                 height: 110,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.34),
+                  color: Colors.black.withValues(alpha: 0.34),
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
@@ -367,7 +358,7 @@ class DailyTaskCard extends StatelessWidget {
                           Text(
                             '15 Questions',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(.85),
+                              color: Colors.white.withValues(alpha: .85),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -393,7 +384,7 @@ class DailyTaskCard extends StatelessWidget {
                               height: 9,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.3),
+                                color: Colors.white.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -423,7 +414,7 @@ class DailyTaskCard extends StatelessWidget {
                               child: Text(
                                 'Progress',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: Colors.white.withValues(alpha: 0.85),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -432,7 +423,7 @@ class DailyTaskCard extends StatelessWidget {
                             Text(
                               '$solvedTodayCount/15',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),

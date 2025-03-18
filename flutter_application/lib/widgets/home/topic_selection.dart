@@ -146,7 +146,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
         "Select topics you're interested in",
         style: TextStyle(
           fontSize: 14,
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
         ),
       ),
     );
@@ -157,10 +157,10 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -211,9 +211,9 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.15)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -239,10 +239,10 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -283,7 +283,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
       ),
       child: const Center(
         child: CustomCircularProgressIndicator(),
@@ -304,17 +304,17 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? Colors.white.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.08),
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.08),
               width: isSelected ? 1.5 : 1,
             ),
             color: isSelected
-                ? Colors.white.withOpacity(0.12)
-                : Colors.white.withOpacity(0.05),
+                ? Colors.white.withValues(alpha: 0.12)
+                : Colors.white.withValues(alpha: 0.05),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 4,
                       spreadRadius: 0,
                     ),
@@ -334,7 +334,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                           isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: isSelected
                           ? Colors.white
-                          : Colors.white.withOpacity(0.7),
+                          : Colors.white.withValues(alpha: 0.7),
                       letterSpacing: 0.5,
                     ),
                     textAlign: TextAlign.center,
@@ -354,7 +354,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                     child: Icon(
                       Icons.check_circle_rounded,
                       size: 16,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -382,7 +382,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -391,15 +391,15 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                       Icons.check_circle_outline,
                       size: 14,
                       color: hasMinimumTopics
-                          ? Colors.green.withOpacity(0.8)
-                          : Colors.amber.withOpacity(0.8),
+                          ? Colors.green.withValues(alpha: 0.8)
+                          : Colors.amber.withValues(alpha: 0.8),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       "$selectedCount of $totalCount topics selected",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -426,10 +426,10 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.06),
+            color: Colors.white.withValues(alpha: 0.06),
             width: 1,
           ),
         ),

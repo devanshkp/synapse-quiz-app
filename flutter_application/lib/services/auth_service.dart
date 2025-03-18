@@ -1,12 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/restart_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application/services/user_service.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
-import 'package:provider/provider.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -224,7 +222,6 @@ class AuthService {
       // Set additional parameters to force account selection
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        await Future.delayed(const Duration(seconds: 1));
         return;
       }
 
@@ -304,7 +301,7 @@ class AuthService {
 
   Future<void> signOut(BuildContext context) async {
     try {
-      Provider.of<UserProvider>(context, listen: false).disposeListeners();
+      RestartService.cleanUpProviders(context);
       await FirebaseAuth.instance.signOut();
 
       if (context.mounted) {
@@ -363,6 +360,20 @@ class AuthService {
       if (context.mounted) {
         floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
       }
+    }
+  }
+
+  Future<void> deleteAccount(BuildContext context) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No user logged in');
+
+      user.delete();
+
+      RestartService.cleanUpProviders(context);
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      rethrow;
     }
   }
 }

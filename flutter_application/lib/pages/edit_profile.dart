@@ -282,7 +282,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               borderRadius: BorderRadius.circular(100),
                               border: Border.all(
                                   width: 1.5,
-                                  color: Colors.white.withOpacity(0.2)),
+                                  color: Colors.white.withValues(alpha: 0.2)),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(1.0),
@@ -318,7 +318,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 5,
                                     offset: const Offset(0, 2),
                                   ),
@@ -373,10 +373,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     field: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           width: 0.5,
                         ),
                       ),

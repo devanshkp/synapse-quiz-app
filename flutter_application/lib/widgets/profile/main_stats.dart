@@ -34,7 +34,7 @@ class MainStats extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(
         gradient: buttonGradient,
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(20.0),
       ),
       child: Row(
@@ -85,7 +85,7 @@ class MainStats extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.2), // Glow color
+                      color: color.withValues(alpha: 0.2), // Glow color
                       blurRadius: 10, // How much the glow spreads
                       spreadRadius: 1, // Intensity of the glow
                     ),

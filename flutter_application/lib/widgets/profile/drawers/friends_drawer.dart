@@ -45,8 +45,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          decoration: const BoxDecoration(color: backgroundPageColor),
+          color: const Color.fromARGB(255, 20, 20, 20),
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +86,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 width: 60,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.7),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
@@ -98,9 +97,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
+                color: Colors.blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -146,9 +145,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search or add friend...',
-              hintStyle: TextStyle(color: Colors.black.withOpacity(0.5)),
+              hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.5)),
               suffixIcon: Icon(Icons.search,
-                  color: Colors.black.withOpacity(0.5), size: 20),
+                  color: Colors.black.withValues(alpha: 0.5), size: 20),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -287,11 +286,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           constraints: const BoxConstraints(minHeight: 72),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.085),
-                  Colors.white.withOpacity(0.05),
+                  Colors.white.withValues(alpha: 0.085),
+                  Colors.white.withValues(alpha: 0.05),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -320,13 +319,13 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               subtitle: Text(
                 friend.userName,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 12,
                 ),
               ),
               trailing: IconButton(
-                icon:
-                    Icon(Icons.more_vert, color: Colors.white.withOpacity(0.5)),
+                icon: Icon(Icons.more_vert,
+                    color: Colors.white.withValues(alpha: 0.5)),
                 onPressed: () => _showFriendOptions(friend.userId),
               ),
             ),
@@ -349,11 +348,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       child: Container(
         height: 72,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           gradient: LinearGradient(
             colors: [
-              Colors.white.withOpacity(0.085),
-              Colors.white.withOpacity(0.05),
+              Colors.white.withValues(alpha: 0.085),
+              Colors.white.withValues(alpha: 0.05),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -385,7 +384,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               subtitle: Text(
                 friend.userName,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 12,
                 ),
               ),
@@ -402,7 +401,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       String userId, bool isFriend, bool isRequested) {
     if (isFriend) {
       return IconButton(
-        icon: Icon(Icons.more_vert, color: Colors.white.withOpacity(0.5)),
+        icon: Icon(Icons.more_vert, color: Colors.white.withValues(alpha: 0.5)),
         onPressed: () => _showFriendOptions(userId),
       );
     } else if (isRequested) {
@@ -448,14 +447,15 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         child: Text(
           'Requested',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             fontSize: 12,
           ),
         ),
       );
     } else {
       return IconButton(
-        icon: Icon(Icons.person_add, color: Colors.white.withOpacity(0.5)),
+        icon:
+            Icon(Icons.person_add, color: Colors.white.withValues(alpha: 0.5)),
         onPressed: () => _sendFriendRequest(userId),
       );
     }
@@ -479,8 +479,8 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: isRequest
-                ? Colors.blue.withOpacity(0.2)
-                : Colors.white.withOpacity(0.1),
+                ? Colors.blue.withValues(alpha: 0.2)
+                : Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -524,15 +524,15 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.blue.withOpacity(0.1),
-                Colors.blue.withOpacity(0.05),
+                Colors.blue.withValues(alpha: 0.1),
+                Colors.blue.withValues(alpha: 0.05),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: Colors.blue.withOpacity(0.3),
+              color: Colors.blue.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -574,7 +574,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                     Text(
                       request.userName,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         fontSize: 12,
                       ),
                     ),
@@ -633,9 +633,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -664,13 +664,13 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 15,
               offset: const Offset(0, -5),
             ),
           ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
             width: 1,
           ),
         ),
@@ -685,7 +685,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -695,14 +695,14 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(0.08),
-                      Colors.white.withOpacity(0.05),
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -742,7 +742,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                                 right: 0,
                                 child: Icon(
                                   Icons.arrow_forward_ios,
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withValues(alpha: 0.3),
                                   size: 16,
                                 ),
                               ),
@@ -758,7 +758,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                       child: Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                       ),
                     ),
 
@@ -803,9 +803,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withValues(alpha: 0.08),
                       width: 1,
                     ),
                   ),
@@ -893,14 +893,14 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-        color: Colors.white.withOpacity(0.05),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.5),
           fontSize: 14,
         ),
         textAlign: TextAlign.center,

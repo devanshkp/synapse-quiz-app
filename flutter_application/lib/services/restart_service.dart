@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class RestartService extends StatefulWidget {
   final Widget child;
@@ -9,6 +12,11 @@ class RestartService extends StatefulWidget {
     final RestartServiceState? state =
         context.findAncestorStateOfType<RestartServiceState>();
     state?.restartApp();
+  }
+
+  static void cleanUpProviders(context) {
+    Provider.of<UserProvider>(context, listen: false).disposeListeners();
+    Provider.of<TriviaProvider>(context, listen: false).cancelFetchOperations();
   }
 
   @override

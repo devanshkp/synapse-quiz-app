@@ -73,7 +73,7 @@ class _TopicsSectionState extends State<TopicsSection> {
           borderRadius: BorderRadius.circular(20.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -93,10 +93,10 @@ class _TopicsSectionState extends State<TopicsSection> {
       decoration: BoxDecoration(
         gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -179,16 +179,16 @@ class _TopicsSectionState extends State<TopicsSection> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -327,7 +327,7 @@ class _TopicsSectionState extends State<TopicsSection> {
         return computerNeworkColor;
       case 'data_science':
         return dataScienceColor;
-      case 'probability_statistics':
+      case 'probability_&_statistics':
         return probabilityStatisticsColor;
       case 'data_structures':
         return dataStructuresColor;

@@ -74,7 +74,7 @@ const LinearGradient profileCardGradient = LinearGradient(
 // Miscellaneous
 
 BoxShadow buttonDropShadow = BoxShadow(
-  color: Colors.black.withOpacity(0.3), // Shadow color
+  color: Colors.black.withValues(alpha: 0.3), // Shadow color
   blurRadius: 10, // Reduced spread for a cleaner look
   offset: const Offset(0, 4), // Positioning of the shadow
 );

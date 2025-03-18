@@ -95,8 +95,8 @@ class _OptionButtonState extends State<OptionButton>
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: glowColor
-                              .withOpacity(0.5 * _glowAnimation.value / 1.8),
+                          color: glowColor.withValues(
+                              alpha: 0.5 * _glowAnimation.value / 1.8),
                           blurRadius: 16 * _glowAnimation.value,
                           spreadRadius: 2 * _glowAnimation.value,
                         ),
@@ -119,7 +119,7 @@ class _OptionButtonState extends State<OptionButton>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 8,
                         spreadRadius: 1,
                         offset: const Offset(0, 3),
@@ -141,13 +141,13 @@ class _OptionButtonState extends State<OptionButton>
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
                           color: showGlow
-                              ? glowColor.withOpacity(0.8)
+                              ? glowColor.withValues(alpha: 0.8)
                               : const Color(0xff444444),
                           width: showGlow ? 2 : 1,
                         ),
                       ),
                       elevation: _isHovering && !isAnswered ? 6 : 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
+                      shadowColor: Colors.black.withValues(alpha: 0.3),
                     ),
                     child: Stack(
                       children: [
@@ -164,7 +164,7 @@ class _OptionButtonState extends State<OptionButton>
                                 letterSpacing: 0.2,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: Colors.black.withValues(alpha: 0.5),
                                     blurRadius: 2,
                                     offset: const Offset(0, 1),
                                   ),
@@ -187,14 +187,15 @@ class _OptionButtonState extends State<OptionButton>
                                 child: widget.isCorrectOption
                                     ? Icon(
                                         Icons.check_circle_outline,
-                                        color: Colors.white.withOpacity(0.4),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.4),
                                         size: 20,
                                       )
                                     : widget.isSelected
                                         ? Icon(
                                             Icons.cancel_outlined,
-                                            color:
-                                                Colors.white.withOpacity(0.4),
+                                            color: Colors.white
+                                                .withValues(alpha: 0.4),
                                             size: 20,
                                           )
                                         : const SizedBox(),

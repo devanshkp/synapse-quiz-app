@@ -96,7 +96,8 @@ class _BadgesSectionState extends State<BadgesSection> {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   gradient: profileCardGradient,
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -186,20 +187,20 @@ class _BadgesSectionState extends State<BadgesSection> {
                             height: 80,
                             decoration: BoxDecoration(
                               color: unlocked
-                                  ? Colors.black.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.1),
+                                  ? Colors.black.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: unlocked
                                     ? (badge['color'] as Color)
-                                    : Colors.grey.withOpacity(0.3),
+                                    : Colors.grey.withValues(alpha: 0.3),
                                 width: 2,
                               ),
                               boxShadow: unlocked
                                   ? [
                                       BoxShadow(
                                         color: (badge['color'] as Color)
-                                            .withOpacity(0.3),
+                                            .withValues(alpha: 0.3),
                                         blurRadius: 10,
                                         spreadRadius: 1,
                                       ),
@@ -210,7 +211,7 @@ class _BadgesSectionState extends State<BadgesSection> {
                               badge['icon'] as IconData,
                               color: unlocked
                                   ? badge['color'] as Color
-                                  : Colors.grey.withOpacity(0.5),
+                                  : Colors.grey.withValues(alpha: 0.5),
                               size: 40,
                             ),
                           ),
@@ -287,7 +288,7 @@ class _BadgesSectionState extends State<BadgesSection> {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         gradient: profileCardGradient,
         borderRadius: BorderRadius.circular(15),
       ),

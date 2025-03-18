@@ -1,6 +1,5 @@
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/auth_service.dart';
@@ -30,30 +29,37 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      decoration: const BoxDecoration(
-        color: backgroundPageColor,
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
+      color: const Color.fromARGB(255, 20, 20, 20),
       child: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             Expanded(
-              child: _buildSettingsContent(),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfileSection(context),
+                    const SizedBox(height: 24),
+                    _buildSettingsContent(context),
+                    const SizedBox(height: 24),
+                    _buildAccountSection(context),
+                    if (userProvider.isDeveloper) ...[
+                      const SizedBox(height: 24),
+                      _buildDeveloperSection(context),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            _buildFooter(),
+            _buildFooter(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -79,7 +85,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                   size: 24,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.1),
                 ),
               ),
             ],
@@ -89,7 +95,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
             width: 60,
             height: 3,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.7),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(1.5),
             ),
           ),
@@ -98,57 +104,119 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
     );
   }
 
-  Widget _buildSettingsContent() {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+  Widget _buildProfileSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Profile'),
+          const SizedBox(height: 8),
+          CustomCard(
+            icon: Icons.person_outline,
+            text: 'Edit Profile',
+            color: Colors.blue[200]!,
+            onTap: () {
+              Navigator.pushNamed(context, '/edit-profile');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsContent(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Settings'),
+          const SizedBox(height: 8),
+          CustomCard(
+            icon: Icons.refresh,
+            text: 'Reset Encountered Questions',
+            color: Colors.purple[200]!,
+            onTap: _showResetConfirmation,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle('Account'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           CustomCard(
             icon: Icons.logout,
             text: 'Sign Out',
-            color: warningRed,
-            onTap: () => _showSignOutConfirmation(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            trailingIcon: Icons.arrow_forward_ios_rounded,
+            color: Colors.orange[300]!,
+            onTap: _showSignOutConfirmation,
           ),
-          const SizedBox(height: 32),
-          _buildSectionTitle('Trivia Data'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           CustomCard(
-            icon: Icons.restore,
-            text: 'Reset Encountered Questions',
-            subtitle: "This will also reset your 'Total Solved Questions'",
-            color: const Color.fromARGB(255, 255, 175, 64),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            onTap: _showResetEncounteredQuestionsConfirmation,
-            trailingIcon: Icons.arrow_forward_ios_rounded,
+            icon: Icons.delete_forever_outlined,
+            text: 'Delete Account',
+            color: Colors.red[300]!,
+            onTap: _showDeleteAccountConfirmation,
           ),
-          if (userProvider.isDeveloper) ...[
-            const SizedBox(height: 32),
-            _buildSectionTitle('Developer Options'),
-            const SizedBox(height: 16),
-            CustomCard(
-              icon: Icons.shuffle_rounded,
-              text: 'Randomize Questions',
-              color: const Color.fromARGB(255, 131, 255, 114),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              onTap: _showRandomizeQuestionsConfirmation,
-              trailingIcon: Icons.arrow_forward_ios_rounded,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeveloperSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Developer Options'),
+          const SizedBox(height: 8),
+          CustomCard(
+            icon: Icons.shuffle_rounded,
+            text: 'Randomize Questions',
+            color: const Color.fromARGB(255, 131, 255, 114),
+            onTap: _showRandomizeQuestionsConfirmation,
+          ),
+          const SizedBox(height: 8),
+          CustomCard(
+            icon: Icons.refresh_outlined,
+            text: 'Refresh Topics',
+            color: Colors.lightBlueAccent,
+            onTap: _showRefreshTopicsMetadataConfirmation,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/logos/synapse_no_bg.png',
+            height: 15,
+            width: 15,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Synapse v$packageVersion',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 12),
-            CustomCard(
-              icon: Icons.refresh_outlined,
-              text: 'Refresh Topics',
-              color: Colors.lightBlueAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              onTap: _showRefreshTopicsMetadataConfirmation,
-              trailingIcon: Icons.arrow_forward_ios_rounded,
-            ),
-          ],
+          ),
         ],
       ),
     );
@@ -160,7 +228,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           fontSize: 14,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
@@ -169,55 +237,19 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
     );
   }
 
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/logos/synapse_no_bg.png',
-            height: 15,
-            width: 15,
-            color: Colors.white.withOpacity(0.5),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Synapse v$packageVersion',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRandomizeQuestionsConfirmation() {
+  void _showResetConfirmation() {
     showDialog(
       context: context,
       builder: (context) => CustomAlertDialog(
-        title: 'Randomize Questions',
-        content: 'Regenerate random fields for all questions?',
-        confirmationButtonText: 'Confirm',
-        cancelButtonText: 'Cancel',
-        onPressed: () => triviaProvider.addRandomFieldToQuestions(),
-      ),
-    );
-  }
-
-  void _showResetEncounteredQuestionsConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => CustomAlertDialog(
-        title: 'Reset Encountered Questions',
+        title: 'Reset Questions',
         content:
-            "Are you sure you want to reset your encountered questions?\n\nThis will also reset your 'Total Solved Questions' count.",
+            'Are you sure you want to reset all encountered questions? This action cannot be undone.',
         confirmationButtonText: 'Reset',
         cancelButtonText: 'Cancel',
-        onPressed: () => triviaProvider.resetEncounteredQuestions(),
+        onPressed: () {
+          triviaProvider.resetEncounteredQuestions();
+          Navigator.pop(context);
+        },
       ),
     );
   }
@@ -231,6 +263,36 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
         confirmationButtonText: 'Sign Out',
         cancelButtonText: 'Cancel',
         onPressed: () async => await _authService.signOut(context),
+      ),
+    );
+  }
+
+  void _showDeleteAccountConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => DeleteAccountDialog(
+        onConfirm: () async {
+          try {
+            await _authService.deleteAccount(context);
+          } catch (e) {
+            if (mounted) {
+              debugPrint('Error deleting account: ${e.toString()}');
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void _showRandomizeQuestionsConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => CustomAlertDialog(
+        title: 'Randomize Questions',
+        content: 'Regenerate random fields for all questions?',
+        confirmationButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        onPressed: () => triviaProvider.addRandomFieldToQuestions(),
       ),
     );
   }

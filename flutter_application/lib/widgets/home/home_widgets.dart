@@ -24,24 +24,24 @@ Widget customHomeButton({
     height: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withOpacity(0.12)),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.25),
+          color: Colors.black.withValues(alpha: 0.25),
           blurRadius: 8,
           offset: const Offset(0, 3),
           spreadRadius: 1,
         ),
         BoxShadow(
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withValues(alpha: 0.03),
           blurRadius: 0.5,
           offset: const Offset(0, 1),
           spreadRadius: 0,
         ),
       ],
       gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
           Color.fromARGB(255, 40, 40, 40),
           Color.fromARGB(255, 28, 28, 28),
@@ -69,7 +69,7 @@ Widget customHomeButton({
                     letterSpacing: 0.2,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         offset: const Offset(0, 1),
                         blurRadius: 2,
                       ),
@@ -80,7 +80,7 @@ Widget customHomeButton({
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: subtitleFontSize,
                       fontWeight: FontWeight.normal,
                       letterSpacing: 0.1,
@@ -136,7 +136,7 @@ Widget customHomeButton({
     ).copyWith(
       overlayColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
-          return Colors.white.withOpacity(0.05);
+          return Colors.white.withValues(alpha: 0.05);
         },
       ),
     ),
@@ -174,7 +174,8 @@ Widget backgroundImage() {
           filter: ImageFilter.blur(
               sigmaX: 10.0, sigmaY: 10.0), // Adjust blur intensity
           child: Container(
-            color: Colors.black.withOpacity(0.3), // Optional: Add overlay color
+            color: Colors.black
+                .withValues(alpha: 0.3), // Optional: Add overlay color
           ),
         ),
       ),

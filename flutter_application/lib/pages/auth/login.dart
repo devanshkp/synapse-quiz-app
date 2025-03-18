@@ -113,7 +113,7 @@ class LoginPageState extends State<LoginPage> {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0.85),
+                        Colors.white.withValues(alpha: 0.85),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -132,7 +132,7 @@ class LoginPageState extends State<LoginPage> {
                   Text(
                     'Welcome back,\nYou\'ve been missed!',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 20,
                       height: 1.4,
                     ),
@@ -177,7 +177,7 @@ class LoginPageState extends State<LoginPage> {
                       child: Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -202,7 +202,7 @@ class LoginPageState extends State<LoginPage> {
                     isEnabled: _isFormValid,
                     backgroundColor: _isFormValid
                         ? purpleAccent
-                        : darkPurpleAccent.withOpacity(0.5),
+                        : darkPurpleAccent.withValues(alpha: 0.5),
                     textColor: Colors.white,
                   ),
 
@@ -220,7 +220,7 @@ class LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -246,7 +246,7 @@ class LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

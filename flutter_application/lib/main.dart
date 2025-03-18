@@ -26,6 +26,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(const MyApp());
 }
 
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
             '/username-dialog': (context) => const UsernamePage(),
             '/trivia': (context) => const TriviaPage(quickPlay: true),
             '/search': (context) => const SearchPage(fromHome: true),
-            '/edit_profile': (context) => const EditProfilePage(),
+            '/edit-profile': (context) => const EditProfilePage(),
           },
         ),
       ),
@@ -126,7 +127,16 @@ class BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: Container(
+          decoration: const BoxDecoration(
+            color: backgroundPageColor,
+            image: DecorationImage(
+              image: AssetImage('assets/images/shapes.png'),
+              opacity: 0.2,
+              repeat: ImageRepeat.repeat,
+            ),
+          ),
+          child: _screens[_currentIndex]),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
