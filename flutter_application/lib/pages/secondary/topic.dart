@@ -601,13 +601,89 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                     return Column(
                                       children: [
                                         GradientButton(
-                                          icon: isLoading
-                                              ? Icons.hourglass_top
-                                              : Icons
-                                                  .play_circle_filled_rounded,
-                                          text: isLoading
-                                              ? 'Please wait...'
-                                              : 'Start Session',
+                                            icon: isLoading
+                                                ? Icons.hourglass_top
+                                                : Icons
+                                                    .play_circle_filled_rounded,
+                                            text: 'Start Session',
+                                            gradient: isLoading
+                                                ? LinearGradient(
+                                                    colors: [
+                                                      Colors.grey.shade800,
+                                                      Colors.grey.shade700,
+                                                    ],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  )
+                                                : LinearGradient(
+                                                    colors: [
+                                                      widget.topicColor
+                                                          .withValues(
+                                                              alpha: 0.7),
+                                                      widget.topicColor,
+                                                      widget.topicColor
+                                                          .withValues(
+                                                              alpha: 0.8),
+                                                    ],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                            borderColor: Colors.white
+                                                .withValues(
+                                                    alpha:
+                                                        isLoading ? 0.05 : 0.2),
+                                            textColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 16),
+                                            fontSize: 16,
+                                            borderRadius: 16,
+                                            elevation: 10,
+                                            fullWidth: true,
+                                            onPressed: isLoading
+                                                ? () {}
+                                                : () async {
+                                                    try {
+                                                      // Navigate to the TempSessionWrapper
+                                                      if (mounted) {
+                                                        Navigator.push(
+                                                          context,
+                                                          slideTransitionRoute(
+                                                            TriviaPage(
+                                                              topic: widget
+                                                                  .topicName,
+                                                              isTemporarySession:
+                                                                  true,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                    } catch (e) {
+                                                      debugPrint(
+                                                          "Error starting session: $e");
+                                                      if (mounted) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                "Failed to start session: $e"),
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                          ),
+                                                        );
+                                                      }
+                                                    }
+                                                  }),
+                                        const SizedBox(height: 16),
+
+                                        // Add/Remove Topic Button
+                                        GradientButton(
+                                          icon: _isTopicSelected
+                                              ? Icons.playlist_remove_rounded
+                                              : Icons.playlist_add_rounded,
+                                          text: _isTopicSelected
+                                              ? 'Remove from My Topics'
+                                              : 'Add to My Topics',
                                           gradient: isLoading
                                               ? LinearGradient(
                                                   colors: [
@@ -617,81 +693,31 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                                   begin: Alignment.topLeft,
                                                   end: Alignment.bottomRight,
                                                 )
-                                              : LinearGradient(
-                                                  colors: [
-                                                    widget.topicColor
-                                                        .withValues(alpha: 0.7),
-                                                    widget.topicColor,
-                                                    widget.topicColor
-                                                        .withValues(alpha: 0.8),
-                                                  ],
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                ),
-                                          borderColor: Colors.white.withValues(
-                                              alpha: isLoading ? 0.05 : 0.2),
-                                          textColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 16),
-                                          fontSize: 16,
-                                          borderRadius: 16,
-                                          elevation: 10,
-                                          fullWidth: true,
-                                          onPressed: isLoading
-                                              ? () {}
-                                              : () {
-                                                  // Launch a temporary topic session
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          TriviaPage(
-                                                        topic: widget.topicName,
-                                                        isTemporarySession:
-                                                            true,
-                                                      ),
+                                              : _isTopicSelected
+                                                  ? const LinearGradient(
+                                                      colors: [
+                                                        Color.fromARGB(
+                                                            255, 180, 70, 70),
+                                                        warningRed,
+                                                        Color.fromARGB(
+                                                            255, 150, 40, 40),
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
+                                                    )
+                                                  : const LinearGradient(
+                                                      colors: [
+                                                        Color.fromARGB(
+                                                            255, 70, 180, 90),
+                                                        Colors.green,
+                                                        Color.fromARGB(
+                                                            255, 40, 130, 50),
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
                                                     ),
-                                                  );
-                                                },
-                                        ),
-                                        const SizedBox(height: 16),
-
-                                        // Add/Remove Topic Button
-                                        GradientButton(
-                                          icon: isLoading
-                                              ? Icons.hourglass_top
-                                              : _isTopicSelected
-                                                  ? Icons
-                                                      .playlist_remove_rounded
-                                                  : Icons.playlist_add_rounded,
-                                          text: isLoading
-                                              ? 'Please wait...'
-                                              : _isTopicSelected
-                                                  ? 'Remove from My Topics'
-                                                  : 'Add to My Topics',
-                                          gradient: _isTopicSelected
-                                              ? const LinearGradient(
-                                                  colors: [
-                                                    Color.fromARGB(
-                                                        255, 180, 70, 70),
-                                                    warningRed,
-                                                    Color.fromARGB(
-                                                        255, 150, 40, 40),
-                                                  ],
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                )
-                                              : const LinearGradient(
-                                                  colors: [
-                                                    Color.fromARGB(
-                                                        255, 70, 180, 90),
-                                                    Colors.green,
-                                                    Color.fromARGB(
-                                                        255, 40, 130, 50),
-                                                  ],
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                ),
                                           borderColor: Colors.white
                                               .withValues(alpha: 0.2),
                                           textColor: Colors.white,
@@ -701,7 +727,9 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                                           borderRadius: 16,
                                           elevation: 8,
                                           fullWidth: true,
-                                          onPressed: _toggleTopicSelection,
+                                          onPressed: isLoading
+                                              ? () {}
+                                              : _toggleTopicSelection,
                                         ),
                                       ],
                                     );

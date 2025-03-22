@@ -48,7 +48,7 @@ const Color githubColor = Color.fromARGB(255, 33, 40, 50);
 
 // Widget Gradients
 const LinearGradient buttonGradient = LinearGradient(
-  colors: [Color.fromARGB(255, 46, 46, 46), Color.fromARGB(255, 30, 30, 30)],
+  colors: [Color.fromARGB(255, 40, 40, 40), Color.fromARGB(255, 28, 28, 28)],
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
 );
@@ -64,11 +64,11 @@ const LinearGradient cardGradient = LinearGradient(
 
 const LinearGradient profileCardGradient = LinearGradient(
   colors: [
-    Color.fromARGB(255, 35, 35, 35),
-    Color.fromARGB(255, 27, 27, 27),
+    Color.fromARGB(255, 34, 34, 34),
+    Color.fromARGB(255, 26, 26, 26),
   ],
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
 );
 
 // Miscellaneous
@@ -78,3 +78,86 @@ BoxShadow buttonDropShadow = BoxShadow(
   blurRadius: 10, // Reduced spread for a cleaner look
   offset: const Offset(0, 4), // Positioning of the shadow
 );
+
+Route slideTransitionRoute(Widget page,
+    {int transitionDuration = 300,
+    int reverseTransitionDuration = 400,
+    bool reverse = false}) {
+  return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        Offset begin = (reverse)
+            ? const Offset(-1.0, 0.0) // Slide from right to left
+            : const Offset(1.0, 0.0); // Slide from right to left
+        const end = Offset.zero; // End at the default position
+
+        const curve = Curves.easeInOutQuart; // Smooth easing curve
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+
+        return SlideTransition(
+          position: offsetAnimation,
+          child: child,
+        );
+      },
+      transitionDuration: Duration(milliseconds: transitionDuration),
+      reverseTransitionDuration: Duration(
+          milliseconds: reverseTransitionDuration) // Transition duration
+      );
+}
+
+Route scaleUpTransitionRoute(Widget page) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // Create a smoother animation controller with a custom curve
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic, // Smoother main curve
+      );
+
+      // Refined slide up animation (more subtle)
+      var slideUpAnimation = Tween<Offset>(
+        begin: const Offset(0.0, 0.2), // Less vertical movement (0.3 → 0.2)
+        end: Offset.zero,
+      ).animate(curvedAnimation);
+
+      // Refined scale animation (more subtle)
+      var scaleAnimation = Tween<double>(
+        begin: 0.92, // Less dramatic scaling (0.85 → 0.92)
+        end: 1.0,
+      ).animate(
+        CurvedAnimation(
+          parent: animation,
+          curve: const Interval(0.0, 0.8,
+              curve: Curves.easeOutQuint), // Finishes earlier
+        ),
+      );
+
+      return SlideTransition(
+        position: slideUpAnimation,
+        child: ScaleTransition(
+          scale: scaleAnimation,
+          child: child,
+        ),
+      );
+    },
+    transitionDuration:
+        const Duration(milliseconds: 300), // Slightly shorter duration
+    reverseTransitionDuration: const Duration(milliseconds: 400),
+    // Slightly shorter exit
+  );
+}
+
+Route fadeTransitionRoute(Widget page) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+  );
+}

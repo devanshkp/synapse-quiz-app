@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
@@ -123,19 +125,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _pickImage() async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 85,
-      );
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      final androidVersion = androidInfo.version.sdkInt;
 
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          _hasChanges = true;
-          _updateFormValidity();
-        });
+      // Select the appropriate permission based on Android version
+      final permission =
+          androidVersion >= 33 ? Permission.photos : Permission.storage;
+
+      // Check current permission status
+      PermissionStatus permissionStatus = await permission.status;
+
+      // Handle based on status
+      if (permissionStatus.isGranted) {
+        // Permission already granted, pick image
+        _pickImageFromGallery();
+      } else if (permissionStatus.isPermanentlyDenied) {
+        // Permanently denied, show settings modal
+        _showPermissionModal(true);
+      } else {
+        // Request permission
+        permissionStatus = await permission.request();
+
+        if (permissionStatus.isGranted) {
+          // Permission granted, pick image
+          _pickImageFromGallery();
+        } else if (permissionStatus.isPermanentlyDenied) {
+          // Newly permanently denied, show settings modal
+          _showPermissionModal(true);
+        } else {
+          // Just denied, show regular modal
+          _showPermissionModal(false);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -145,6 +165,111 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
       }
     }
+  }
+
+// Extract image picking to a separate method
+  Future<void> _pickImageFromGallery() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+
+    if (pickedFile != null && mounted) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+        _hasChanges = true;
+        _updateFormValidity();
+      });
+    }
+  }
+
+// Extract modal to a separate method
+  void _showPermissionModal(bool isPermanentlyDenied) {
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        color: backgroundPageColor,
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Icon(
+                Icons.photo_library,
+                size: 70,
+                color: Theme.of(context).primaryColor,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Permission Required',
+                style: TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                  'Photo gallery access is required to upload a profile picture.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              const SizedBox(height: 30),
+
+              // Show different options based on denial type
+              if (!isPermanentlyDenied)
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    // Try again
+                    _pickImage();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: buttonColor,
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text('Try Again',
+                      style: TextStyle(color: Colors.white)),
+                ),
+
+              if (isPermanentlyDenied)
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await openAppSettings();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: buttonColor,
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text('Open Settings',
+                      style: TextStyle(color: Colors.white)),
+                ),
+
+              const SizedBox(height: 15),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _saveProfile() async {

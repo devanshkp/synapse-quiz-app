@@ -86,6 +86,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       style: const TextStyle(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(
         labelText: widget.labelText,
+        floatingLabelAlignment: FloatingLabelAlignment.start,
         labelStyle: TextStyle(
           color: Colors.white.withValues(alpha: 0.6),
           fontSize: 13,
@@ -126,113 +127,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                 },
               )
             : null,
-        floatingLabelBehavior: FloatingLabelBehavior.never,
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
       ),
       validator: widget.validator,
       onChanged: widget.onChanged,
-    );
-  }
-}
-
-class LoadingStateButton extends StatefulWidget {
-  final String label;
-  final Future<void> Function() onPressed;
-  final Color backgroundColor;
-  final Color textColor;
-  final bool isEnabled;
-  final bool showBorder;
-  final Color borderColor;
-
-  const LoadingStateButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    this.backgroundColor = Colors.white,
-    this.textColor = Colors.black,
-    this.isEnabled = true,
-    this.showBorder = false,
-    this.borderColor = Colors.transparent,
-  });
-
-  @override
-  State<LoadingStateButton> createState() => _LoadingStateButtonState();
-}
-
-class _LoadingStateButtonState extends State<LoadingStateButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isButtonEnabled = widget.isEnabled && !_isLoading;
-
-    return ElevatedButton(
-      onPressed: isButtonEnabled
-          ? () async {
-              setState(() {
-                _isLoading = true;
-              });
-
-              try {
-                await widget.onPressed();
-              } finally {
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              }
-            }
-          : null,
-      style: ElevatedButton.styleFrom(
-        fixedSize: const Size(double.infinity, 50),
-        backgroundColor: isButtonEnabled
-            ? widget.backgroundColor
-            : widget.backgroundColor.withValues(alpha: 0.5),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: widget.showBorder
-              ? BorderSide(color: widget.borderColor, width: 1)
-              : BorderSide.none,
-        ),
-        disabledBackgroundColor: widget.backgroundColor.withValues(alpha: 0.5),
-        disabledForegroundColor: widget.textColor.withValues(alpha: 0.5),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: Center(
-          child: _isLoading
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(widget.textColor),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      widget.label,
-                      style: TextStyle(
-                        color: widget.textColor,
-                      ),
-                    ),
-                  ],
-                )
-              : Text(
-                  widget.label,
-                  style: TextStyle(
-                    color: isButtonEnabled
-                        ? widget.textColor
-                        : widget.textColor.withValues(alpha: 0.5),
-                  ),
-                ),
-        ),
-      ),
     );
   }
 }
@@ -357,7 +255,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           onPressed: _isFormValid
               ? () async {
                   await widget.onSendResetLink(_emailController.text.trim());
-                  Navigator.pop(context);
+                  if (mounted) Navigator.pop(context);
                 }
               : () {},
           child: Text(

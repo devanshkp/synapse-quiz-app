@@ -1,147 +1,149 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/pages/main/trivia.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/home/question_history.dart';
-import 'package:flutter_application/widgets/home/topic_selection.dart';
+import 'package:flutter_application/pages/secondary/question_history.dart';
+import 'package:flutter_application/pages/secondary/topic_selection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
 
-Widget customHomeButton({
-  required String title,
-  required double titleFontSize,
-  String? subtitle,
-  double subtitleFontSize = 9.0,
-  FontWeight titleFontWeight = FontWeight.w600,
-  required String iconPath,
-  required double iconSize,
-  required VoidCallback onTap,
-  required EdgeInsetsGeometry textPadding,
-  required EdgeInsetsGeometry iconPadding,
-  String? heroTag,
-}) {
-  Widget buttonContent = Container(
-    padding: textPadding,
-    height: double.infinity,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
-          spreadRadius: 1,
-        ),
-        BoxShadow(
-          color: Colors.white.withValues(alpha: 0.03),
-          blurRadius: 0.5,
-          offset: const Offset(0, 1),
-          spreadRadius: 0,
-        ),
-      ],
-      gradient: const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color.fromARGB(255, 40, 40, 40),
-          Color.fromARGB(255, 28, 28, 28),
-        ],
-        stops: [0.1, 1.0],
+class CustomHomeButton extends StatelessWidget {
+  final String title;
+  final double titleFontSize;
+  final String? subtitle;
+  final double subtitleFontSize;
+  final FontWeight titleFontWeight;
+  final String iconPath;
+  final double iconSize;
+  final VoidCallback onTap;
+  final EdgeInsetsGeometry textPadding;
+  final EdgeInsetsGeometry iconPadding;
+  final Color splashColor;
+  final Color highlightColor;
+
+  const CustomHomeButton({
+    super.key,
+    required this.title,
+    required this.titleFontSize,
+    this.subtitle,
+    this.subtitleFontSize = 9.0,
+    this.titleFontWeight = FontWeight.w600,
+    required this.iconPath,
+    required this.iconSize,
+    required this.onTap,
+    required this.textPadding,
+    required this.iconPadding,
+    this.splashColor = Colors.white,
+    this.highlightColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 8,
+      shadowColor: Colors.black26,
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+      margin: EdgeInsets.zero,
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: buttonGradient,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.03),
+              blurRadius: 0.5,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          splashColor: splashColor.withValues(alpha: 0.1),
+          highlightColor: highlightColor.withValues(alpha: 0.05),
+          child: Container(
+            padding: textPadding,
+            height: double.infinity,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: titleFontSize,
-                    fontWeight: titleFontWeight,
-                    letterSpacing: 0.2,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        offset: const Offset(0, 1),
-                        blurRadius: 2,
-                      ),
-                    ],
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: titleFontWeight,
+                            letterSpacing: 0.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                offset: const Offset(0, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (subtitle != null && subtitle!.isNotEmpty)
+                          Text(
+                            subtitle!,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: subtitleFontSize,
+                              fontWeight: FontWeight.normal,
+                              letterSpacing: 0.1,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-                if (subtitle != null && subtitle.isNotEmpty)
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: subtitleFontSize,
-                      fontWeight: FontWeight.normal,
-                      letterSpacing: 0.1,
+                Padding(
+                  padding: iconPadding,
+                  child: ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.white, Colors.white70],
+                      ).createShader(bounds);
+                    },
+                    child: SvgPicture.asset(
+                      iconPath,
+                      width: iconSize,
+                      colorFilter:
+                          const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                      height: iconSize,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
               ],
             ),
           ),
         ),
-        Padding(
-          padding: iconPadding,
-          child: ShaderMask(
-            shaderCallback: (Rect bounds) {
-              return const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white, Colors.white70],
-              ).createShader(bounds);
-            },
-            child: SvgPicture.asset(
-              iconPath,
-              color: Colors.white,
-              width: iconSize,
-              height: iconSize,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  if (heroTag != null) {
-    buttonContent = Hero(
-      tag: heroTag,
-      child: Material(
-        color: Colors.transparent,
-        child: buttonContent,
       ),
     );
   }
-
-  return ElevatedButton(
-    onPressed: onTap,
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      splashFactory: InkRipple.splashFactory,
-    ).copyWith(
-      overlayColor: WidgetStateProperty.resolveWith<Color>(
-        (Set<WidgetState> states) {
-          return Colors.white.withValues(alpha: 0.05);
-        },
-      ),
-    ),
-    child: buttonContent,
-  );
 }
 
 LinearGradient createGradientFromColor(Color baseColor) {
@@ -190,59 +192,23 @@ class QuickPlayButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 82,
-      child: customHomeButton(
-        title: 'QUICK PLAY',
-        titleFontSize: 28,
-        titleFontWeight: FontWeight.bold,
-        subtitle: 'Play questions from your selected topics!',
-        subtitleFontSize: 11,
-        iconPath: 'assets/icons/home/Play.svg',
-        iconSize: 22,
-        onTap: () {
-          Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const TriviaPage(quickPlay: true),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                // Main slide up animation
-                var slideUpAnimation = Tween<Offset>(
-                  begin: const Offset(0.0, 0.3),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutExpo,
-                  ),
-                );
-
-                // Scale animation
-                var scaleAnimation = Tween<double>(
-                  begin: 0.85,
-                  end: 1.0,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutBack,
-                  ),
-                );
-
-                return SlideTransition(
-                  position: slideUpAnimation,
-                  child: ScaleTransition(
-                    scale: scaleAnimation,
-                    child: child,
-                  ),
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 600),
-              reverseTransitionDuration: const Duration(milliseconds: 500),
-            ),
-          );
-        },
-        textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
-        iconPadding: const EdgeInsets.only(bottom: 20),
-      ),
+      child: CustomHomeButton(
+          title: 'QUICK PLAY',
+          titleFontSize: 28,
+          titleFontWeight: FontWeight.bold,
+          subtitle: 'Play questions from your selected topics!',
+          subtitleFontSize: 11,
+          iconPath: 'assets/icons/home/Play.svg',
+          iconSize: 22,
+          textPadding: const EdgeInsets.only(left: 17, right: 12, bottom: 5),
+          iconPadding: const EdgeInsets.only(bottom: 20),
+          onTap: () {
+            Navigator.push(
+                context,
+                scaleUpTransitionRoute(const TriviaPage(
+                  quickPlay: true,
+                )));
+          }),
     );
   }
 }
@@ -256,12 +222,11 @@ class TopicSelectionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 72,
-      child: customHomeButton(
+      child: CustomHomeButton(
         title: 'Topic Selection',
         titleFontSize: 16,
         iconPath: 'assets/icons/home/Edit.svg',
         iconSize: 15,
-        heroTag: 'topic_selection_popup',
         onTap: () {
           Navigator.of(context).push(
             PageRouteBuilder(
@@ -300,7 +265,7 @@ class QuestionHistoryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 72,
-      child: customHomeButton(
+      child: CustomHomeButton(
         title: 'Question History',
         titleFontSize: 16,
         subtitle: 'Explore your most recently encountered questions.',

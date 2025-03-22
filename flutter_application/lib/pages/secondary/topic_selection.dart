@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -67,7 +66,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
 
   Future<void> _saveSelection() async {
     await triviaProvider.syncTopics(_tempSelectedTopics);
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override

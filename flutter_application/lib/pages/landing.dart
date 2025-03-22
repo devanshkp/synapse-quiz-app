@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/pages/auth/login.dart';
+import 'package:flutter_application/pages/auth/registration.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,6 +11,7 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundPageColor,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -155,8 +158,8 @@ class LandingPage extends StatelessWidget {
                         colors: [purpleAccent, darkPurpleAccent],
                       ),
                       textColor: Colors.white,
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/register'),
+                      onPressed: () => Navigator.push(context,
+                          slideTransitionRoute(const RegistrationPage())),
                       width: double.infinity,
                       height: 50,
                       fontSize: 13,
@@ -172,7 +175,8 @@ class LandingPage extends StatelessWidget {
                         ],
                       ),
                       textColor: Colors.white,
-                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      onPressed: () => Navigator.push(
+                          context, slideTransitionRoute(const LoginPage())),
                       width: double.infinity,
                       height: 50,
                       fontSize: 13,

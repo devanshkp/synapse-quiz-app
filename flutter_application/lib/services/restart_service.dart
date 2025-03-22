@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -14,9 +16,9 @@ class RestartService extends StatefulWidget {
     state?.restartApp();
   }
 
-  static void cleanUpProviders(context) {
-    Provider.of<UserProvider>(context, listen: false).disposeListeners();
+  static Future<void> cleanUpProviders(context) async {
     Provider.of<TriviaProvider>(context, listen: false).cancelFetchOperations();
+    Provider.of<UserProvider>(context, listen: false).disposeListeners();
   }
 
   @override

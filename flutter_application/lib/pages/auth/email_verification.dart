@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/services/auth_service.dart';
-import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({super.key});
@@ -72,11 +72,9 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                 .doc(user.uid)
                 .get();
 
-            if (!userDoc.exists) {
-              // If user doesn't have a profile, go to username page
+            if (!userDoc.exists && mounted) {
               Navigator.pushReplacementNamed(context, '/username-dialog');
-            } else {
-              // If user has a profile, go to home
+            } else if (mounted) {
               Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             }
           }
@@ -196,15 +194,16 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
                   // Email icon
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: purpleAccent.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                          width: 1, color: Colors.white.withValues(alpha: 0.7)),
                     ),
                     child: const Icon(
                       Icons.mark_email_unread_outlined,
-                      size: 80,
-                      color: purpleAccent,
+                      size: 60,
+                      color: Colors.white,
                     ),
                   ),
 
@@ -224,7 +223,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                       "Verify Your Email",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: 28,
                         fontWeight: FontWeight.w700,
                         height: 1.2,
                       ),
@@ -238,7 +237,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     'We\'ve sent a verification email to',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                      fontSize: 14,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -248,20 +247,20 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     email,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
 
                   Text(
                     'Check your inbox and click the verification link to continue.',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                      fontSize: 14,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,

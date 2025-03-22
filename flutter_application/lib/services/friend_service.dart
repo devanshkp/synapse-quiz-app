@@ -44,32 +44,38 @@ class FriendService {
     }
   }
 
-  // Fetch pending friend requests
-  Future<List<Friend>> getPendingFriendRequests(String userId) async {
+  Future<List<Friend>> getFriendRequests(String userId, bool incoming) async {
     try {
+      // Determine the field to query based on whether it's incoming or outgoing
+      final field = incoming ? 'receiverId' : 'senderId';
+      final otherField = incoming ? 'senderId' : 'receiverId';
+
+      // Fetch friend requests where the current user is either the receiver or sender
       final requestsSnapshot = await _firestore
           .collection('friend_requests')
-          .where('receiverId', isEqualTo: userId)
-          .where('status', isEqualTo: 'pending')
+          .where(field, isEqualTo: userId)
           .get();
 
-      final senderIds = requestsSnapshot.docs
-          .map((doc) => doc['senderId'] as String)
+      // Extract the IDs of the other party (sender or receiver)
+      final otherUserIds = requestsSnapshot.docs
+          .map((doc) => doc[otherField] as String)
           .toList();
 
-      if (senderIds.isEmpty) return [];
+      if (otherUserIds.isEmpty) return [];
 
-      // Fetch the details of the users who have sent requests (senderIds)
+      // Fetch the details of the other users (senders or receivers)
       final usersSnapshot = await _firestore
           .collection('users')
-          .where('userId', whereIn: senderIds)
+          .where('userId', whereIn: otherUserIds)
           .get();
 
       // Map the user documents to Friend objects
-      final friendRequets =
-          usersSnapshot.docs.map((doc) => Friend.fromDocument(doc)).toList();
+      final friends = usersSnapshot.docs.map((userDoc) {
+        final userData = userDoc.data();
+        return Friend.fromMap(userData);
+      }).toList();
 
-      return friendRequets;
+      return friends;
     } catch (e) {
       throw Exception('Failed to fetch friend requests: $e');
     }
@@ -119,7 +125,6 @@ class FriendService {
           .collection('friend_requests')
           .where('senderId', isEqualTo: senderId)
           .where('receiverId', isEqualTo: receiverId)
-          .where('status', isEqualTo: 'pending')
           .get();
 
       return snapshot.docs.isNotEmpty;
@@ -140,7 +145,6 @@ class FriendService {
           .collection('friend_requests')
           .where('senderId', isEqualTo: currentUserId)
           .where('receiverId', isEqualTo: receiverId)
-          .where('status', isEqualTo: 'pending')
           .get();
 
       if (existingRequest.docs.isNotEmpty) {
@@ -152,7 +156,6 @@ class FriendService {
         'senderId': currentUserId,
         'receiverId': receiverId,
         'timestamp': FieldValue.serverTimestamp(),
-        'status': 'pending',
       });
 
       return {'success': true, 'error': null};
@@ -240,14 +243,16 @@ class FriendService {
     }
   }
 
-  Future<Map<String, dynamic>> withdrawFriendRequest(
-      String currentUserId, String receiverId) async {
+  Future<Map<String, dynamic>> withdrawFriendRequest(String receiverId) async {
     try {
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserId == null) {
+        return {'success': false, 'error': 'User is not authenticated'};
+      }
       final requestSnapshot = await FirebaseFirestore.instance
           .collection('friend_requests')
           .where('senderId', isEqualTo: currentUserId)
           .where('receiverId', isEqualTo: receiverId)
-          .where('status', isEqualTo: 'pending')
           .get();
 
       for (var doc in requestSnapshot.docs) {

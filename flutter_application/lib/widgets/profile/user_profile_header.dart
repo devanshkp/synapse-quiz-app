@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/pages/secondary/edit_profile.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -47,7 +48,8 @@ class UserProfileHeader extends StatelessWidget {
                   bottom: 0,
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/edit-profile');
+                      Navigator.push(context,
+                          slideTransitionRoute(const EditProfilePage()));
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),

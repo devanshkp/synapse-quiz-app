@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
-import 'package:flutter_application/pages/topic.dart';
+import 'package:flutter_application/pages/secondary/topic.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/home/home_widgets.dart';
 
@@ -78,7 +78,7 @@ class CustomTabBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 0.5),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color.fromARGB(255, 34, 34, 34),
+          color: const Color.fromARGB(255, 32, 32, 32),
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: TabBar(
@@ -122,7 +122,7 @@ class TopicButton extends StatelessWidget {
   final Color color;
   final double titleFontSize;
   final String buttonType;
-  final double? radius;
+  final double? borderRadius;
   final double? buttonWidth;
   final double? buttonHeight;
   final double? bottomOffset;
@@ -137,7 +137,7 @@ class TopicButton extends StatelessWidget {
     required this.color,
     required this.titleFontSize,
     required this.buttonType,
-    this.radius,
+    this.borderRadius = 10.0,
     this.buttonWidth,
     this.buttonHeight,
     this.bottomOffset,
@@ -147,92 +147,105 @@ class TopicButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius ?? 10),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  TopicDetailsPage(
-                topicName: title,
-                iconName: iconName,
-                topicColor: color,
-                buttonType: buttonType,
-              ),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOutCubic;
-
-                var tween = Tween(begin: begin, end: end)
-                    .chain(CurveTween(curve: curve));
-                var offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(
-                  position: offsetAnimation,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 300),
-            ),
-          );
-        },
-        child: Container(
-          width: buttonWidth ?? double.infinity,
-          height: buttonHeight ?? double.infinity,
-          decoration: BoxDecoration(boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 6),
-            ),
-          ], gradient: createGradientFromColor(color)),
-          child: Stack(
-            children: [
-              // Positioned image for bottom-right corner
-              Positioned(
-                bottom: bottomOffset ?? -10,
-                right: rightOffset ?? -10,
-                child: Transform.rotate(
-                  angle: 0.3,
-                  child: Image.asset(
-                    'assets/images/topics/$iconName',
-                    width: iconSize,
-                    height: iconSize,
-                    fit: BoxFit.cover,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(borderRadius!),
+      elevation: 4, // This gives you the shadow effect
+      shadowColor: Colors.black.withValues(alpha: 0.3),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius!),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius!),
+            gradient: createGradientFromColor(color),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(borderRadius!),
+            highlightColor: Colors.white.withValues(alpha: 0.1),
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      TopicDetailsPage(
+                    topicName: title,
+                    iconName: iconName,
+                    topicColor: color,
+                    buttonType: buttonType,
                   ),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 300),
                 ),
-              ),
-              // Positioned text for top-left corner
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 100),
-                      child: Text(
-                        TextFormatter.formatTitlePreservingCase(title),
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          fontWeight: radius != null
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.left,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+              );
+            },
+            child: SizedBox(
+              width: buttonWidth ?? double.infinity,
+              height: buttonHeight ?? double.infinity,
+              child: Stack(
+                children: [
+                  // Positioned image for bottom-right corner
+                  Positioned(
+                    bottom: bottomOffset ?? -10,
+                    right: rightOffset ?? -10,
+                    child: Transform.rotate(
+                      angle: 0.3,
+                      child: Image.asset(
+                        'assets/images/topics/$iconName',
+                        width: iconSize,
+                        height: iconSize,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                ),
+                  // Positioned text for top-left corner
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: (buttonType == 'search')
+                                    ? constraints.maxWidth * 0.7
+                                    : constraints.maxWidth,
+                              ),
+                              child: Text(
+                                TextFormatter.formatTitlePreservingCase(title),
+                                style: TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.left,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -918,20 +931,21 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
         children: [
           const Text(
             'This action cannot be undone. All your data will be permanently deleted.',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: Colors.white70, fontSize: 13),
           ),
           const SizedBox(height: 16),
           const Text(
             'Type "Delete Account" to confirm:',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: Colors.white70, fontSize: 13),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
           TextField(
             controller: _confirmController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Delete Account',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+              hintStyle: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
@@ -957,7 +971,6 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
         TextButton(
           onPressed: _isConfirmEnabled
               ? () {
-                  Navigator.pop(context);
                   widget.onConfirm();
                 }
               : null,
@@ -971,6 +984,109 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class LoadingStateButton extends StatefulWidget {
+  final String label;
+  final Future<void> Function() onPressed;
+  final Color backgroundColor;
+  final Color textColor;
+  final bool isEnabled;
+  final bool showBorder;
+  final Color borderColor;
+
+  const LoadingStateButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.backgroundColor = Colors.white,
+    this.textColor = Colors.black,
+    this.isEnabled = true,
+    this.showBorder = false,
+    this.borderColor = Colors.transparent,
+  });
+
+  @override
+  State<LoadingStateButton> createState() => _LoadingStateButtonState();
+}
+
+class _LoadingStateButtonState extends State<LoadingStateButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isButtonEnabled = widget.isEnabled && !_isLoading;
+
+    return ElevatedButton(
+      onPressed: isButtonEnabled
+          ? () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              try {
+                await widget.onPressed();
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            }
+          : null,
+      style: ElevatedButton.styleFrom(
+        fixedSize: const Size(double.infinity, 50),
+        backgroundColor: isButtonEnabled
+            ? widget.backgroundColor
+            : widget.backgroundColor.withValues(alpha: 0.5),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: widget.showBorder
+              ? BorderSide(color: widget.borderColor, width: 1)
+              : BorderSide.none,
+        ),
+        disabledBackgroundColor: widget.backgroundColor.withValues(alpha: 0.5),
+        disabledForegroundColor: widget.textColor.withValues(alpha: 0.5),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: Center(
+          child: _isLoading
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(widget.textColor),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      widget.label,
+                      style: TextStyle(
+                        color: widget.textColor,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: isButtonEnabled
+                        ? widget.textColor
+                        : widget.textColor.withValues(alpha: 0.5),
+                  ),
+                ),
+        ),
+      ),
     );
   }
 }

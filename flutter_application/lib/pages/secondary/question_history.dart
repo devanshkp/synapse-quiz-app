@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
-import 'package:flutter_application/widgets/auth/auth_widgets.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 
@@ -20,15 +20,6 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // Schedule the loading after the current frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final triviaProvider =
-          Provider.of<TriviaProvider>(context, listen: false);
-      if (triviaProvider.encounteredQuestions.isEmpty) {
-        triviaProvider.loadEncounteredQuestions();
-      }
-    });
   }
 
   @override
@@ -119,8 +110,8 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
                       backgroundColor: purpleAccent,
                       textColor: Colors.white,
                       label: 'Load More',
-                      onPressed: () =>
-                          triviaProvider.loadEncounteredQuestions(),
+                      onPressed: () => triviaProvider.fetchEncounteredQuestions(
+                          loadMore: true),
                     ),
                   ),
               ],
@@ -195,8 +186,11 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      color: const Color.fromARGB(255, 25, 25, 25),
+      color: const Color.fromARGB(255, 20, 20, 20),
       shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: Colors.white.withValues(alpha: 0.1),
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
@@ -219,7 +213,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: purpleAccent.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       topic,
@@ -355,14 +349,14 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          widget.question['explanation'],
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
-                        ),
+                        TextFormatter.formatText(widget.question['explanation'],
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.left,
+                            maxLines: 20),
                       ],
                     ),
                   ),

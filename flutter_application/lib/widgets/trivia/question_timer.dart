@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class QuestionTimer extends StatefulWidget {
   final ValueNotifier<double> timeNotifier;
   final double totalTime;
+  final bool isTimerRunning;
 
   const QuestionTimer({
     super.key,
     required this.timeNotifier,
     required this.totalTime,
+    required this.isTimerRunning,
   });
 
   @override
@@ -56,14 +58,17 @@ class _QuestionTimerState extends State<QuestionTimer>
 
               // Progress indicator
               TweenAnimationBuilder<double>(
+                key: ValueKey<double>(progress),
                 tween: Tween<double>(begin: progress, end: progress),
                 duration: const Duration(milliseconds: 300),
                 builder: (context, value, child) {
-                  final Color progressColor = isLowTime
-                      ? Colors.redAccent
-                      : isMediumTime
-                          ? Colors.orangeAccent
-                          : Colors.greenAccent;
+                  final Color progressColor = widget.isTimerRunning
+                      ? isLowTime
+                          ? Colors.redAccent
+                          : isMediumTime
+                              ? Colors.orangeAccent
+                              : Colors.greenAccent
+                      : Colors.grey.shade700;
 
                   return SizedBox(
                     height: 60,
@@ -78,24 +83,23 @@ class _QuestionTimerState extends State<QuestionTimer>
                 },
               ),
 
-              // Timer text with shadow and pulse animation
               Center(
                 child: Text(
                   widget.timeNotifier.value
                       .clamp(0, widget.totalTime)
                       .toStringAsFixed(0),
                   style: TextStyle(
-                    color: isLowTime
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.9),
+                    color: widget.isTimerRunning
+                        ? isLowTime
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.9)
+                        : Colors.grey,
                     fontWeight: FontWeight.bold,
                     fontSize: 26,
                     shadows: [
                       Shadow(
-                        color: isLowTime
-                            ? Colors.redAccent.withValues(alpha: 0.7)
-                            : Colors.black.withValues(alpha: 0.5),
-                        blurRadius: isLowTime ? 5 : 3,
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 5,
                         offset: const Offset(0, 1),
                       ),
                     ],

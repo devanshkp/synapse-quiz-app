@@ -13,7 +13,8 @@ class UserProvider extends ChangeNotifier {
   // Listeners
   late StreamSubscription<QuerySnapshot> _friendsListener1;
   late StreamSubscription<QuerySnapshot> _friendsListener2;
-  late StreamSubscription<QuerySnapshot> _friendRequestsListener;
+  late StreamSubscription<QuerySnapshot> _incomingRequestsListener;
+  late StreamSubscription<QuerySnapshot> _outgoingRequestsListener;
   late StreamSubscription<DocumentSnapshot> _userProfileListener;
 
   // User profile and user id
@@ -25,7 +26,8 @@ class UserProvider extends ChangeNotifier {
 
   // Friends and friend requests
   List<Friend> _friends = [];
-  List<Friend> _friendRequests = [];
+  List<Friend> _incomingFriendRequests = [];
+  List<Friend> _outgoingFriendRequests = [];
 
   // Booleans
   bool _isDeveloper = false;
@@ -35,7 +37,10 @@ class UserProvider extends ChangeNotifier {
   UserProfile? get userProfile => _userProfile;
   String get currentUserId => _currentUserId;
   List<Friend> get friends => List.unmodifiable(_friends);
-  List<Friend> get friendRequests => List.unmodifiable(_friendRequests);
+  List<Friend> get incomingFriendRequests =>
+      List.unmodifiable(_incomingFriendRequests);
+  List<Friend> get outgoingFriendRequests =>
+      List.unmodifiable(_outgoingFriendRequests);
   bool get isDeveloper => _isDeveloper;
 
   // Setters
@@ -54,7 +59,8 @@ class UserProvider extends ChangeNotifier {
     fetchUserProfile();
     fetchUserPermissions();
     fetchFriendsList();
-    fetchFriendRequests();
+    fetchFriendRequests(isIncoming: true);
+    fetchFriendRequests(isIncoming: false);
     // Listeners
     listenToUserProfile();
     listenToFriends();
@@ -65,7 +71,8 @@ class UserProvider extends ChangeNotifier {
     _userProfile = null;
     _currentUserId = '';
     _friends = [];
-    _friendRequests = [];
+    _incomingFriendRequests = [];
+    _outgoingFriendRequests = [];
     _isDeveloper = false;
   }
 
@@ -79,7 +86,8 @@ class UserProvider extends ChangeNotifier {
   void disposeListeners() {
     _friendsListener1.cancel();
     _friendsListener2.cancel();
-    _friendRequestsListener.cancel();
+    _incomingRequestsListener.cancel();
+    _outgoingRequestsListener.cancel();
     _userProfileListener.cancel();
   }
 
@@ -144,10 +152,15 @@ class UserProvider extends ChangeNotifier {
   }
 
   // Fetch friend request data (pending requests)
-  Future<void> fetchFriendRequests() async {
+  Future<void> fetchFriendRequests({bool isIncoming = false}) async {
     try {
-      _friendRequests =
-          await _friendService.getPendingFriendRequests(_currentUserId);
+      final result =
+          await _friendService.getFriendRequests(_currentUserId, isIncoming);
+      if (isIncoming) {
+        _incomingFriendRequests = result;
+      } else {
+        _outgoingFriendRequests = result;
+      }
       safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching friend requests: $e");
@@ -170,13 +183,19 @@ class UserProvider extends ChangeNotifier {
   }
 
   void listenToFriendRequests() {
-    // Listen to friend requests collection for changes
-    _friendRequestsListener = FirebaseFirestore.instance
+    // Listen to incoming friend requests
+    _incomingRequestsListener = FirebaseFirestore.instance
         .collection('friend_requests')
         .where('receiverId', isEqualTo: _currentUserId)
-        .where('status', isEqualTo: 'pending')
         .snapshots()
-        .listen((_) => fetchFriendRequests());
+        .listen((_) => fetchFriendRequests(isIncoming: true));
+
+    // Listen to outgoing friend requests
+    _outgoingRequestsListener = FirebaseFirestore.instance
+        .collection('friend_requests')
+        .where('senderId', isEqualTo: _currentUserId)
+        .snapshots()
+        .listen((_) => fetchFriendRequests(isIncoming: false));
   }
 
   void listenToUserProfile() {

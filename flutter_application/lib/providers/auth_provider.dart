@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/main.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/username.dart';
 import 'package:flutter_application/pages/landing.dart';
+import 'package:flutter_application/pages/splash_screen.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,11 +20,12 @@ class AuthProvider extends StatefulWidget {
 
 class _AuthProviderState extends State<AuthProvider> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _showSplashScreen = true;
+  bool _splashTimerStarted = false;
 
   @override
   void initState() {
     super.initState();
-    // Force refresh the current user when the widget initializes
     _refreshCurrentUser();
   }
 
@@ -38,6 +40,19 @@ class _AuthProviderState extends State<AuthProvider> {
     }
   }
 
+  void _startSplashTimer() {
+    if (!_splashTimerStarted) {
+      _splashTimerStarted = true;
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showSplashScreen = false;
+          });
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -46,7 +61,7 @@ class _AuthProviderState extends State<AuthProvider> {
         // Show loading indicator while waiting for auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CustomCircularProgressIndicator()),
+            backgroundColor: backgroundPageColor,
           );
         }
 
@@ -74,7 +89,7 @@ class _AuthProviderState extends State<AuthProvider> {
             builder: (context, userDocSnapshot) {
               if (userDocSnapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
-                  body: Center(child: CustomCircularProgressIndicator()),
+                  backgroundColor: backgroundPageColor,
                 );
               }
 
@@ -83,13 +98,26 @@ class _AuthProviderState extends State<AuthProvider> {
                 return const UsernamePage();
               }
 
-              // Initialize providers and show the main app interface
+              // Initialize providers (moved outside conditional)
               Provider.of<UserProvider>(context, listen: false);
               Provider.of<TriviaProvider>(context, listen: false);
-              return const BottomNavBar();
+
+              // Start the splash timer if it hasn't been started yet
+              _startSplashTimer();
+
+              // Show splash or main app based on timer
+              if (_showSplashScreen) {
+                return const SplashScreen();
+              } else {
+                return const BottomNavBar();
+              }
             },
           );
         } else {
+          // Reset splash screen state when user logs out
+          _showSplashScreen = true;
+          _splashTimerStarted = false;
+
           // User is not authenticated, show landing page
           return const LandingPage();
         }

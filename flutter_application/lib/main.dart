@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/login.dart';
-import 'package:flutter_application/pages/auth/register.dart';
+import 'package:flutter_application/pages/auth/registration.dart';
 import 'package:flutter_application/pages/auth/username.dart';
 import 'package:flutter_application/providers/auth_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
@@ -19,12 +20,15 @@ import 'pages/landing.dart';
 import 'constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:flutter_application/pages/edit_profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
   );
 
   runApp(const MyApp());
@@ -50,8 +54,16 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Quiz App',
+
+          title: 'Synapse',
           theme: ThemeData(
+            pageTransitionsTheme: PageTransitionsTheme(
+              builders:
+                  Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
+                      TargetPlatform.values,
+                      value: (dynamic _) => const ZoomPageTransitionsBuilder(
+                          backgroundColor: backgroundPageColor)),
+            ),
             fontFamily: 'Poppins',
             scaffoldBackgroundColor: backgroundPageColor,
             primaryColor: lightPurpleAccent,
@@ -69,7 +81,6 @@ class MyApp extends StatelessWidget {
             '/username-dialog': (context) => const UsernamePage(),
             '/trivia': (context) => const TriviaPage(quickPlay: true),
             '/search': (context) => const SearchPage(fromHome: true),
-            '/edit-profile': (context) => const EditProfilePage(),
           },
         ),
       ),

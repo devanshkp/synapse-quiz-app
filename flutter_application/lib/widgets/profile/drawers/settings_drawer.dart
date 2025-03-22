@@ -1,10 +1,12 @@
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application/pages/secondary/edit_profile.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/services/auth_service.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application/constants.dart';
 
 class SettingsDrawer extends StatefulWidget {
   const SettingsDrawer({super.key});
@@ -117,7 +119,11 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
             text: 'Edit Profile',
             color: Colors.blue[200]!,
             onTap: () {
-              Navigator.pushNamed(context, '/edit-profile');
+              Navigator.push(
+                context,
+                slideTransitionRoute(
+                    const EditProfilePage()), // Use the custom slide transition
+              );
             },
           ),
         ],
@@ -131,7 +137,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Settings'),
+          _buildSectionTitle('Quiz'),
           const SizedBox(height: 8),
           CustomCard(
             icon: Icons.refresh,

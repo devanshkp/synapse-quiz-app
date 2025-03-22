@@ -10,7 +10,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
-    forceCodeForRefreshToken: true,
   );
   final UserService _userService = UserService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -299,23 +298,6 @@ class AuthService {
     }
   }
 
-  Future<void> signOut(BuildContext context) async {
-    try {
-      RestartService.cleanUpProviders(context);
-      await FirebaseAuth.instance.signOut();
-
-      if (context.mounted) {
-        RestartService.restartApp(context);
-      }
-      debugPrint("Signed out successfully");
-    } catch (e) {
-      if (context.mounted) {
-        floatingSnackBar(message: 'Error signing out: $e', context: context);
-      }
-      debugPrint("Error signing out: $e");
-    }
-  }
-
   // Set username for Third-Party Sign-In
   Future<void> setUsername(BuildContext context, String username) async {
     try {
@@ -363,14 +345,39 @@ class AuthService {
     }
   }
 
+  Future<void> signOut(BuildContext context) async {
+    try {
+      RestartService.cleanUpProviders(context);
+
+      await FirebaseAuth.instance.signOut();
+
+      if (context.mounted) {
+        debugPrint("restarting in sign out");
+        RestartService.restartApp(context);
+      }
+
+      debugPrint("Signed out successfully");
+    } catch (e) {
+      if (context.mounted) {
+        floatingSnackBar(message: 'Error signing out: $e', context: context);
+      }
+      debugPrint("Error signing out: $e");
+    }
+  }
+
   Future<void> deleteAccount(BuildContext context) async {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('No user logged in');
 
-      user.delete();
-
       RestartService.cleanUpProviders(context);
+
+      await user.delete();
+
+      if (context.mounted) {
+        debugPrint("restarting in delete");
+        RestartService.restartApp(context);
+      }
     } catch (e) {
       debugPrint('Error deleting account: $e');
       rethrow;

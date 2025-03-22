@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/services/auth_service.dart';
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 import 'package:flutter_application/constants.dart';
+import 'package:flutter_application/widgets/shared_widgets.dart';
 
 class UsernamePage extends StatefulWidget {
   const UsernamePage({super.key});

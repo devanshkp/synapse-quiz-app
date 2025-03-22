@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application/pages/topic.dart';
+import 'package:flutter_application/pages/secondary/topic.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import '../../constants.dart';

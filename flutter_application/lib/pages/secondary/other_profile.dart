@@ -7,7 +7,6 @@ import 'package:flutter_application/widgets/profile/tabs/topics_section.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
@@ -18,8 +17,10 @@ import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 
 class OtherProfilePage extends StatefulWidget {
   final Friend friend;
+  final UserProfile? preloadedProfile;
 
-  const OtherProfilePage({super.key, required this.friend});
+  const OtherProfilePage(
+      {super.key, required this.friend, this.preloadedProfile});
 
   @override
   State<OtherProfilePage> createState() => _OtherProfilePageState();
@@ -42,7 +43,12 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    _loadUserProfile();
+    if (widget.preloadedProfile != null) {
+      _userProfile = widget.preloadedProfile;
+      _isLoading = false;
+    } else {
+      _loadUserProfile();
+    }
     _checkFriendshipStatus();
   }
 
@@ -85,40 +91,24 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       setState(() {
         _isLoadingFriendshipStatus = true;
       });
+
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
       // Check if they are already friends
-      final friendsSnapshot1 = await FirebaseFirestore.instance
-          .collection('friends')
-          .where('userId1', isEqualTo: _currentUserId)
-          .where('userId2', isEqualTo: widget.friend.userId)
-          .get();
-
-      final friendsSnapshot2 = await FirebaseFirestore.instance
-          .collection('friends')
-          .where('userId1', isEqualTo: widget.friend.userId)
-          .where('userId2', isEqualTo: _currentUserId)
-          .get();
-
-      // Check if there's a pending outgoing request
-      final outgoingRequest = await FirebaseFirestore.instance
-          .collection('friend_requests')
-          .where('senderId', isEqualTo: _currentUserId)
-          .where('receiverId', isEqualTo: widget.friend.userId)
-          .where('status', isEqualTo: 'pending')
-          .get();
+      final isFriend = userProvider.friends
+          .any((friend) => friend.userId == widget.friend.userId);
 
       // Check if there's a pending incoming request
-      final incomingRequest = await FirebaseFirestore.instance
-          .collection('friend_requests')
-          .where('senderId', isEqualTo: widget.friend.userId)
-          .where('receiverId', isEqualTo: _currentUserId)
-          .where('status', isEqualTo: 'pending')
-          .get();
+      final isIncomingRequest = userProvider.incomingFriendRequests
+          .any((request) => request.userId == widget.friend.userId);
+
+      final isPendingRequest = userProvider.outgoingFriendRequests
+          .any((request) => request.userId == widget.friend.userId);
 
       setState(() {
-        _isFriend = friendsSnapshot1.docs.isNotEmpty ||
-            friendsSnapshot2.docs.isNotEmpty;
-        _isPendingRequest = outgoingRequest.docs.isNotEmpty;
-        _isIncomingRequest = incomingRequest.docs.isNotEmpty;
+        _isFriend = isFriend;
+        _isPendingRequest = isPendingRequest;
+        _isIncomingRequest = isIncomingRequest;
         _isLoadingFriendshipStatus = false;
       });
     } catch (e) {
@@ -225,8 +215,8 @@ class _OtherProfilePageState extends State<OtherProfilePage>
 
     try {
       // For outgoing requests, we need to find and delete the request
-      final result = await _friendService.withdrawFriendRequest(
-          _currentUserId!, widget.friend.userId);
+      final result =
+          await _friendService.withdrawFriendRequest(widget.friend.userId);
 
       if (result['success']) {
         setState(() {
@@ -306,10 +296,8 @@ class _OtherProfilePageState extends State<OtherProfilePage>
           ),
         ),
       ),
-      body: _isLoading || _isLoadingFriendshipStatus
-          ? const Center(
-              child: CustomCircularProgressIndicator(),
-            )
+      body: _isLoading
+          ? const SizedBox.shrink()
           : _userProfile == null
               ? const Center(
                   child: Text('User profile not found',
@@ -324,7 +312,9 @@ class _OtherProfilePageState extends State<OtherProfilePage>
                       const SizedBox(height: 15),
 
                       // Friendship button
-                      _buildFriendshipButton(),
+                      (_isLoadingFriendshipStatus)
+                          ? _buildFriendshipButton(empty: true)
+                          : _buildFriendshipButton(),
                       const SizedBox(height: 25),
 
                       // Main stats section
@@ -424,9 +414,11 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     );
   }
 
-  Widget _buildFriendshipButton() {
-    if (_currentUserId == null) {
-      return const SizedBox.shrink();
+  Widget _buildFriendshipButton({bool empty = false}) {
+    if (_currentUserId == null || empty) {
+      return const SizedBox(
+        height: 35,
+      );
     }
 
     if (_isFriend) {

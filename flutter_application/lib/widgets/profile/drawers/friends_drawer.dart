@@ -1,15 +1,12 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/services/friend_service.dart';
+import 'package:flutter_application/utils/profile_navigator.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/pages/other_profile.dart';
 
 class FriendsDrawer extends StatefulWidget {
   const FriendsDrawer({super.key});
@@ -20,23 +17,21 @@ class FriendsDrawer extends StatefulWidget {
 
 class _FriendsDrawerState extends State<FriendsDrawer> {
   final FriendService _friendService = FriendService();
-  List<Friend> searchResults = [];
-  String? currentUserId;
+  List<Friend> _searchResults = [];
 
   @override
   void initState() {
     super.initState();
-    currentUserId = FirebaseAuth.instance.currentUser?.uid;
     _initializeFriends();
   }
 
-  void _initializeFriends() {
+  void _initializeFriends() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (userProvider.friends.isEmpty) {
-      userProvider.fetchFriendsList();
+      await userProvider.fetchFriendsList();
     }
-    if (userProvider.friendRequests.isEmpty) {
-      userProvider.fetchFriendRequests();
+    if (userProvider.incomingFriendRequests.isEmpty) {
+      await userProvider.fetchFriendRequests(isIncoming: true);
     }
   }
 
@@ -53,7 +48,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 _buildHeader(),
                 _buildSearchBar(),
                 Expanded(
-                  child: _buildContent(userProvider.friends),
+                  child: _buildContent(),
                 ),
               ],
             ),
@@ -92,7 +87,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               ),
             ],
           ),
-          if (userProvider.friendRequests.isNotEmpty) ...[
+          if (userProvider.incomingFriendRequests.isNotEmpty) ...[
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -110,7 +105,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${userProvider.friendRequests.length} new',
+                    '${userProvider.incomingFriendRequests.length} new',
                     style: TextStyle(
                       color: Colors.blue[200],
                       fontSize: 12,
@@ -157,7 +152,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             onChanged: (query) {
               if (query.isEmpty) {
                 setState(() {
-                  searchResults = [];
+                  _searchResults = [];
                 });
               } else if (query.length >= 2) {
                 _searchUsers(query);
@@ -169,106 +164,99 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  Widget _buildContent(List<Friend> friends) {
-    if (searchResults.isNotEmpty) {
-      return _buildSearchResults(friends);
+  Widget _buildContent() {
+    if (_searchResults.isNotEmpty) {
+      return _buildSearchResults();
     }
-    return _buildFriendsList(friends);
+    return _buildFriendsList();
   }
 
-  Widget _buildSearchResults(List<Friend> friends) {
+  Widget _buildSearchResults() {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: searchResults.length,
+      itemCount: _searchResults.length,
       itemExtent: 80, // Fixed height for better performance
       itemBuilder: (context, index) {
-        final friend = searchResults[index];
-        return _buildSearchResultCard(friend, friends);
+        final friend = _searchResults[index];
+        return _buildSearchResultCard(friend);
       },
     );
   }
 
-  Widget _buildFriendsList(List<Friend> friends) {
+  Widget _buildFriendsList() {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final friendRequests = userProvider.friendRequests;
-    // Calculate total items: section headers + friend requests + divider (if requests exist) + all friends
-    final int totalItems = 1 + // "All Friends" header
-        (friendRequests.isNotEmpty
-            ? 1 + friendRequests.length + 1
-            : 0) + // "Friend Requests" header + requests + divider
-        (friends.isEmpty ? 1 : friends.length); // Empty state or friends list
+    List<Friend> friends = userProvider.friends;
+    List<Friend> incomingFriendRequests = userProvider.incomingFriendRequests;
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: totalItems,
-      itemBuilder: (context, index) {
-        int currentIndex = 0;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            // Friend Requests Section
+            if (incomingFriendRequests.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: _buildSectionHeader(
+                        'Friend Requests', incomingFriendRequests.length,
+                        isRequest: true),
+                  ),
+                  const SizedBox(height: 12),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: incomingFriendRequests.length,
+                    itemBuilder: (context, index) {
+                      final request = incomingFriendRequests[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 5),
+                        child: _buildFriendRequestCard(request),
+                      );
+                    },
+                  ),
+                  const Divider(
+                    color: Colors.white24,
+                    height: 16,
+                    indent: 10,
+                    endIndent: 10,
+                  ),
+                  const SizedBox(height: 20)
+                ],
+              ),
 
-        // Friend Requests Section
-        if (friendRequests.isNotEmpty) {
-          // Friend Requests Header
-          if (index == currentIndex) {
-            return Column(
+            // All Friends Section
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('Friend Requests', friendRequests.length,
-                    isRequest: true),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _buildSectionHeader('All Friends', friends.length),
+                ),
                 const SizedBox(height: 12),
+                if (friends.isEmpty)
+                  _buildEmptyState('Start adding friends!')
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      final friend = friends[index];
+                      return Padding(
+                        key: ValueKey('friend_${friend.userId}'),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildUserCard(friend),
+                      );
+                    },
+                  ),
               ],
-            );
-          }
-          currentIndex++;
-
-          // Friend Request Items
-          if (index < currentIndex + friendRequests.length) {
-            final requestIndex = index - currentIndex;
-            final request = friendRequests[requestIndex];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: _buildFriendRequestCard(request),
-            );
-          }
-          currentIndex += friendRequests.length;
-
-          // Divider
-          if (index == currentIndex) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Divider(color: Colors.white24, height: 16),
-            );
-          }
-          currentIndex++;
-        }
-
-        // All Friends Header
-        if (index == currentIndex) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader('All Friends', friends.length),
-              const SizedBox(height: 12),
-            ],
-          );
-        }
-        currentIndex++;
-
-        // All Friends List or Empty State
-        if (friends.isEmpty) {
-          return _buildEmptyState('Start adding friends!');
-        } else {
-          final friendIndex = index - currentIndex;
-          if (friendIndex < friends.length) {
-            final friend = friends[friendIndex];
-            return Padding(
-              key: ValueKey('friend_${friend.userId}'),
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _buildUserCard(friend),
-            );
-          }
-        }
-
-        return const SizedBox.shrink();
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -287,14 +275,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              gradient: LinearGradient(
-                colors: [
-                  Colors.white.withValues(alpha: 0.085),
-                  Colors.white.withValues(alpha: 0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: buttonGradient,
               borderRadius: BorderRadius.circular(15),
             ),
             child: ListTile(
@@ -335,9 +316,13 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  Widget _buildSearchResultCard(Friend friend, List<Friend> friends) {
-    final isFriend = friends.any((f) => f.userId == friend.userId);
-
+  Widget _buildSearchResultCard(Friend friend) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isFriend = userProvider.friends.any((f) => f.userId == friend.userId);
+    final isRequested = userProvider.outgoingFriendRequests
+        .any((fr) => fr.userId == friend.userId);
+    final isIncoming = userProvider.incomingFriendRequests
+        .any((fr) => fr.userId == friend.userId);
     return Card(
       elevation: 8,
       shadowColor: Colors.black45,
@@ -359,57 +344,50 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           ),
           borderRadius: BorderRadius.circular(15),
         ),
-        child: FutureBuilder<bool>(
-          future: _friendService.isFriendRequestPending(
-              currentUserId!, friend.userId),
-          builder: (context, snapshot) {
-            final isRequested = snapshot.data ?? false;
-
-            return ListTile(
-              leading: GestureDetector(
-                onTap: () => _navigateToUserProfile(friend),
-                child: AvatarImage(
-                  avatarUrl: friend.avatarUrl,
-                  avatarRadius: 20,
-                ),
-              ),
-              title: Text(
-                friend.fullName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              subtitle: Text(
-                friend.userName,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 12,
-                ),
-              ),
-              trailing: _buildSearchResultCardTrailing(
-                  friend.userId, isFriend, isRequested),
-            );
-          },
+        child: ListTile(
+          leading: GestureDetector(
+            onTap: () => _navigateToUserProfile(friend),
+            child: AvatarImage(
+              avatarUrl: friend.avatarUrl,
+              avatarRadius: 20,
+            ),
+          ),
+          title: Text(
+            friend.fullName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            friend.userName,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
+          trailing: _buildSearchResultCardTrailing(
+              friend.userId, isFriend, isRequested, isIncoming),
         ),
       ),
     );
   }
 
   Widget _buildSearchResultCardTrailing(
-      String userId, bool isFriend, bool isRequested) {
+      String userId, bool isFriend, bool isRequested, bool isIncoming) {
     if (isFriend) {
+      // User is already a friend
       return IconButton(
         icon: Icon(Icons.more_vert, color: Colors.white.withValues(alpha: 0.5)),
         onPressed: () => _showFriendOptions(userId),
       );
     } else if (isRequested) {
+      // User has a pending outgoing request
       return GestureDetector(
         onTap: () async {
           try {
-            final result = await _friendService.withdrawFriendRequest(
-                currentUserId!, userId);
+            final result = await _friendService.withdrawFriendRequest(userId);
 
             if (!result['success']) {
               if (mounted) {
@@ -432,7 +410,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               // Force rebuild of the widget to refresh the UI
               setState(() {
                 // This will trigger a rebuild of the FutureBuilder
-                searchResults = List.from(searchResults);
+                _searchResults = List.from(_searchResults);
               });
             }
           } catch (e) {
@@ -452,7 +430,56 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           ),
         ),
       );
+    } else if (isIncoming) {
+      // User has a pending incoming request
+      return GestureDetector(
+        onTap: () async {
+          try {
+            final result = await _friendService.acceptFriendRequest(userId);
+
+            if (!result['success']) {
+              if (mounted) {
+                floatingSnackBar(
+                  message: result['error'] ?? 'Failed to accept friend request',
+                  context: context,
+                );
+              }
+              return;
+            }
+
+            if (mounted) {
+              // Show success message
+              floatingSnackBar(
+                message: 'Friend request accepted',
+                context: context,
+              );
+
+              // Force rebuild of the widget to refresh the UI
+              setState(() {
+                // This will trigger a rebuild of the FutureBuilder
+                _searchResults = List.from(_searchResults);
+              });
+            }
+          } catch (e) {
+            if (mounted) {
+              floatingSnackBar(
+                message:
+                    'Error accepting friend request. Please try again later.',
+                context: context,
+              );
+            }
+          }
+        },
+        child: const Text(
+          'Accept',
+          style: TextStyle(
+            color: Colors.green,
+            fontSize: 12,
+          ),
+        ),
+      );
     } else {
+      // No friend request exists
       return IconButton(
         icon:
             Icon(Icons.person_add, color: Colors.white.withValues(alpha: 0.5)),
@@ -845,29 +872,8 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  void _navigateToUserProfile(Friend friend) {
-    // animate the page route and make it fast
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 200),
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            OtherProfilePage(friend: friend),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOutCubic;
-
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
-        },
-      ),
-    );
+  void _navigateToUserProfile(Friend friend) async {
+    ProfileNavigator.navigateToProfile(context: context, friend: friend);
   }
 
   void _navigateToUserProfileById(String userId) {
@@ -875,7 +881,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final friend = userProvider.friends.firstWhere(
       (f) => f.userId == userId,
-      orElse: () => searchResults.firstWhere(
+      orElse: () => _searchResults.firstWhere(
         (f) => f.userId == userId,
         orElse: () => Friend(
           userId: userId,
@@ -891,6 +897,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
   Widget _buildEmptyState(String text) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
@@ -917,7 +924,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
       if (mounted) {
         setState(() {
-          searchResults = List<Friend>.from(result['friends'] ?? []);
+          _searchResults = List<Friend>.from(result['friends'] ?? []);
 
           if (result['error'] != null &&
               result['error'] != 'User $query not found') {
@@ -934,7 +941,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   Future<void> _sendFriendRequest(String receiverId) async {
     final result = await _friendService.sendFriendRequest(receiverId);
 
-    if (!result['success']) {
+    if (!result['success'] && mounted) {
       floatingSnackBar(
         message: result['error'],
         context: context,
@@ -944,13 +951,11 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
     if (!mounted) return;
     // Update the UI state here to reflect the "Requested" state
-    setState(
-        () {}); // This will re-trigger the build method and update the trailing widget.
+    setState(() {});
   }
 
   Future<void> _acceptFriendRequest(String senderId) async {
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
       final result = await _friendService.acceptFriendRequest(senderId);
 
       if (!result['success']) {
@@ -970,14 +975,10 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         message: 'Friend request accepted!',
         context: context,
       );
-
-      // Refresh data from server
-      userProvider.fetchFriendsList();
-      userProvider.fetchFriendRequests();
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
-          message: 'Error accepting friend request: $e',
+          message: 'Error accepting friend request. Please try again later.',
           context: context,
         );
       }
@@ -986,7 +987,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
   Future<void> _declineFriendRequest(String senderId) async {
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
       final result = await _friendService.declineFriendRequest(senderId);
 
       if (!result['success']) {
@@ -1000,9 +1000,6 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       }
 
       if (!mounted) return;
-
-      // Refresh data from server
-      userProvider.fetchFriendRequests();
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
@@ -1016,7 +1013,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   Future<void> _removeFriend(String friendId) async {
     final result = await _friendService.removeFriend(friendId);
 
-    if (!result['success']) {
+    if (!result['success'] && mounted) {
       floatingSnackBar(
         message: result['error'],
         context: context,
@@ -1031,9 +1028,5 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       message: 'Friend removed successfully',
       context: context,
     );
-
-    // Refresh the friends list
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.fetchFriendsList();
   }
 }

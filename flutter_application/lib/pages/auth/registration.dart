@@ -206,8 +206,8 @@ class RegistrationPageState extends State<RegistrationPage> {
                   CustomTextFormField(
                     controller: _passwordController,
                     labelText: 'Password',
-                    isPasswordField: true,
                     validator: _validatePassword,
+                    isPasswordField: true,
                   ),
                   const SizedBox(height: 16),
 
@@ -215,18 +215,18 @@ class RegistrationPageState extends State<RegistrationPage> {
                   CustomTextFormField(
                     controller: _confirmPasswordController,
                     labelText: 'Confirm Password',
-                    isPasswordField: true,
                     validator: _validateConfirmPassword,
+                    isPasswordField: true,
                   ),
                   const SizedBox(height: 30),
 
                   // Register button with solid color instead of gradient and glow
                   LoadingStateButton(
-                    label: 'Create',
+                    label: 'Next',
                     onPressed: () async {
                       await _registerUser();
                     },
-                      isEnabled: _formValid,  
+                    isEnabled: _formValid,
                     backgroundColor: _formValid
                         ? purpleAccent
                         : darkPurpleAccent.withValues(alpha: 0.5),
@@ -303,8 +303,10 @@ class RegistrationPageState extends State<RegistrationPage> {
                     child: AuthRedirectText(
                       regularText: 'Already have an account?',
                       highlightedText: 'Login',
-                      onTap: () =>
-                          Navigator.pushReplacementNamed(context, '/login'),
+                      onTap: () => Navigator.pushReplacementNamed(
+                        context,
+                        '/login',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 40),

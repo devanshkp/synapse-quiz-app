@@ -12,7 +12,7 @@ class UserService {
   }) async {
     await _firestore.collection('users').doc(user.uid).set({
       'userId': user.uid,
-      'userName': userName,
+      'userName': userName.toLowerCase(),
       'fullName': fullName ?? user.displayName ?? 'User',
       'avatarUrl': avatarUrl ?? '',
       'selectedTopics': [

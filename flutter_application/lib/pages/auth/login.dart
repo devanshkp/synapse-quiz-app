@@ -153,6 +153,7 @@ class LoginPageState extends State<LoginPage> {
                     controller: _passwordController,
                     labelText: 'Password',
                     validator: _validatePassword,
+                    isPasswordField: true,
                   ),
 
                   // FORGOT PASSWORD
@@ -277,7 +278,10 @@ class LoginPageState extends State<LoginPage> {
                       regularText: 'Don\'t have an account?',
                       highlightedText: 'Register',
                       onTap: () {
-                        Navigator.pushReplacementNamed(context, '/register');
+                        Navigator.pushReplacementNamed(
+                          context,
+                          '/register',
+                        );
                       },
                     ),
                   ),

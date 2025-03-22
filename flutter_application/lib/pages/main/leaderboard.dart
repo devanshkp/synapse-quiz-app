@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/providers/user_provider.dart';
-import 'package:flutter_application/utils/profile_navigation.dart';
+import 'package:flutter_application/utils/profile_navigator.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,8 +24,8 @@ class LeaderboardPageState extends State<LeaderboardPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     // Initialize friends list if empty
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     Future.microtask(() {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
       if (userProvider.friends.isEmpty) {
         userProvider.fetchFriendsList();
       }
@@ -60,7 +60,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                   Colors.black.withValues(alpha: 0.1),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(26),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
@@ -76,19 +76,21 @@ class LeaderboardPageState extends State<LeaderboardPage>
             child: CustomTabBar(
               controller: _tabController,
               tabs: const ['Friends', 'Global'],
-              horizontalPadding: 8,
+              horizontalPadding: 4,
               tabHeight: 40,
               indicatorPadding: const EdgeInsets.all(2),
             ),
           ),
           // Content area
           Expanded(
-            child: ContentSizeTabBarView(
-              controller: _tabController,
-              children: [
-                _buildFriendsLeaderboard(),
-                _buildGlobalLeaderboard(),
-              ],
+            child: SingleChildScrollView(
+              child: ContentSizeTabBarView(
+                controller: _tabController,
+                children: [
+                  _buildFriendsLeaderboard(),
+                  _buildGlobalLeaderboard(),
+                ],
+              ),
             ),
           ),
         ],
@@ -332,7 +334,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                 Column(
                   children: [
                     for (int i = 0; i < topEntries.length && i < 3; i++)
-                      _buildTopRankCard(topEntries[i], i + 1),
+                      _buildRankCard(topEntries[i], i + 1),
                   ],
                 ),
             ],
@@ -342,7 +344,55 @@ class LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  Widget _buildTopRankCard(LeaderboardEntry entry, int rank) {
+  Widget _buildOtherPlayers(List<LeaderboardEntry> entries) {
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Title section
+        const Padding(
+          padding: EdgeInsets.fromLTRB(24, 20, 24, 16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.people_outline,
+                color: Colors.white70,
+                size: 18,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Other Players',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // List section
+        ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          itemCount: entries.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final entry = entries[index];
+            final rank = entry.rank;
+            return _buildRankCard(entry, rank);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRankCard(LeaderboardEntry entry, int rank) {
     final friend = entry.friend;
     final isCurrentUser = entry.isCurrentUser;
 
@@ -410,10 +460,13 @@ class LeaderboardPageState extends State<LeaderboardPage>
         );
         break;
       default:
-        baseColor = Theme.of(context).primaryColor;
-        highlightColor = Theme.of(context).primaryColor.withValues(alpha: 0.7);
-        accentColor = Theme.of(context).primaryColor;
-        borderColor = Theme.of(context).primaryColor.withValues(alpha: 0.5);
+        accentColor = Colors.grey.shade600;
+        baseColor =
+            isCurrentUser ? const Color(0xFF2A3142) : const Color(0xFF2D2D2D);
+        borderColor = isCurrentUser
+            ? Colors.grey.shade300
+            : accentColor.withValues(alpha: 0.15);
+        highlightColor = baseColor;
         cardGradient = LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -449,7 +502,10 @@ class LeaderboardPageState extends State<LeaderboardPage>
           borderRadius: BorderRadius.circular(16),
           onTap: isCurrentUser
               ? null
-              : () => ProfileNavigation.navigateToUserProfile(context, friend),
+              : () => ProfileNavigator.navigateToProfile(
+                    context: context,
+                    friend: friend,
+                  ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
@@ -583,260 +639,6 @@ class LeaderboardPageState extends State<LeaderboardPage>
                         '${friend.questionsSolved}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOtherPlayers(List<LeaderboardEntry> entries) {
-    if (entries.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 20, 24, 16),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.people_outline,
-                  color: Colors.white70,
-                  size: 18,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Other Players',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // List section
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              itemCount: entries.length,
-              itemBuilder: (context, index) {
-                final entry = entries[index];
-                final rank = entry.rank;
-                return _buildRankItem(entry, rank);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRankItem(LeaderboardEntry entry, int rank) {
-    final friend = entry.friend;
-    final isCurrentUser = entry.isCurrentUser;
-
-    // Create color based on rank
-    final hue = (rank * 10) % 360;
-    final Color accentColor =
-        HSLColor.fromAHSL(1.0, hue.toDouble(), 0.65, 0.5).toColor();
-
-    // Background and border colors
-    final Color cardColor = isCurrentUser
-        ? const Color(0xFF2A3142) // Slightly bluish dark for current user
-        : const Color(0xFF2D2D2D); // Standard dark for others
-
-    final Color borderColor = isCurrentUser
-        ? Theme.of(context).primaryColor.withValues(alpha: 0.3)
-        : accentColor.withValues(alpha: 0.15);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: isCurrentUser
-              ? null
-              : () => ProfileNavigation.navigateToUserProfile(context, friend),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 10,
-              horizontal: 14,
-            ),
-            child: Row(
-              children: [
-                // Rank number with metallic effect
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.5),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: accentColor,
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: borderColor.withValues(alpha: 0.3),
-                        blurRadius: 2,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$rank',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-
-                // Avatar with user indicator
-                SizedBox(
-                  width: 36, // Ensure there's enough space for the indicator
-                  height: 36,
-                  child: Stack(
-                    clipBehavior: Clip.none, // Prevent clipping of children
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: UserAvatar(
-                          avatarUrl: friend.avatarUrl,
-                          avatarRadius: 18,
-                        ),
-                      ),
-                      if (isCurrentUser)
-                        Positioned(
-                          bottom: -3,
-                          right: -3,
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: cardGradient.colors[0],
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 2,
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-                // Name and username
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isCurrentUser ? 'You' : friend.fullName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '@${friend.userName}',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Questions count with metallic effect
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.5),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: accentColor,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withValues(alpha: 0.2),
-                        blurRadius: 2,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        color: accentColor,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${friend.questionsSolved}',
-                        style: TextStyle(
-                          color: accentColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),

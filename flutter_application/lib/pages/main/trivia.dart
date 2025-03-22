@@ -42,7 +42,6 @@ class _TriviaPageState extends State<TriviaPage>
   late AnimationController _topicAnimationController;
 
   bool _movingToNextQuestion = false;
-
   // Drawer State
   final double _drawerOffset = 0.0;
 
@@ -89,15 +88,6 @@ class _TriviaPageState extends State<TriviaPage>
     _animationController.dispose();
     _topicAnimationController.dispose();
 
-    // Use a microtask to ensure state updates happen after disposal
-    Future.microtask(() {
-      _triviaProvider.setTriviaActive(false);
-
-      if (widget.isTemporarySession) {
-        _triviaProvider.endTemporarySession(widget.topic);
-      }
-    });
-
     ObserverService.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -119,26 +109,23 @@ class _TriviaPageState extends State<TriviaPage>
     _triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
     ObserverService.routeObserver.subscribe(this, ModalRoute.of(context)!);
 
-    // Initialize temporary topic session if needed
-    if (widget.isTemporarySession && widget.topic.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await _triviaProvider.startTemporarySession(widget.topic);
-
-        // Add a safety timeout to prevent infinite loading
-        Future.delayed(const Duration(seconds: 30), () {
-          if (_triviaProvider.isLoadingQuestions && mounted) {
-            debugPrint(
-                "Safety timeout triggered - forcing loading state to false");
-            _triviaProvider.forceLoadingComplete();
-          }
-        });
-      });
+    if (widget.isTemporarySession) {
+      _triviaProvider.isLoadingQuestions = true;
+      _triviaProvider.startTemporarySession(widget.topic);
     }
+
+    Future.delayed(const Duration(seconds: 30), () {
+      if (_triviaProvider.isLoadingQuestions && mounted) {
+        debugPrint("Safety timeout triggered - forcing loading state to false");
+        _triviaProvider.forceLoadingComplete();
+      }
+    });
   }
 
   @override
   void didPush() {
-    _triviaProvider.setTriviaActive(true);
+    _triviaProvider.setTriviaActive(true,
+        temporarySession: widget.isTemporarySession);
   }
 
   @override
@@ -156,7 +143,7 @@ class _TriviaPageState extends State<TriviaPage>
 
   // ============================== QUESTION LOGIC ==============================
 
-  void _handleNextQuestion() {
+  void handleNextQuestion() {
     if (_movingToNextQuestion) {
       return;
     }
@@ -182,36 +169,46 @@ class _TriviaPageState extends State<TriviaPage>
   Widget build(BuildContext context) {
     return Consumer<TriviaProvider>(
       builder: (context, triviaProvider, child) {
-        if (triviaProvider.isLoadingQuestions) {
-          return _buildLoadingScreen();
+        // First check: Are we still loading topics? Show loading screen if true
+        if (triviaProvider.isLoadingTopics) {
+          return _buildLoadingScreen(message: "Loading topics...");
         }
 
+        // Second check: No topics selected? Show empty state
         if (triviaProvider.selectedTopics.isEmpty) {
           return _buildEmptyState(topicsEmpty: true);
         }
 
+        // Third check: Are we loading questions?
+        if (triviaProvider.isLoadingQuestions ||
+            triviaProvider.isFetchingQuestions) {
+          return _buildLoadingScreen(message: "Loading questions...");
+        }
+
+        // Fourth check: No questions available for the selected topics
         if (triviaProvider.questions.isEmpty) {
           return _buildEmptyState();
         }
 
+        // All checks passed, show the main trivia page
         return _buildTriviaPage(triviaProvider);
       },
     );
   }
 
-  Widget _buildLoadingScreen() {
+  Widget _buildLoadingScreen({String message = "Loading questions..."}) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: cardGradient),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomCircularProgressIndicator(),
-              SizedBox(height: 20),
+              const CustomCircularProgressIndicator(),
+              const SizedBox(height: 20),
               Text(
-                "Loading questions...",
-                style: TextStyle(color: Colors.white70),
+                message,
+                style: const TextStyle(color: Colors.white70),
               ),
             ],
           ),
@@ -239,7 +236,7 @@ class _TriviaPageState extends State<TriviaPage>
               Text(
                 topicsEmpty
                     ? "No topics selected at the moment."
-                    : "No questions available in selected categories.",
+                    : "No questions available in selected topics.",
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[400],
@@ -264,7 +261,7 @@ class _TriviaPageState extends State<TriviaPage>
               key: _drawerKey,
               question: triviaProvider.currentQuestion,
               isAnswered: triviaProvider.answered,
-              onNextQuestion: _handleNextQuestion,
+              onNextQuestion: handleNextQuestion,
             ),
             controller: _advancedDrawerController,
             animationDuration: const Duration(milliseconds: 200),
@@ -337,11 +334,13 @@ class _TriviaPageState extends State<TriviaPage>
                     child: Stack(
                       children: [
                         // Topics counter in top right
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: _buildTopicsCounter(triviaProvider),
-                        ),
+                        if (!widget.isTemporarySession) ...[
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: buildTopicsCounter(triviaProvider),
+                          ),
+                        ],
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -350,9 +349,9 @@ class _TriviaPageState extends State<TriviaPage>
                             const Spacer(),
                             _buildQuestionCard(question),
                             const Spacer(),
-                            _buildOptions(triviaProvider, question),
+                            buildOptions(triviaProvider, question),
                             const Spacer(flex: 3),
-                            _buildFooter(triviaProvider),
+                            buildFooter(triviaProvider),
                             const SizedBox(height: 7.5),
                           ],
                         ),
@@ -375,6 +374,7 @@ class _TriviaPageState extends State<TriviaPage>
       children: [
         QuestionTimer(
           timeNotifier: triviaProvider.timeNotifier,
+          isTimerRunning: triviaProvider.isTimerRunning,
           totalTime: TriviaProvider.totalTime,
         ),
         const SizedBox(height: 17.5),
@@ -420,7 +420,7 @@ class _TriviaPageState extends State<TriviaPage>
             borderRadius: BorderRadius.circular(15),
             child: InkWell(
               onTap: () {
-                _showFullQuestionDialog(context, question);
+                showFullQuestionDialog(context, question);
               },
               splashColor: Colors.white.withValues(alpha: 0.1),
               highlightColor: Colors.white.withValues(alpha: 0.05),
@@ -483,7 +483,7 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   // Method to show the full question in a popup dialog
-  void _showFullQuestionDialog(
+  void showFullQuestionDialog(
       BuildContext context, Map<String, dynamic> question) {
     showDialog(
       context: context,
@@ -563,7 +563,7 @@ class _TriviaPageState extends State<TriviaPage>
     );
   }
 
-  Widget _buildOptions(
+  Widget buildOptions(
       TriviaProvider triviaProvider, Map<String, dynamic> question) {
     final options = question['options'];
 
@@ -623,15 +623,15 @@ class _TriviaPageState extends State<TriviaPage>
     );
   }
 
-  Widget _buildFooter(TriviaProvider triviaProvider) {
+  Widget buildFooter(TriviaProvider triviaProvider) {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             triviaProvider.answered
-                ? "Swipe right to see explanation"
-                : "Swipe right for hint, left to exclude topic",
+                ? "Swipe right for explanation"
+                : "Swipe right for hint",
             style: const TextStyle(
               color: Colors.white70,
               fontStyle: FontStyle.italic,
@@ -641,14 +641,14 @@ class _TriviaPageState extends State<TriviaPage>
         ),
         BottomButtons(
           answered: triviaProvider.answered,
-          onNextQuestion: _handleNextQuestion,
+          onNextQuestion: handleNextQuestion,
         ),
       ],
     );
   }
 
   // Build topics counter widget
-  Widget _buildTopicsCounter(TriviaProvider triviaProvider) {
+  Widget buildTopicsCounter(TriviaProvider triviaProvider) {
     final int topicsCount = triviaProvider.selectedTopics.length;
 
     return Container(
