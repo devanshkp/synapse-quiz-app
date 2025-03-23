@@ -1,16 +1,8 @@
-# Project Title
-
-A brief description of what this project does and who it's for
-
 # Synapse
 
-A modern, feature-rich quiz application built with Flutter and Firebase, offering a comprehensive quiz experience with friend leaderboards, personalized hints, and progress tracking.
+A modern, feature-rich quiz application built with Flutter and Firebase, offering a comprehensive quiz experience with friend leaderboards, custom generated hints, progress tracking, and more.
 
-![alt text](https://github.com/devanshkp/synapse-quiz-app/blob/[branch]/image.jpg?raw=true)
-
-<div align="center">
-  <img src="assets/images/logo.png" alt="QuizCraft Logo" width="150">
-</div>
+<img src="assets/icons/app_logo.png" alt="Synapse Logo" width="150">
 
 ## ✨ Features
 
@@ -27,12 +19,14 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 - Multiple question formats (multiple choice, true/false)
 - Dynamic hint system powered by Gemini AI
 - Score tracking and performance analytics (user streaks, accuracy, etc.)
+- **Question Tracking**:
+  - Users' encountered questions are tracked to ensure no repeated questions are shown (can be reset)
+  - Ability to review previously encountered questions for revision
 
 ### 👥 Social Features
 
 - Friend system with user discovery
 - Real-time leaderboards
-- Compete with friends
 
 ### 🎨 UI/UX
 
@@ -107,6 +101,9 @@ lib/
 ├── pages/                     # App screens
 │   ├── auth/                  # Authentication screens
 │   ├── main/                  # Main app screens (on navbar)
+│   ├── secondary/             # Other app screens
+│   ├── landing.dart           # Landing Page
+│   ├── splash_screen.dart     # Splash Screen
 ├── providers/                 # State management
 ├── services/                  # API and backend services
 ├── utils/                     # Utility functions/classes
@@ -141,10 +138,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📬 Contact
-
-Your Name - [LinkedIn](https://linkedin.com/in/devansh-kapoor) - devansh.kp@outlook.com
-
 ---
 
-Built with ❤️ by Devansh Kapoor
+## Contact
+
+Devansh Kapoor - [LinkedIn](https://linkedin.com/in/devansh-kapoor) - devansh.kp@outlook.com
