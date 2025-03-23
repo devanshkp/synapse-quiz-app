@@ -6,7 +6,6 @@ import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_application/widgets/auth/auth_widgets.dart';
 
@@ -158,12 +157,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
       }
     } catch (e) {
-      if (mounted) {
-        floatingSnackBar(
-          context: context,
-          message: 'Error picking image: $e',
-        );
-      }
+      debugPrint('Error picking image: $e');
     }
   }
 
@@ -302,19 +296,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
 
       if (mounted) {
-        floatingSnackBar(
-          context: context,
-          message: 'Profile updated successfully!',
-        );
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted) {
-        floatingSnackBar(
-          context: context,
-          message: 'Error updating profile: $e',
-        );
-      }
+      debugPrint('Error updating profile: $e');
     } finally {
       if (mounted) {
         setState(() {

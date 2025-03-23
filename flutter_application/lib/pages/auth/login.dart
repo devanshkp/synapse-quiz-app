@@ -18,6 +18,8 @@ class LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isFormValid = false;
+  String _errorMessage = '';
+  String _alertMessage = '';
 
   @override
   void dispose() {
@@ -63,6 +65,60 @@ class LoginPageState extends State<LoginPage> {
       setState(() {
         _isFormValid = isValid;
       });
+    }
+  }
+
+  void _setErrorMessage(String errorMessage) {
+    if (_alertMessage.isNotEmpty) {
+      _setAlertMessage('');
+    }
+    setState(() {
+      _errorMessage = errorMessage;
+    });
+  }
+
+  void _setAlertMessage(String alertMessage) {
+    if (_errorMessage.isNotEmpty) {
+      _setErrorMessage('');
+    }
+    setState(() {
+      _alertMessage = alertMessage;
+    });
+  }
+
+  Future<void> _handleSignIn() async {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      final errorMessage = await _authService.signIn(
+        email,
+        password,
+      );
+
+      if (errorMessage != null) {
+        _setErrorMessage(errorMessage);
+      } else {
+        Navigator.popUntil(context, (route) => route.isFirst);
+      }
+    }
+  }
+
+  Future<void> _handleSignInWithGoogle() async {
+    final errorMessage = await _authService.signInWithGoogle();
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    }
+  }
+
+  Future<void> _handleSignInWithGithub() async {
+    final errorMessage = await _authService.signInWithGithub();
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      Navigator.popUntil(context, (route) => route.isFirst);
     }
   }
 
@@ -139,6 +195,21 @@ class LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 40),
 
+                  if (_errorMessage.isNotEmpty) ...[
+                    AlertBanner(
+                      message: _errorMessage,
+                      onDismiss: () => _setErrorMessage(''),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  if (_alertMessage.isNotEmpty) ...[
+                    AlertBanner(
+                      message: _alertMessage,
+                      onDismiss: () => _setAlertMessage(''),
+                      isError: false,
+                    ),
+                  ],
                   // EMAIL
                   CustomTextFormField(
                     controller: _emailController,
@@ -168,9 +239,12 @@ class LoginPageState extends State<LoginPage> {
                           context: context,
                           builder: (context) => ForgotPasswordDialog(
                             validateEmail: _validateEmail,
-                            onSendResetLink: (email) {
-                              _authService.sendPasswordResetEmail(
-                                  context, email);
+                            onSendResetLink: (email) async {
+                              final message = await _authService
+                                  .sendPasswordResetEmail(email);
+                              if (message != null) {
+                                _setAlertMessage(message);
+                              }
                             },
                           ),
                         );
@@ -191,15 +265,7 @@ class LoginPageState extends State<LoginPage> {
                   // Login button with solid color instead of gradient and glow
                   LoadingStateButton(
                     label: 'Continue',
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        await _authService.signIn(
-                          context,
-                          _emailController.text.trim(),
-                          _passwordController.text.trim(),
-                        );
-                      }
-                    },
+                    onPressed: () => _handleSignIn(),
                     isEnabled: _isFormValid,
                     backgroundColor: _isFormValid
                         ? purpleAccent
@@ -234,7 +300,7 @@ class LoginPageState extends State<LoginPage> {
                         width: 24,
                         height: 24,
                       ),
-                      onPressed: () => _authService.signInWithGoogle(context),
+                      onPressed: () => _handleSignInWithGoogle(),
                       backgroundColor: Colors.white,
                       textColor: Colors.black87,
                     ),
@@ -264,7 +330,7 @@ class LoginPageState extends State<LoginPage> {
                           BlendMode.srcIn,
                         ),
                       ),
-                      onPressed: () => _authService.signInWithGithub(context),
+                      onPressed: () => _handleSignInWithGithub(),
                       backgroundColor: githubColor,
                       textColor: Colors.white,
                     ),

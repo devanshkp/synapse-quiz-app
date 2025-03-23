@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application/constants.dart';
@@ -5,9 +6,11 @@ import 'package:flutter_application/main.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/username.dart';
 import 'package:flutter_application/pages/landing.dart';
+import 'package:flutter_application/pages/secondary/offline.dart';
 import 'package:flutter_application/pages/splash_screen.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/services/connectivity_service.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -22,11 +25,31 @@ class _AuthProviderState extends State<AuthProvider> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _showSplashScreen = true;
   bool _splashTimerStarted = false;
+  bool _isOffline = false;
 
   @override
   void initState() {
     super.initState();
+    _checkInitialConnectivity(); // Check initial connectivity
+    _listenToConnectivityChanges();
     _refreshCurrentUser();
+  }
+
+  // Check initial connectivity status
+  Future<void> _checkInitialConnectivity() async {
+    final connectivityResult = await ConnectivityService.checkConnectivity();
+    setState(() {
+      _isOffline = connectivityResult.contains(ConnectivityResult.none);
+    });
+  }
+
+  // Listen to connectivity changes
+  void _listenToConnectivityChanges() {
+    ConnectivityService.connectivityStream.listen((results) {
+      setState(() {
+        _isOffline = results.contains(ConnectivityResult.none);
+      });
+    });
   }
 
   // Helper method to refresh the current user
@@ -55,6 +78,10 @@ class _AuthProviderState extends State<AuthProvider> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isOffline) {
+      return const OfflinePage();
+    }
+
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges(),
       builder: (context, snapshot) {

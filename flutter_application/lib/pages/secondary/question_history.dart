@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
-import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 
@@ -66,55 +65,82 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
               );
             }
 
-            return ListView(
+            // Calculate total item count: header (1) + questions + possibly "load more" (1)
+            final itemCount = 1 +
+                triviaProvider.encounteredQuestions.length +
+                (triviaProvider.hasMoreEncounteredQuestions ? 1 : 0);
+
+            return ListView.builder(
               padding: const EdgeInsets.all(16),
-              children: [
-                // Header to indicate sorting order
-                Container(
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.sort_rounded,
-                        color: Colors.white.withValues(alpha: 0.7),
-                        size: 18,
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
+                // First item is the header
+                if (index == 0) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Sorted by most recently encountered',
-                        style: TextStyle(
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.sort_rounded,
                           color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Sorted by most recently encountered',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Last item might be the "Load more" button
+                if (index == itemCount - 1 &&
+                    triviaProvider.hasMoreEncounteredQuestions) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: GestureDetector(
+                      onTap: () => triviaProvider.fetchEncounteredQuestions(
+                          loadMore: true),
+                      child: const SizedBox(
+                        height: 30,
+                        width: double.infinity,
+                        child: Text(
+                          'Load more',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white70,
+                            decorationColor: Colors.white70,
+                            decorationThickness: 2,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                ...triviaProvider.encounteredQuestions.map(
-                  (question) => QuestionHistoryCard(question: question),
-                ),
-                if (triviaProvider.hasMoreEncounteredQuestions)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
-                    child: LoadingStateButton(
-                      backgroundColor: purpleAccent,
-                      textColor: Colors.white,
-                      label: 'Load More',
-                      onPressed: () => triviaProvider.fetchEncounteredQuestions(
-                          loadMore: true),
                     ),
-                  ),
-              ],
+                  );
+                }
+
+                // Regular question cards (offset by 1 because of the header)
+                return QuestionHistoryCard(
+                  question: triviaProvider.encounteredQuestions[index - 1],
+                );
+              },
             );
           },
         ),
@@ -138,7 +164,7 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
         ),
       ),
       title: const Text(
-        "Question History",
+        "Recent Questions",
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -186,12 +212,13 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      color: const Color.fromARGB(255, 20, 20, 20),
+      color: const Color.fromARGB(255, 26, 26, 26),
       shape: RoundedRectangleBorder(
         side: BorderSide(
+          width: 1.5,
           color: Colors.white.withValues(alpha: 0.1),
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: InkWell(
         onTap: () {
@@ -234,15 +261,15 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
               const SizedBox(height: 16),
 
               // Question text (limited to 3 lines when not expanded)
-              Text(
+              TextFormatter.formatText(
                 widget.question['question'],
+                minFontSize: 14,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
-                maxLines: _isExpanded ? null : 3,
-                overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                maxLines: _isExpanded ? 20 : 3,
+                textAlign: TextAlign.left,
               ),
 
               // Only show options and explanation when expanded
@@ -259,7 +286,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                       color: isCorrect
                           ? Colors.green.withValues(alpha: 0.15)
                           : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isCorrect
                             ? Colors.green.withValues(alpha: 0.3)
@@ -292,7 +319,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
+                          child: TextFormatter.formatText(
                             options[index].toString(),
                             style: TextStyle(
                               color: isCorrect
@@ -302,6 +329,8 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                               fontWeight:
                                   isCorrect ? FontWeight.w600 : FontWeight.w400,
                             ),
+                            textAlign: TextAlign.left,
+                            maxLines: 20,
                           ),
                         ),
                         if (isCorrect)

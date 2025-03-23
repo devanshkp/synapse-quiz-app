@@ -4,7 +4,6 @@ import 'package:flutter_application/services/restart_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application/services/user_service.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,6 +12,70 @@ class AuthService {
   );
   final UserService _userService = UserService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // ================== EMAIL (VERIFICATION/RESET) ==================
+
+  // Check if the user's email is verified
+  Future<bool> checkEmailVerified() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.reload();
+        final freshUser = _auth.currentUser;
+        return freshUser?.emailVerified ?? false;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking email verification status: $e');
+      return false;
+    }
+  }
+
+  // Send a verification email
+  Future<String?> sendVerificationEmail() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        return null;
+      }
+      return 'User is already verified';
+    } catch (e) {
+      debugPrint('Error sending verification email: $e');
+      return 'Error sending verification email: $e';
+    }
+  }
+
+  // Send password reset email
+  Future<String?> sendPasswordResetEmail(String email) async {
+    try {
+      // Send password reset email
+      await _auth.sendPasswordResetEmail(email: email);
+
+      return 'Password reset link sent!';
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No user found with this email address.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is not valid.';
+          break;
+        default:
+          errorMessage = 'Error sending password reset email: ${e.message}';
+      }
+
+      return errorMessage;
+    } catch (e) {
+      debugPrint('General exception in sendPasswordResetEmail: $e');
+
+      return 'Error: ${e.toString()}';
+    }
+  }
+
+  // ================== USERNAME ==================
 
   // Check if username is unique
   Future<bool> isUsernameUnique(String username) async {
@@ -32,11 +95,44 @@ class AuthService {
       return isUnique;
     } catch (e) {
       debugPrint('Error checking username uniqueness: $e');
-      // Return true on error to allow the user to proceed
-      // The server-side validation will catch duplicates if they exist
+
       return true;
     }
   }
+
+  // Set username for Third-Party Sign-In
+  Future<String?> setUsername(String username) async {
+    try {
+      // Check if username is unique
+      bool isUnique = await isUsernameUnique(username);
+      if (!isUnique) {
+        return 'Username is already taken. Please choose another.';
+      }
+
+      // Get current user
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        return 'No authenticated user found.';
+      }
+
+      // Use the stored full name if available, otherwise fall back to display name
+      String fullName = user.displayName ?? 'User';
+
+      // Create user profile in Firestore
+      await _userService.createUserProfile(
+        user: user,
+        userName: username,
+        fullName: fullName,
+        avatarUrl: user.photoURL,
+      );
+
+      return null;
+    } catch (e) {
+      return 'Error setting username: ${e.toString()}';
+    }
+  }
+
+  // ================== VALIDATION ==================
 
   String? validateUsername(String username) {
     if (username.length < 4) {
@@ -79,49 +175,10 @@ class AuthService {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
-  // Send password reset email
-  Future<void> sendPasswordResetEmail(
-      BuildContext context, String email) async {
-    try {
-      // Send password reset email
-      await _auth.sendPasswordResetEmail(email: email);
+  // ================== LOGIN/REGISTRATION ==================
 
-      if (context.mounted) {
-        floatingSnackBar(
-          message:
-              'If this email is registered, a password reset link will be sent to your inbox.',
-          context: context,
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      if (context.mounted) {
-        String errorMessage;
-
-        switch (e.code) {
-          case 'user-not-found':
-            errorMessage = 'No user found with this email address.';
-            break;
-          case 'invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          default:
-            errorMessage = 'Error sending password reset email: ${e.message}';
-        }
-
-        floatingSnackBar(message: errorMessage, context: context);
-      }
-    } catch (e) {
-      debugPrint('General exception in sendPasswordResetEmail: $e');
-
-      if (context.mounted) {
-        floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
-      }
-    }
-  }
-
-  Future<void> register(
-      {required BuildContext context,
-      required String email,
+  Future<String?> register(
+      {required String email,
       required String password,
       required String confirmPassword,
       required String fullName}) async {
@@ -142,78 +199,51 @@ class AuthService {
         // Send email verification
         await user.sendEmailVerification();
 
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(
-              context, '/email-verification', (route) => false);
-        }
+        return null;
       }
     } on FirebaseAuthException catch (e) {
-      if (context.mounted) {
-        String errorMessage;
-
-        switch (e.code) {
-          case 'email-already-in-use':
-            errorMessage = 'An account with this email already exists.';
-            break;
-          case 'weak-password':
-            errorMessage = 'The password provided is too weak.';
-            break;
-          case 'invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          default:
-            errorMessage = 'Registration failed: ${e.message}';
-        }
-
-        floatingSnackBar(message: errorMessage, context: context);
+      switch (e.code) {
+        case 'email-already-in-use':
+          return 'An account with this email already exists.';
+        case 'weak-password':
+          return 'The password provided is too weak.';
+        case 'invalid-email':
+          return 'The email address is not valid.';
+        default:
+          return 'Registration failed: ${e.message}';
       }
     } catch (e) {
       debugPrint('Error registering user: $e');
-      if (context.mounted) {
-        floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
-      }
+      return 'Error registering user: ${e.toString()}';
     }
+    return null;
   }
 
-  Future<void> signIn(
-      BuildContext context, String email, String password) async {
+  Future<String?> signIn(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       await Future.delayed(const Duration(seconds: 1));
-      if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-      }
-    } on FirebaseAuthException catch (e) {
-      if (context.mounted) {
-        String errorMessage;
 
-        switch (e.code) {
-          case 'user-not-found':
-            errorMessage = 'No user found with this email.';
-            break;
-          case 'wrong-password':
-            errorMessage = 'Incorrect password. Please try again.';
-            break;
-          case 'user-disabled':
-            errorMessage = 'This account has been disabled.';
-            break;
-          case 'invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          default:
-            errorMessage = 'Error signing in. Please try again.';
-        }
-        floatingSnackBar(message: errorMessage, context: context);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'user-not-found':
+          return 'No user found with this email.';
+        case 'wrong-password':
+          return 'Incorrect password. Please try again.';
+        case 'user-disabled':
+          return 'This account has been disabled.';
+        case 'invalid-email':
+          return 'The email address is not valid.';
+        default:
+          return 'Incorrect email or password.';
       }
     } catch (e) {
-      if (context.mounted) {
-        floatingSnackBar(
-            message: 'Error signing in. Please try again.', context: context);
-      }
+      return 'Error signing in. Please try again.';
     }
   }
 
-  Future<void> signInWithGoogle(BuildContext context) async {
+  Future<String?> signInWithGoogle() async {
     try {
       // Sign out first to force the account picker to show
       await _googleSignIn.signOut();
@@ -221,7 +251,7 @@ class AuthService {
       // Set additional parameters to force account selection
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        return;
+        return null;
       }
 
       // Get authentication tokens
@@ -236,18 +266,13 @@ class AuthService {
 
       // Sign in to Firebase with the Google credential
       await _auth.signInWithCredential(credential);
-      if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-      }
+      return null;
     } catch (e) {
-      if (context.mounted) {
-        floatingSnackBar(
-            message: 'Error signing in with Google: $e', context: context);
-      }
+      return 'Error signing in with Google: $e';
     }
   }
 
-  Future<void> signInWithGithub(BuildContext context) async {
+  Future<String?> signInWithGithub() async {
     try {
       final GithubAuthProvider githubAuth = GithubAuthProvider();
 
@@ -260,90 +285,31 @@ class AuthService {
       final User? user = userCredential.user;
 
       if (user != null) {
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-        }
+        return null;
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Firebase Auth Exception: ${e.code} - ${e.message}');
-      if (context.mounted) {
-        String errorMessage;
 
-        switch (e.code) {
-          case 'account-exists-with-different-credential':
-            errorMessage =
-                'An account already exists with the same email address but different sign-in credentials.';
-            break;
-          case 'popup-closed-by-user':
-            errorMessage = 'Sign-in was cancelled by the user.';
-            break;
-          case 'popup-blocked':
-            errorMessage = 'The sign-in popup was blocked by the browser.';
-            break;
-          case 'web-storage-unsupported':
-            errorMessage = 'Web storage is not supported or is disabled.';
-            break;
-          default:
-            errorMessage = 'Error signing in with GitHub: ${e.message}';
-        }
-
-        floatingSnackBar(message: errorMessage, context: context);
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          return 'An account already exists with the same email address but different sign-in credentials.';
+        case 'popup-closed-by-user':
+          return 'Sign-in was cancelled by the user.';
+        case 'popup-blocked':
+          return 'The sign-in popup was blocked by the browser.';
+        case 'web-storage-unsupported':
+          return 'Web storage is not supported or is disabled.';
+        default:
+          return 'Error signing in with GitHub: ${e.message}';
       }
     } catch (e) {
       debugPrint('General Exception: $e');
-      if (context.mounted) {
-        floatingSnackBar(
-            message: 'Error signing in with GitHub: $e', context: context);
-      }
+      return 'Error signing in with GitHub: $e';
     }
+    return null;
   }
 
-  // Set username for Third-Party Sign-In
-  Future<void> setUsername(BuildContext context, String username) async {
-    try {
-      // Check if username is unique
-      bool isUnique = await isUsernameUnique(username);
-      if (!isUnique) {
-        if (context.mounted) {
-          floatingSnackBar(
-              message: 'Username is already taken. Please choose another.',
-              context: context);
-        }
-        return;
-      }
-
-      // Get current user
-      final User? user = _auth.currentUser;
-      if (user == null) {
-        if (context.mounted) {
-          floatingSnackBar(
-              message: 'No authenticated user found.', context: context);
-        }
-        return;
-      }
-
-      // Use the stored full name if available, otherwise fall back to display name
-      String fullName = user.displayName ?? 'User';
-
-      // Create user profile in Firestore
-      await _userService.createUserProfile(
-        user: user,
-        userName: username,
-        fullName: fullName,
-        avatarUrl: user.photoURL,
-      );
-
-      if (context.mounted) {
-        // Clear the entire navigation stack and start fresh at the home route
-        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-      }
-    } catch (e) {
-      debugPrint('Error setting username: $e');
-      if (context.mounted) {
-        floatingSnackBar(message: 'Error: ${e.toString()}', context: context);
-      }
-    }
-  }
+  // ================== SIGN OUT/DELETE ==================
 
   Future<void> signOut(BuildContext context) async {
     try {
@@ -358,9 +324,6 @@ class AuthService {
 
       debugPrint("Signed out successfully");
     } catch (e) {
-      if (context.mounted) {
-        floatingSnackBar(message: 'Error signing out: $e', context: context);
-      }
       debugPrint("Error signing out: $e");
     }
   }

@@ -6,6 +6,7 @@ class TextFormatter {
     String text, {
     TextStyle? style,
     TextAlign textAlign = TextAlign.center,
+    double minFontSize = 9.0,
     int? maxLines,
   }) {
     if (text.isEmpty) {
@@ -22,7 +23,7 @@ class TextFormatter {
         text,
         style: baseStyle,
         textAlign: textAlign,
-        minFontSize: 12,
+        minFontSize: minFontSize,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
         wrapWords: true,
@@ -38,7 +39,7 @@ class TextFormatter {
         style: baseStyle,
         children: spans,
       ),
-      minFontSize: 12,
+      minFontSize: minFontSize,
       maxLines: maxLines,
       textAlign: textAlign,
       overflow: TextOverflow.ellipsis,

@@ -16,6 +16,7 @@ class _UsernamePageState extends State<UsernamePage> {
   final TextEditingController _usernameController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isFormValid = false;
+  String _errorMessage = '';
 
   @override
   void dispose() {
@@ -42,89 +43,115 @@ class _UsernamePageState extends State<UsernamePage> {
     }
   }
 
+  void _setErrorMessage(String errorMessage) {
+    setState(() {
+      _errorMessage = errorMessage;
+    });
+  }
+
+  Future<void> _handleSetUsername() async {
+    final errorMessage = await _authService.setUsername(
+      _usernameController.text.trim(),
+    );
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/',
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundPageColor,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ConstrainedBox(
-          constraints:
-              BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Form(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            if (_errorMessage.isNotEmpty) ...[
+              Positioned(
+                top: 40,
+                left: 25,
+                right: 25,
+                child: AlertBanner(
+                  message: _errorMessage,
+                  onDismiss: () => _setErrorMessage(''),
+                ),
+              ),
+            ],
+            Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onChanged: _updateFormValidity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  // Header with gradient
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [
-                        Colors.white,
-                        Colors.white.withValues(alpha: 0.85),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
-                    child: const Text(
-                      "Pick a Username",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+
+                    // Header with gradient
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: [
+                          Colors.white,
+                          Colors.white.withValues(alpha: 0.85),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds),
+                      child: const Text(
+                        "Pick a Username",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'This will be your unique identifier in the community.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
-                      height: 1.4,
+                    const SizedBox(height: 16),
+                    Text(
+                      'This will be your unique identifier in the community.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 16,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
 
-                  // Username field
-                  CustomTextFormField(
-                    controller: _usernameController,
-                    labelText: 'Username',
-                    validator: _validateUsername,
-                  ),
+                    const SizedBox(height: 40),
 
-                  const SizedBox(height: 30),
+                    // Username field
+                    CustomTextFormField(
+                      controller: _usernameController,
+                      labelText: 'Username',
+                      validator: _validateUsername,
+                    ),
 
-                  // Continue button with solid color
-                  LoadingStateButton(
-                    label: 'Continue',
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() == true) {
-                        _authService.setUsername(
-                          context,
-                          _usernameController.text.trim(),
-                        );
-                      }
-                    },
-                    isEnabled: _isFormValid,
-                    backgroundColor: _isFormValid
-                        ? purpleAccent
-                        : darkPurpleAccent.withValues(alpha: 0.5),
-                    textColor: Colors.white,
-                  ),
+                    const SizedBox(height: 25),
 
-                  const SizedBox(height: 40),
-                ],
+                    // Continue button with solid color
+                    LoadingStateButton(
+                      label: 'Continue',
+                      onPressed: _handleSetUsername,
+                      isEnabled: _isFormValid,
+                      backgroundColor: _isFormValid
+                          ? purpleAccent
+                          : darkPurpleAccent.withValues(alpha: 0.5),
+                      textColor: Colors.white,
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

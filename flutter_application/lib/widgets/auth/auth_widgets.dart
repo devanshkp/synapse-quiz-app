@@ -254,7 +254,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
         TextButton(
           onPressed: _isFormValid
               ? () async {
-                  await widget.onSendResetLink(_emailController.text.trim());
+                  widget.onSendResetLink(_emailController.text.trim());
                   if (mounted) Navigator.pop(context);
                 }
               : () {},

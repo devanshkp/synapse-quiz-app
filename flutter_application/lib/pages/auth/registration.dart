@@ -21,17 +21,7 @@ class RegistrationPageState extends State<RegistrationPage> {
       TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   bool _formValid = false;
-
-  // Validation states
-  String? _emailError;
-
-  // Form completion tracking
-  bool get _isFormValid =>
-      _emailController.text.isNotEmpty &&
-      _emailError == null &&
-      _passwordController.text.isNotEmpty &&
-      _confirmPasswordController.text == _passwordController.text &&
-      _fullNameController.text.isNotEmpty;
+  String _errorMessage = '';
 
   void _updateFormValidity() {
     final isValid = _formKey.currentState?.validate() ?? false;
@@ -101,16 +91,45 @@ class RegistrationPageState extends State<RegistrationPage> {
     return null;
   }
 
-  Future<void> _registerUser() async {
-    if (!_isFormValid) return;
+  void _setErrorMessage(String errorMessage) {
+    setState(() {
+      _errorMessage = errorMessage;
+    });
+  }
 
-    await _authService.register(
-      context: context,
+  Future<void> _registerUser() async {
+    final errorMessage = await _authService.register(
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
       confirmPassword: _confirmPasswordController.text.trim(),
       fullName: _fullNameController.text.trim(),
     );
+
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    }
+  }
+
+  Future<void> _handleSignInWithGoogle() async {
+    final errorMessage = await _authService.signInWithGoogle();
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      if (context.mounted)
+        Navigator.popUntil(context, (route) => route.isFirst);
+    }
+  }
+
+  Future<void> _handleSignInWithGithub() async {
+    final errorMessage = await _authService.signInWithGithub();
+    if (errorMessage != null) {
+      _setErrorMessage(errorMessage);
+    } else {
+      if (context.mounted)
+        Navigator.popUntil(context, (route) => route.isFirst);
+    }
   }
 
   @override
@@ -184,6 +203,14 @@ class RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
+
+                  if (_errorMessage.isNotEmpty) ...[
+                    AlertBanner(
+                      message: _errorMessage,
+                      onDismiss: () => _setErrorMessage(''),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // FULLNAME
                   CustomTextFormField(
@@ -260,7 +287,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                         width: 24,
                         height: 24,
                       ),
-                      onPressed: () => _authService.signInWithGoogle(context),
+                      onPressed: () => _handleSignInWithGoogle(),
                       backgroundColor: Colors.white,
                       textColor: Colors.black87,
                     ),
@@ -290,7 +317,7 @@ class RegistrationPageState extends State<RegistrationPage> {
                           BlendMode.srcIn,
                         ),
                       ),
-                      onPressed: () => _authService.signInWithGithub(context),
+                      onPressed: () => _handleSignInWithGithub(),
                       backgroundColor: githubColor,
                       textColor: Colors.white,
                     ),

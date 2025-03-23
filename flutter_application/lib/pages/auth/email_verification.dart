@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/services/auth_service.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 
 class EmailVerificationPage extends StatefulWidget {
@@ -23,26 +21,13 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
   Timer? _timer;
   Timer? _checkEmailTimer;
   bool _isCheckingEmail = false;
+  String _errorMessage = '';
+  String _alertMessage = '';
 
   @override
   void initState() {
     super.initState();
-    // Check if the user exists and if verification email was already sent
-    final user = _auth.currentUser;
-    if (user != null) {
-      // Check email verification status immediately
-      _checkEmailVerified();
-
-      // Set up a timer to periodically check email verification status
-      _checkEmailTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-        _checkEmailVerified();
-      });
-    } else {
-      // If no user is found, navigate back to login
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacementNamed(context, '/login');
-      });
-    }
+    _startEmailVerificationCheck();
   }
 
   @override
@@ -52,36 +37,39 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
     super.dispose();
   }
 
+  void setErrorMessage(String errorMessage) {
+    setState(() {
+      _errorMessage = errorMessage;
+    });
+  }
+
+  void setAlertMessage(String alertMessage) {
+    setState(() {
+      _alertMessage = alertMessage;
+    });
+  }
+
+  void _startEmailVerificationCheck() {
+    _checkEmailVerified();
+
+    _checkEmailTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _checkEmailVerified();
+    });
+  }
+
   Future<void> _checkEmailVerified() async {
     try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        await user.reload(); // Refresh user info
-        final freshUser = _auth.currentUser; // Get fresh user data after reload
+      final isVerified = await _authService.checkEmailVerified();
+      setState(() {
+        _isEmailVerified = isVerified;
+      });
 
-        setState(() {
-          _isEmailVerified = freshUser?.emailVerified ?? false;
-        });
-
-        if (_isEmailVerified) {
-          _checkEmailTimer?.cancel();
-          if (mounted) {
-            // Check if user has a username set
-            final userDoc = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .get();
-
-            if (!userDoc.exists && mounted) {
-              Navigator.pushReplacementNamed(context, '/username-dialog');
-            } else if (mounted) {
-              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-            }
-          }
-        }
+      if (_isEmailVerified) {
+        _checkEmailTimer?.cancel();
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
-      debugPrint('Error checking email verification status: $e');
+      setErrorMessage('Error checking email verification status: $e');
     }
   }
 
@@ -103,36 +91,20 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
     });
   }
 
-  Future<void> sendVerificationEmail() async {
+  Future<void> _sendVerificationEmail() async {
     try {
-      final user = _auth.currentUser;
-      if (user != null && !user.emailVerified) {
-        if (!_canResendEmail) {
-          if (mounted) {
-            floatingSnackBar(
-                context: context,
-                message:
-                    'Please wait $_resendTimer seconds before requesting another email.');
-          }
-          return;
-        }
-
-        await user.sendEmailVerification();
-        _startResendTimer();
-
-        if (mounted) {
-          floatingSnackBar(
-              context: context, message: 'Verification email sent!');
-        }
-      } else if (user?.emailVerified == true) {
-        floatingSnackBar(
-            context: context, message: 'Email is already verified!');
+      if (!_canResendEmail) {
+        setErrorMessage(
+            'Please wait $_resendTimer seconds before requesting another email.');
+        return;
       }
+
+      await _authService.sendVerificationEmail();
+      _startResendTimer();
+
+      setAlertMessage('Verification email sent!');
     } catch (e) {
-      debugPrint('Error sending verification email: $e');
-      if (mounted) {
-        floatingSnackBar(context: context, message: 'Error: ${e.toString()}');
-      }
+      setErrorMessage('Error: ${e.toString()}');
     }
   }
 
@@ -148,18 +120,12 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
       // If we're still mounted and email is not verified, show a message
       if (mounted && !_isEmailVerified) {
-        floatingSnackBar(
-          context: context,
-          message:
-              'Your email is not verified yet. Please check your inbox and click the verification link.',
-        );
+        setErrorMessage('Email not verified yet. Please check your inbox.');
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isCheckingEmail = false;
-        });
-      }
+      setState(() {
+        _isCheckingEmail = false;
+      });
     }
   }
 
@@ -170,23 +136,34 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
     return Scaffold(
       backgroundColor: backgroundPageColor,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/shapes.png'),
-            opacity: 0.15,
-            repeat: ImageRepeat.repeat,
-          ),
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: Column(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Stack(
+            children: [
+              if (_errorMessage.isNotEmpty || _alertMessage.isNotEmpty)
+                Positioned(
+                  top: 15,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      if (_errorMessage.isNotEmpty)
+                        AlertBanner(
+                          message: _errorMessage,
+                          onDismiss: () => setErrorMessage(''),
+                          isError: true,
+                        ),
+                      if (_alertMessage.isNotEmpty)
+                        AlertBanner(
+                          message: _alertMessage,
+                          onDismiss: () => setAlertMessage(''),
+                          isError: false,
+                        ),
+                    ],
+                  ),
+                ),
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -224,7 +201,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         height: 1.2,
                       ),
                       textAlign: TextAlign.center,
@@ -248,7 +225,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -287,7 +264,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                         ? 'Resend Verification Email'
                         : 'Resend in $_resendTimer seconds',
                     onPressed: () async {
-                      await sendVerificationEmail();
+                      await _sendVerificationEmail();
                     },
                     isEnabled: _canResendEmail,
                     backgroundColor: Colors.transparent,
@@ -319,7 +296,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                   const SizedBox(height: 20),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),

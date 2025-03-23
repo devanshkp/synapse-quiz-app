@@ -460,7 +460,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
         );
         break;
       default:
-        accentColor = Colors.grey.shade600;
+        accentColor = const Color.fromARGB(255, 90, 90, 90);
         baseColor =
             isCurrentUser ? const Color(0xFF2A3142) : const Color(0xFF2D2D2D);
         borderColor = isCurrentUser

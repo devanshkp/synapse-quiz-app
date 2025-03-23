@@ -996,6 +996,7 @@ class LoadingStateButton extends StatefulWidget {
   final bool isEnabled;
   final bool showBorder;
   final Color borderColor;
+  final double width;
 
   const LoadingStateButton({
     super.key,
@@ -1004,8 +1005,9 @@ class LoadingStateButton extends StatefulWidget {
     this.backgroundColor = Colors.white,
     this.textColor = Colors.black,
     this.isEnabled = true,
-    this.showBorder = false,
+      this.showBorder = false,
     this.borderColor = Colors.transparent,
+    this.width = double.infinity,
   });
 
   @override
@@ -1038,7 +1040,7 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
             }
           : null,
       style: ElevatedButton.styleFrom(
-        fixedSize: const Size(double.infinity, 50),
+        fixedSize: Size(widget.width, 50),
         backgroundColor: isButtonEnabled
             ? widget.backgroundColor
             : widget.backgroundColor.withValues(alpha: 0.5),
@@ -1086,6 +1088,65 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
                   ),
                 ),
         ),
+      ),
+    );
+  }
+}
+
+class AlertBanner extends StatelessWidget {
+  final String message;
+  final VoidCallback? onDismiss;
+  final Duration duration;
+  final bool isError;
+
+  const AlertBanner({
+    super.key,
+    required this.message,
+    this.onDismiss,
+    this.duration = const Duration(seconds: 3),
+    this.isError = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Future.delayed(duration, () {
+      if (context.mounted) {
+        onDismiss?.call();
+      }
+    });
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: isError
+            ? Colors.red.shade900.withValues(alpha: 0.3)
+            : Colors.green.shade800.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+            color: isError ? Colors.red.shade800 : Colors.green.shade800),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          if (onDismiss != null)
+            GestureDetector(
+              onTap: onDismiss,
+              child: const Icon(
+                Icons.close,
+                color: Colors.white70,
+                size: 18,
+              ),
+            ),
+        ],
       ),
     );
   }

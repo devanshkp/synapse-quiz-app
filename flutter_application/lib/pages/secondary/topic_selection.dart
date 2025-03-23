@@ -51,6 +51,17 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     _tempSelectedTopics = List.from(triviaProvider.selectedTopics);
   }
 
+  bool _canSave() {
+    final Set<String> currentTopics = Set.from(triviaProvider.selectedTopics);
+    final Set<String> tempTopics = Set.from(_tempSelectedTopics);
+
+    final bool hasChanges =
+        !const SetEquality().equals(currentTopics, tempTopics);
+    final bool hasMinimumTopics = _tempSelectedTopics.isNotEmpty;
+    final bool isLoading = triviaProvider.isLoadingQuestions;
+    return hasChanges && hasMinimumTopics && !isLoading;
+  }
+
   void _toggleTopic(String topic) {
     final unformattedTopic =
         triviaProvider.allTopics[triviaProvider.displayedTopics.indexOf(topic)];
@@ -71,6 +82,9 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final bool isSmallScreen = screenSize.width < 360;
+
     return Scaffold(
       backgroundColor: backgroundPageColor,
       appBar: _buildAppBar(),
@@ -83,21 +97,40 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
             _hasLoadedTopics = true;
           }
 
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSelectionInfo(),
-              _buildSelectionButtons(),
-              // take up just enough space to fit the grid view
-              Flexible(
-                fit: FlexFit.loose,
-                child: _buildTopicsGrid(isLoading),
-              ),
-              const SizedBox(height: 2),
-              _buildSelectionCount(),
-              const SizedBox(height: 2),
-              _buildSaveButton(),
-            ],
+          return SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: _buildHeader(),
+                      ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 16),
+                          child: _buildSelectionButtons(),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: _buildSelectionStats(),
+                        ),
+                      ),
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: _buildTopicsGrid(isLoading, isSmallScreen),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -106,6 +139,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
+      scrolledUnderElevation: 0,
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: Container(
@@ -114,87 +148,107 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
           icon: const Icon(
             Icons.arrow_back_rounded,
             color: Colors.white,
-            size: 20,
+            size: 24,
           ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      title: const Text(
-        "Topic Selection",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
       centerTitle: true,
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(0),
-        child: Divider(
-          color: Colors.white12,
+      actions: [
+        if (_canSave())
+          TextButton(
+            onPressed: _saveSelection,
+            child: const Text(
+              "Save",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          )
+        else if (triviaProvider.isFetchingQuestions)
+          const CircularProgressIndicator(
+            color: Colors.white,
+          )
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(4),
+        child: Container(
           height: 1,
+          color: Colors.white.withValues(alpha: 0.08),
         ),
       ),
     );
   }
 
-  Widget _buildSelectionInfo() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-      child: Text(
-        "Select topics you're interested in",
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.white.withValues(alpha: 0.8),
-        ),
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Personalize Your Experience",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 0.5,
+              shadows: [
+                Shadow(
+                  blurRadius: 8,
+                  color: Colors.black.withValues(alpha: 0.4),
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Select topics you're interested in to customize your trivia questions.",
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.4,
+              color: Colors.white.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSelectionButtons() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: 1,
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton(
+            label: 'Select All',
+            icon: Icons.check_circle_outline_rounded,
+            color: Colors.green,
+            onTap: () {
+              setState(() {
+                if (!Set.of(_tempSelectedTopics)
+                    .containsAll(triviaProvider.allTopics)) {
+                  _tempSelectedTopics = List.from(triviaProvider.allTopics);
+                }
+              });
+            },
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildActionButton(
-              label: 'Select All',
-              icon: Icons.add_circle_outline_rounded,
-              color: Colors.white,
-              onTap: () {
-                setState(() {
-                  if (!Set.of(_tempSelectedTopics)
-                      .containsAll(triviaProvider.allTopics)) {
-                    _tempSelectedTopics.addAll(triviaProvider.allTopics);
-                  }
-                });
-              },
-            ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActionButton(
+            label: 'Clear All',
+            icon: Icons.cancel_outlined,
+            color: Colors.redAccent,
+            onTap: () {
+              setState(() {
+                _tempSelectedTopics.clear();
+              });
+            },
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildActionButton(
-              label: 'Remove All',
-              icon: Icons.remove_circle_outline_rounded,
-              color: warningRed,
-              onTap: () {
-                setState(() {
-                  _tempSelectedTopics.clear();
-                });
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -204,203 +258,158 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopicsGrid(bool isLoading) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: 1,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: ScrollConfiguration(
-          behavior: const ScrollBehavior().copyWith(overscroll: false),
-          child: GridView.builder(
-            shrinkWrap: true,
-            controller: _scrollController,
-            padding: const EdgeInsets.all(12),
-            physics: const BouncingScrollPhysics(),
-            itemCount: isLoading ? 12 : triviaProvider.allTopics.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 2.8,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemBuilder: (context, index) {
-              if (isLoading) {
-                return _buildLoadingItem();
-              } else {
-                final unformattedTopic = triviaProvider.allTopics[index];
-                final topic = triviaProvider.displayedTopics[index];
-                final bool isSelected =
-                    _tempSelectedTopics.contains(unformattedTopic);
-                return _buildTopicItem(topic, isSelected);
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingItem() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withValues(alpha: 0.05),
-      ),
-      child: const Center(
-        child: CustomCircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Widget _buildTopicItem(String topic, bool isSelected) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _toggleTopic(topic),
+        highlightColor: Colors.white.withValues(alpha: 0.1),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutCubic,
+        child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? Colors.white.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.08),
-              width: isSelected ? 1.5 : 1,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.6),
+                color.withValues(alpha: 0.8),
+              ],
             ),
-            color: isSelected
-                ? Colors.white.withValues(alpha: 0.12)
-                : Colors.white.withValues(alpha: 0.05),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 4,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : [],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    topic.replaceAll('_', ' ').toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.7),
-                      letterSpacing: 0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  opacity: isSelected ? 1.0 : 0.0,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 300),
-                    scale: isSelected ? 1.0 : 0.0,
-                    curve: Curves.elasticOut,
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      size: 16,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSelectionCount() {
+  Widget _buildSelectionStats() {
     return Consumer<TriviaProvider>(
       builder: (context, provider, child) {
         final selectedCount = _tempSelectedTopics.length;
         final totalCount = provider.allTopics.length;
         final bool hasMinimumTopics = selectedCount > 0;
 
+        // Calculate percentage for progress indicator
+        final double percentage =
+            totalCount > 0 ? selectedCount / totalCount : 0;
+
         return Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      size: 14,
-                      color: hasMinimumTopics
-                          ? Colors.green.withValues(alpha: 0.8)
-                          : Colors.amber.withValues(alpha: 0.8),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "$selectedCount of $totalCount topics selected",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w500,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        hasMinimumTopics
+                            ? Icons.check_circle
+                            : Icons.info_outline,
+                        size: 20,
+                        color: hasMinimumTopics
+                            ? Colors.green.withValues(alpha: 0.9)
+                            : Colors.amber.withValues(alpha: 0.9),
                       ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "$selectedCount of $totalCount topics selected",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Stack(
+                  children: [
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Use the parent container's width for the progress bar
+                        final double maxWidth = constraints.maxWidth;
+                        return Stack(
+                          children: [
+                            Container(
+                              height: 8,
+                              width: maxWidth,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              height: 8,
+                              width: percentage == 1.0
+                                  ? maxWidth
+                                  : maxWidth * percentage,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: hasMinimumTopics
+                                      ? [
+                                          Colors.green.withValues(alpha: 0.7),
+                                          Colors.greenAccent
+                                              .withValues(alpha: 0.9),
+                                        ]
+                                      : [
+                                          Colors.amber.withValues(alpha: 0.7),
+                                          Colors.orange.withValues(alpha: 0.9),
+                                        ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: hasMinimumTopics
+                                        ? Colors.green.withValues(alpha: 0.4)
+                                        : Colors.amber.withValues(alpha: 0.4),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -412,33 +421,142 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     );
   }
 
-  Widget _buildSaveButton() {
-    final Set<String> currentTopics = Set.from(triviaProvider.selectedTopics);
-    final Set<String> tempTopics = Set.from(_tempSelectedTopics);
+  SliverGrid _buildTopicsGrid(bool isLoading, bool isSmallScreen) {
+    return SliverGrid(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isSmallScreen
+            ? 1
+            : (MediaQuery.of(context).size.width > 600 ? 3 : 2),
+        childAspectRatio: 2.6,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (isLoading) {
+            return _buildLoadingItem();
+          } else {
+            final unformattedTopic = triviaProvider.allTopics[index];
+            final topic = triviaProvider.displayedTopics[index];
+            final bool isSelected =
+                _tempSelectedTopics.contains(unformattedTopic);
+            return _buildTopicItem(topic, isSelected);
+          }
+        },
+        childCount: isLoading ? 12 : triviaProvider.allTopics.length,
+      ),
+    );
+  }
 
-    final bool hasChanges =
-        !const SetEquality().equals(currentTopics, tempTopics);
-    final bool hasMinimumTopics = _tempSelectedTopics.isNotEmpty;
-    final bool isLoading = triviaProvider.isLoadingQuestions;
-
+  Widget _buildLoadingItem() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.2),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.06),
-            width: 1,
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withValues(alpha: 0.08),
+      ),
+      child: const Center(
+        child: CustomCircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _buildTopicItem(String topic, bool isSelected) {
+    return Hero(
+      tag: 'topic-${topic.hashCode}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _toggleTopic(topic),
+          borderRadius: BorderRadius.circular(12),
+          splashColor: Colors.white.withValues(alpha: 0.1),
+          highlightColor: Colors.white.withValues(alpha: 0.05),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isSelected
+                    ? [
+                        lightPurpleAccent.withValues(alpha: 0.6),
+                        lightPurpleAccent.withValues(alpha: 0.8),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.05),
+                        Colors.white.withValues(alpha: 0.08),
+                      ],
+              ),
+              border: Border.all(
+                color: isSelected
+                    ? lightPurpleAccent.withValues(alpha: 0.8)
+                    : Colors.white.withValues(alpha: 0.1),
+                width: isSelected ? 1.5 : 1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: lightPurpleAccent.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      topic.replaceAll('_', ' ').toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.9),
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 200),
+                      scale: isSelected ? 1.0 : 0.0,
+                      curve: Curves.elasticOut,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          size: 12,
+                          color: lightPurpleAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
-      ),
-      child: LoadingStateButton(
-        backgroundColor: Colors.white,
-        textColor: Colors.black,
-        label: isLoading ? "Please wait..." : "Save selection",
-        isEnabled: hasChanges && hasMinimumTopics && !isLoading,
-        onPressed: _saveSelection,
       ),
     );
   }

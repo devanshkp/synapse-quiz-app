@@ -1,4 +1,3 @@
-import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/pages/secondary/edit_profile.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
@@ -313,12 +312,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
         cancelButtonText: 'Cancel',
         onPressed: () async {
           await triviaProvider.refreshTopicsMetadata();
-          if (mounted) {
-            floatingSnackBar(
-              message: 'Topics refreshed successfully',
-              context: context,
-            );
-          }
+          debugPrint('Topics refreshed successfully');
         },
       ),
     );

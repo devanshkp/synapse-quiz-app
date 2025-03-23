@@ -183,6 +183,8 @@ class TriviaProvider extends ChangeNotifier {
     _cachedSelectedTopics = List.from(_selectedTopics);
 
     _questions = _questions.where((q) => q['topic'] == topic).toList();
+    _questions.removeWhere((q) => _encounteredQuestions
+        .any((encountered) => encountered['questionId'] == q['questionId']));
     _selectedTopics = [topic];
 
     debugPrint("Selected topics set to: $_selectedTopics");
@@ -217,7 +219,7 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   /// Ends the temporary topic session and restores the original state
-  void endTemporarySession(String topic) {
+  void endTemporarySession(String topic) async {
     if (!_isTemporarySession) return;
 
     stopTimer();
@@ -232,6 +234,10 @@ class TriviaProvider extends ChangeNotifier {
         _questions = List.from(_cachedQuestions);
 
         for (var question in currentQuestions) {
+          if (_encounteredQuestions.any((encountered) =>
+              encountered['questionId'] == question['questionId'])) {
+            continue;
+          }
           if (!_questions
               .any((q) => q['questionId'] == question['questionId'])) {
             _questions.add(question);
@@ -241,6 +247,10 @@ class TriviaProvider extends ChangeNotifier {
         cacheQuestionsForTopic(topic);
         _questions = List.from(_cachedQuestions);
       }
+
+      // Ensure no duplicates from encounteredQuestions remain in _questions
+      _questions.removeWhere((q) => _encounteredQuestions
+          .any((encountered) => encountered['questionId'] == q['questionId']));
 
       preserveAndShuffleQuestions();
 
@@ -994,6 +1004,14 @@ class TriviaProvider extends ChangeNotifier {
       debugPrint(
           "ERROR getting answer: $e for question: ${question['questionId']}");
       _correctAnswer = '';
+    }
+  }
+
+  Future<void> removeAnsweredQuestion() async {
+    if (!answered) return;
+    // Remove the current question (first in the list)
+    if (_questions.isNotEmpty) {
+      _questions.removeAt(0);
     }
   }
 
