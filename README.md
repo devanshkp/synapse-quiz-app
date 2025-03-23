@@ -2,7 +2,7 @@
 
 A modern, feature-rich quiz application built with Flutter and Firebase, offering a comprehensive quiz experience with friend leaderboards, custom generated hints, progress tracking, and more.
 
-<img src="assets/icons/app_logo.png" alt="Synapse Logo" width="150">
+<img src="flutter_application/assets/icons/app_logo.png" alt="Synapse Logo" width="150">
 
 ## ✨ Features
 
