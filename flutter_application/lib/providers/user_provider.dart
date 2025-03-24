@@ -145,6 +145,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> fetchFriendsList() async {
     try {
       _friends = await _friendService.getFriends(_currentUserId);
+      debugPrint("Fetched friends list");
       safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching friends: $e");

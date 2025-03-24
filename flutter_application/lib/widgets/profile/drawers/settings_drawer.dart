@@ -34,7 +34,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
       child: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -60,22 +60,26 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Settings',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14.0),
+                child: Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
               IconButton(
@@ -83,21 +87,21 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                 icon: const Icon(
                   Icons.close_rounded,
                   color: Colors.white70,
-                  size: 24,
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.1),
+                  size: 20,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            width: 60,
-            height: 3,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(1.5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Container(
+              width: 60,
+              height: 3,
+              decoration: BoxDecoration(
+                color: purpleAccent,
+                borderRadius: BorderRadius.circular(1.5),
+              ),
             ),
           ),
         ],

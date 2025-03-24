@@ -14,6 +14,7 @@ class UserProfile {
   final int maxStreak;
   final Map<String, int> topicQuestionsSolved;
   final DateTime joinDate;
+  final double accuracy;
 
   UserProfile({
     required this.userId,
@@ -29,6 +30,7 @@ class UserProfile {
     required this.maxStreak,
     required this.topicQuestionsSolved,
     required this.joinDate,
+    required this.accuracy,
   });
 
   // Factory method to create a UserProfile from a Firestore document
@@ -66,6 +68,8 @@ class UserProfile {
       topicQuestionsSolved:
           Map<String, int>.from(data['topicQuestionsSolved'] ?? {}),
       joinDate: joinDate,
+      accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
+          .toDouble(),
     );
   }
 
@@ -103,6 +107,7 @@ class UserProfile {
     int? maxStreak,
     Map<String, int>? topicQuestionsSolved,
     DateTime? joinDate,
+    double? accuracy,
   }) {
     return UserProfile(
       userId: userId ?? this.userId,
@@ -118,6 +123,7 @@ class UserProfile {
       maxStreak: maxStreak ?? this.maxStreak,
       topicQuestionsSolved: topicQuestionsSolved ?? this.topicQuestionsSolved,
       joinDate: joinDate ?? this.joinDate,
+      accuracy: accuracy ?? this.accuracy,
     );
   }
 }

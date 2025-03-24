@@ -37,6 +37,8 @@ class CustomHomeButton extends StatelessWidget {
     this.highlightColor = Colors.white,
   });
 
+  final borderRadius = 18.0;
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -44,13 +46,13 @@ class CustomHomeButton extends StatelessWidget {
       shadowColor: Colors.black26,
       color: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
       margin: EdgeInsets.zero,
       child: Ink(
         decoration: BoxDecoration(
           gradient: buttonGradient,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
           boxShadow: [
             BoxShadow(
@@ -69,7 +71,7 @@ class CustomHomeButton extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(borderRadius),
           splashColor: splashColor.withValues(alpha: 0.1),
           highlightColor: highlightColor.withValues(alpha: 0.05),
           child: Container(

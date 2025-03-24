@@ -175,6 +175,7 @@ class TriviaProvider extends ChangeNotifier {
     // Make sure any existing timer is canceled
     stopTimer();
 
+    _isLoadingQuestions = true;
     _isTemporarySession = true;
     safeNotifyListeners();
 
@@ -229,24 +230,8 @@ class TriviaProvider extends ChangeNotifier {
       _isLoadingQuestions = false;
       _selectedTopics = List.from(_cachedSelectedTopics);
 
-      if (_selectedTopics.contains(topic)) {
-        List<Map<String, dynamic>> currentQuestions = List.from(_questions);
-        _questions = List.from(_cachedQuestions);
-
-        for (var question in currentQuestions) {
-          if (_encounteredQuestions.any((encountered) =>
-              encountered['questionId'] == question['questionId'])) {
-            continue;
-          }
-          if (!_questions
-              .any((q) => q['questionId'] == question['questionId'])) {
-            _questions.add(question);
-          }
-        }
-      } else {
-        cacheQuestionsForTopic(topic);
-        _questions = List.from(_cachedQuestions);
-      }
+      cacheQuestionsForTopic(topic);
+      _questions = List.from(_cachedQuestions);
 
       // Ensure no duplicates from encounteredQuestions remain in _questions
       _questions.removeWhere((q) => _encounteredQuestions
@@ -322,9 +307,8 @@ class TriviaProvider extends ChangeNotifier {
 
   // ============================== TIMER FUNCTIONS ==============================
 
-  void setTriviaActive(bool active, {bool temporarySession = false}) {
+  void setTriviaActive(bool active) {
     _isTriviaActive = active;
-    if (temporarySession) return;
     if (active) {
       if (_questions.isEmpty) {
         safeFetchQuestions(topics: _selectedTopics);
@@ -1190,7 +1174,7 @@ class TriviaProvider extends ChangeNotifier {
     }
   }
 
-  // Function to fetch the user's encountered questions
+// Function to fetch the user's encountered questions
   Future<void> fetchEncounteredQuestions({bool loadMore = false}) async {
     if (_isLoadingEncounteredQuestions) return;
 
@@ -1208,13 +1192,16 @@ class TriviaProvider extends ChangeNotifier {
                   as List<dynamic>? ??
               [];
 
+      // Reverse the list to have most recent IDs first
+      final reversedIds = List.from(encounteredIds.reversed);
+
       // Determine the start index and limit
       final startIndex = loadMore ? _encounteredQuestions.length : 0;
-      final limit = loadMore ? 15 : 5; // Number of questions to fetch per batch
+      final limit = loadMore ? 25 : 5;
 
       // Fetch questions from Firestore
-      await fetchEncounteredQuestionsFromFirebase(encounteredIds,
-          startIndex: startIndex, limit: limit);
+      await fetchEncounteredQuestionsFromFirebase(reversedIds,
+          startIndex: startIndex, limit: limit, loadMore: loadMore);
     } catch (e) {
       debugPrint('Error fetching encountered questions: $e');
     } finally {
@@ -1223,23 +1210,23 @@ class TriviaProvider extends ChangeNotifier {
     }
   }
 
-  // Helper method to fetch encountered questions from Firestore
-  Future<void> fetchEncounteredQuestionsFromFirebase(
-      List<dynamic> encounteredIds,
+// Helper method to fetch encountered questions from Firestore
+  Future<void> fetchEncounteredQuestionsFromFirebase(List<dynamic> reversedIds,
       {required int startIndex,
-      required int limit}) async {
-    if (startIndex >= encounteredIds.length) {
+      required int limit,
+      required bool loadMore}) async {
+    if (startIndex >= reversedIds.length) {
       _hasMoreEncounteredQuestions = false;
       return;
     }
 
     // Calculate the end index for the current batch
-    final endIndex = (startIndex + limit > encounteredIds.length)
-        ? encounteredIds.length
+    final endIndex = (startIndex + limit > reversedIds.length)
+        ? reversedIds.length
         : startIndex + limit;
 
     // Get the IDs for the current batch
-    final idsToFetch = encounteredIds
+    final idsToFetch = reversedIds
         .sublist(startIndex, endIndex)
         .map((id) => id.toString())
         .toList();
@@ -1258,19 +1245,22 @@ class TriviaProvider extends ChangeNotifier {
       };
     }).toList();
 
-    // Sort questions to match the order in encounteredIds
+    // Sort questions to match the order in reversedIds (already reversed, so newest first)
     newQuestions.sort((a, b) {
-      final indexA = encounteredIds.indexOf(a['questionId']);
-      final indexB = encounteredIds.indexOf(b['questionId']);
-      return indexB.compareTo(indexA); // Reverse order (newest first)
+      final indexA = reversedIds.indexOf(a['questionId']);
+      final indexB = reversedIds.indexOf(b['questionId']);
+      return indexA.compareTo(indexB); // Keep in same order as reversedIds
     });
+
+    // If we're not loading more, clear the existing list
+    if (!loadMore) {
+      _encounteredQuestions.clear();
+    }
 
     _encounteredQuestions.addAll(newQuestions);
 
     // Update _hasMoreEncounteredQuestions
-    if (endIndex >= encounteredIds.length) {
-      _hasMoreEncounteredQuestions = false;
-    }
+    _hasMoreEncounteredQuestions = endIndex < reversedIds.length;
   }
 
   // Add this method to add newly encountered questions to the history

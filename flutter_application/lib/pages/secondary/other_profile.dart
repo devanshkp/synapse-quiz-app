@@ -530,7 +530,7 @@ class FriendshipButton extends StatelessWidget {
     required this.icon,
     required this.gradient,
     this.onTap,
-    this.width = 170,
+    this.width = 120,
   });
 
   @override

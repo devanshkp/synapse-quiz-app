@@ -25,18 +25,19 @@ const Color currentStreakColor = Color.fromARGB(255, 255, 160, 64);
 const Color globalRankColor = Color.fromARGB(255, 64, 207, 255);
 
 // Topic Colors
-const Color machineLearningColor = Color.fromARGB(255, 87, 119, 193);
-const Color computerNeworkColor = Color.fromARGB(255, 205, 81, 201);
-const Color dataScienceColor = Color.fromARGB(255, 164, 164, 164);
-const Color probabilityStatisticsColor = Color.fromARGB(255, 187, 74, 74);
-const Color dataStructuresColor = Color.fromARGB(255, 159, 124, 79);
-const Color cloudComputingColor = Color.fromARGB(255, 64, 182, 119);
+const Color macLearningColor = Color.fromARGB(255, 87, 119, 193);
+const Color compNetworkColor = Color.fromARGB(255, 205, 81, 201);
+const Color dataSciColor = Color.fromARGB(255, 164, 164, 164);
+const Color probStatColor = Color.fromARGB(255, 187, 74, 74);
+const Color dataStructColor = Color.fromARGB(255, 159, 124, 79);
+const Color cloudCompColor = Color.fromARGB(255, 64, 182, 119);
 const Color databaseColor = Color.fromARGB(255, 42, 167, 198);
 const Color algorithmsColor = Color.fromARGB(255, 130, 102, 214);
-const Color sweFundamentalsColor = Color.fromARGB(255, 214, 116, 24);
-const Color discreteMathColor = Color.fromARGB(255, 222, 96, 87);
-const Color cyberSecurityColor = Color.fromARGB(255, 63, 67, 60);
-const Color artificialIntelligenceColor = Color.fromARGB(255, 207, 65, 108);
+const Color sweFundColor = Color.fromARGB(255, 214, 116, 24);
+const Color discMathColor = Color.fromARGB(255, 222, 96, 87);
+const Color cyberSecColor = Color.fromARGB(255, 63, 67, 60);
+const Color lightCyberSecColor = Color.fromARGB(255, 114, 126, 106);
+const Color artificialIntelColor = Color.fromARGB(255, 207, 65, 108);
 
 // Random Colors
 const Color goldColor = Color(0xffFFD700);

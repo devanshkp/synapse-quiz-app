@@ -346,23 +346,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundPageColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: _buildAppBar(),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           final userProfile = userProvider.userProfile;
@@ -551,6 +535,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: Container(
+        margin: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      title: const Text(
+        "Edit Profile",
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      centerTitle: true,
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(0),
+        child: Divider(
+          color: Colors.white12,
+          height: 1,
+        ),
       ),
     );
   }

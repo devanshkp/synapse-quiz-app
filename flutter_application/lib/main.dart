@@ -130,6 +130,18 @@ class BottomNavBarState extends State<BottomNavBar> {
   ];
 
   void _onTap(int index) {
+    final triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
+
+    if (_currentIndex == 2 && index != 2) {
+      debugPrint("navigated away");
+      triviaProvider.setTriviaActive(false);
+    }
+
+    if (_currentIndex != 2 && index == 2) {
+      debugPrint("navigated to");
+      triviaProvider.setTriviaActive(true);
+    }
+
     setState(() {
       _currentIndex = index;
     });

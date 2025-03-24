@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/models/user_profile.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/utils/topic_color.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -165,7 +166,7 @@ class _TopicsSectionState extends State<TopicsSection> {
 
     final topic = entry.key;
     final count = entry.value;
-    final color = _getTopicColor(topic);
+    final color = TopicColorUtil.getTopicColor(topic);
 
     // Format topic name
     final formattedTopic = topic
@@ -264,7 +265,7 @@ class _TopicsSectionState extends State<TopicsSection> {
         ? (solvedInTopic / questionCount * 100).clamp(0, 100)
         : 0.0;
 
-    final color = _getTopicColor(topic);
+    final color = TopicColorUtil.getTopicColor(topic);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
@@ -317,36 +318,5 @@ class _TopicsSectionState extends State<TopicsSection> {
         ],
       ),
     );
-  }
-
-  Color _getTopicColor(String topic) {
-    switch (topic) {
-      case 'machine_learning':
-        return machineLearningColor;
-      case 'computer_network':
-        return computerNeworkColor;
-      case 'data_science':
-        return dataScienceColor;
-      case 'probability_&_statistics':
-        return probabilityStatisticsColor;
-      case 'data_structures':
-        return dataStructuresColor;
-      case 'cloud_computing':
-        return cloudComputingColor;
-      case 'database':
-        return databaseColor;
-      case 'algorithms':
-        return algorithmsColor;
-      case 'SWE_fundamentals':
-        return sweFundamentalsColor;
-      case 'discrete_math':
-        return discreteMathColor;
-      case 'cyber_security':
-        return cyberSecurityColor;
-      case 'artificial_intelligence':
-        return artificialIntelligenceColor;
-      default:
-        return Colors.grey;
-    }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ObserverService {
-  static final RouteObserver<ModalRoute> routeObserver =
+  static final RouteObserver<PageRoute> routeObserver =
       RouteObserver<PageRoute>();
 }

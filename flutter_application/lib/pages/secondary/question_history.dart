@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
+import 'package:flutter_application/utils/topic_color.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/utils/text_formatter.dart';
 
@@ -205,6 +206,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
 
   @override
   Widget build(BuildContext context) {
+    final unformattedTopic = widget.question['topic'];
     final topic =
         TextFormatter.formatTitlePreservingCase(widget.question['topic']);
     final correctAnswerIndex = _getCorrectIndex();
@@ -239,7 +241,8 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: purpleAccent.withValues(alpha: 0.2),
+                      color: TopicColorUtil.getTopicColor((unformattedTopic))
+                          .withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -247,7 +250,7 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),

@@ -16,7 +16,7 @@ class _SearchPageState extends State<SearchPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  final List<Map<String, dynamic>> _allTopics = [
+  static const List<Map<String, dynamic>> _allTopics = [
     {
       'title': 'algorithms',
       'iconName': 'algorithms.png',
@@ -29,7 +29,7 @@ class _SearchPageState extends State<SearchPage> {
       'title': 'SWE_fundamentals',
       'iconName': 'SWE_fundamentals.png',
       'iconSize': 65.0,
-      'color': sweFundamentalsColor,
+      'color': sweFundColor,
       'bottomOffset': -10.0,
       'section': 'all'
     },
@@ -37,21 +37,21 @@ class _SearchPageState extends State<SearchPage> {
       'title': 'discrete_math',
       'iconName': 'discrete_math.png',
       'iconSize': 65.0,
-      'color': discreteMathColor,
+      'color': discMathColor,
       'section': 'all'
     },
     {
       'title': 'computer_network',
       'iconName': 'computer_network.png',
       'iconSize': 65.0,
-      'color': computerNeworkColor,
+      'color': compNetworkColor,
       'section': 'all'
     },
     {
       'title': 'data_science',
       'iconName': 'data_science.png',
       'iconSize': 68.0,
-      'color': dataScienceColor,
+      'color': dataSciColor,
       'bottomOffset': -10.0,
       'section': 'all'
     },
@@ -60,14 +60,14 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'cloud_computing.png',
       'iconSize': 65.0,
       'bottomOffset': -5.0,
-      'color': cloudComputingColor,
+      'color': cloudCompColor,
       'section': 'all'
     },
     {
       'title': 'artificial_intelligence',
       'iconName': 'artificial_intelligence.png',
       'iconSize': 73.0,
-      'color': artificialIntelligenceColor,
+      'color': artificialIntelColor,
       'bottomOffset': -15.0,
       'section': 'all'
     },
@@ -76,14 +76,14 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'cyber_security.png',
       'iconSize': 72.0,
       'bottomOffset': -10.0,
-      'color': cyberSecurityColor,
+      'color': cyberSecColor,
       'section': 'all'
     },
     {
       'title': 'data_structures',
       'iconName': 'data_structures.png',
       'iconSize': 68.0,
-      'color': dataStructuresColor,
+      'color': dataStructColor,
       'bottomOffset': -5.0,
       'section': 'all'
     },
@@ -92,7 +92,7 @@ class _SearchPageState extends State<SearchPage> {
       'iconName': 'machine_learning.png',
       'iconSize': 70.0,
       'bottomOffset': -10.0,
-      'color': machineLearningColor,
+      'color': macLearningColor,
       'section': 'all'
     },
     {
@@ -107,25 +107,25 @@ class _SearchPageState extends State<SearchPage> {
       'title': 'probability_&_statistics',
       'iconName': 'probability_&_statistics.png',
       'iconSize': 65.0,
-      'color': probabilityStatisticsColor,
+      'color': probStatColor,
       'section': 'all'
     },
   ];
 
-  final List<Map<String, dynamic>> _recommendedTopics = [
+  static const List<Map<String, dynamic>> _recommendedTopics = [
     {
       'title': 'machine_learning',
       'iconName': 'machine_learning.png',
       'iconSize': 70.0,
       'bottomOffset': -10.0,
-      'color': machineLearningColor,
+      'color': macLearningColor,
       'section': 'recommended'
     },
     {
       'title': 'data_structures',
       'iconName': 'data_structures.png',
       'iconSize': 68.0,
-      'color': dataStructuresColor,
+      'color': dataStructColor,
       'bottomOffset': -5.0,
       'section': 'recommended'
     },
@@ -133,7 +133,7 @@ class _SearchPageState extends State<SearchPage> {
       'title': 'cyber_security',
       'iconName': 'cyber_security.png',
       'iconSize': 72.0,
-      'color': cyberSecurityColor,
+      'color': cyberSecColor,
       'bottomOffset': -10.0,
       'section': 'recommended'
     },
@@ -293,7 +293,7 @@ class _SearchPageState extends State<SearchPage> {
                 // Show recommended section only if not searching
                 if (_searchQuery.isEmpty) ...[
                   const Text(
-                    "Recommended for you",
+                    "Recommended",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,

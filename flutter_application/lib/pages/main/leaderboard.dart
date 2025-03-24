@@ -15,9 +15,15 @@ class LeaderboardPage extends StatefulWidget {
   LeaderboardPageState createState() => LeaderboardPageState();
 }
 
+enum SortOption {
+  questionsSolved,
+  accuracy,
+}
+
 class LeaderboardPageState extends State<LeaderboardPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  SortOption _sortOption = SortOption.questionsSolved;
 
   @override
   void initState() {
@@ -36,6 +42,25 @@ class LeaderboardPageState extends State<LeaderboardPage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _changeSort(SortOption option) {
+    setState(() {
+      _sortOption = option;
+    });
+  }
+
+  double _getSafeAccuracy(double accuracy) {
+    return accuracy.isNaN ? 0.0 : accuracy;
+  }
+
+  String _getSortText() {
+    switch (_sortOption) {
+      case SortOption.questionsSolved:
+        return 'Questions solved';
+      case SortOption.accuracy:
+        return 'Accuracy';
+    }
   }
 
   @override
@@ -83,14 +108,12 @@ class LeaderboardPageState extends State<LeaderboardPage>
           ),
           // Content area
           Expanded(
-            child: SingleChildScrollView(
-              child: ContentSizeTabBarView(
-                controller: _tabController,
-                children: [
-                  _buildFriendsLeaderboard(),
-                  _buildGlobalLeaderboard(),
-                ],
-              ),
+            child: ContentSizeTabBarView(
+              controller: _tabController,
+              children: [
+                _buildFriendsLeaderboard(),
+                _buildGlobalLeaderboard(),
+              ],
             ),
           ),
         ],
@@ -234,15 +257,24 @@ class LeaderboardPageState extends State<LeaderboardPage>
                 fullName: userProfile.fullName,
                 avatarUrl: userProfile.avatarUrl,
                 questionsSolved: userProfile.questionsSolved,
+                accuracy: userProfile.accuracy,
               ),
               isCurrentUser: true,
             ),
           );
         }
 
-        // Sort by total solved questions (highest to lowest)
-        leaderboardEntries.sort((a, b) =>
-            b.friend.questionsSolved.compareTo(a.friend.questionsSolved));
+        // Sort based on selected sort option
+        if (_sortOption == SortOption.questionsSolved) {
+          leaderboardEntries.sort((a, b) =>
+              b.friend.questionsSolved.compareTo(a.friend.questionsSolved));
+        } else {
+          leaderboardEntries.sort((a, b) {
+            final accuracyA = _getSafeAccuracy(a.friend.accuracy);
+            final accuracyB = _getSafeAccuracy(b.friend.accuracy);
+            return accuracyB.compareTo(accuracyA);
+          });
+        }
 
         if (leaderboardEntries.isEmpty) {
           return _buildEmptyState();
@@ -262,11 +294,19 @@ class LeaderboardPageState extends State<LeaderboardPage>
             ? leaderboardEntries.sublist(3)
             : <LeaderboardEntry>[];
 
-        return Column(
-          children: [
-            _buildTopRankings(topEntries),
-            _buildOtherPlayers(remainingEntries),
-          ],
+        return RefreshIndicator(
+          onRefresh: () => userProvider.fetchFriendsList(),
+          backgroundColor: const Color.fromARGB(255, 58, 58, 58),
+          color: Colors.white,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                _buildTopRankings(topEntries),
+                _buildOtherPlayers(remainingEntries),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -302,23 +342,105 @@ class LeaderboardPageState extends State<LeaderboardPage>
                 ],
               ),
 
-              // Right: Sort indicator
-              Row(
-                children: [
-                  const Icon(
-                    Icons.sort,
-                    color: Colors.white,
-                    size: 12,
+              // Right: Sort dropdown button
+              PopupMenuButton<SortOption>(
+                onSelected: _changeSort,
+                offset: const Offset(0, 40),
+                color: const Color.fromARGB(255, 31, 31, 31),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Questions solved',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 12,
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem<SortOption>(
+                    value: SortOption.questionsSolved,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: _sortOption == SortOption.questionsSolved
+                              ? Theme.of(context).primaryColor
+                              : Colors.white70,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Questions solved',
+                          style: TextStyle(
+                            color: _sortOption == SortOption.questionsSolved
+                                ? Theme.of(context).primaryColor
+                                : Colors.white,
+                            fontWeight:
+                                _sortOption == SortOption.questionsSolved
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<SortOption>(
+                    value: SortOption.accuracy,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.percent,
+                          color: _sortOption == SortOption.accuracy
+                              ? Theme.of(context).primaryColor
+                              : Colors.white70,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Accuracy',
+                          style: TextStyle(
+                            color: _sortOption == SortOption.accuracy
+                                ? Theme.of(context).primaryColor
+                                : Colors.white,
+                            fontWeight: _sortOption == SortOption.accuracy
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 23, 23, 23)
+                        .withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 4),
+                      Text(
+                        _getSortText(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: Colors.white.withValues(alpha: 0.7),
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -334,7 +456,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                 Column(
                   children: [
                     for (int i = 0; i < topEntries.length && i < 3; i++)
-                      _buildRankCard(topEntries[i], i + 1),
+                      _buildRankCard(topEntries[i], i + 1, _sortOption),
                   ],
                 ),
             ],
@@ -356,23 +478,13 @@ class LeaderboardPageState extends State<LeaderboardPage>
         // Title section
         const Padding(
           padding: EdgeInsets.fromLTRB(24, 20, 24, 16),
-          child: Row(
-            children: [
-              Icon(
-                Icons.people_outline,
-                color: Colors.white70,
-                size: 18,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'Other Players',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          child: Text(
+            'Other Players',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
 
@@ -385,14 +497,15 @@ class LeaderboardPageState extends State<LeaderboardPage>
           itemBuilder: (context, index) {
             final entry = entries[index];
             final rank = entry.rank;
-            return _buildRankCard(entry, rank);
+            return _buildRankCard(entry, rank, _sortOption);
           },
         ),
       ],
     );
   }
 
-  Widget _buildRankCard(LeaderboardEntry entry, int rank) {
+  Widget _buildRankCard(
+      LeaderboardEntry entry, int rank, SortOption sortOption) {
     final friend = entry.friend;
     final isCurrentUser = entry.isCurrentUser;
 
@@ -461,10 +574,11 @@ class LeaderboardPageState extends State<LeaderboardPage>
         break;
       default:
         accentColor = const Color.fromARGB(255, 90, 90, 90);
-        baseColor =
-            isCurrentUser ? const Color(0xFF2A3142) : const Color(0xFF2D2D2D);
+        baseColor = isCurrentUser
+            ? const Color.fromARGB(255, 48, 50, 54)
+            : const Color(0xFF2D2D2D);
         borderColor = isCurrentUser
-            ? Colors.grey.shade300
+            ? const Color.fromARGB(255, 126, 126, 126)
             : accentColor.withValues(alpha: 0.15);
         highlightColor = baseColor;
         cardGradient = LinearGradient(
@@ -600,52 +714,102 @@ class LeaderboardPageState extends State<LeaderboardPage>
                         ),
                 ),
 
-                // Question solved count with metallic effect
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.5),
+                // Stats container
+                if (_sortOption == SortOption.questionsSolved) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: accentColor,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: baseColor.withValues(alpha: 0.2),
+                          blurRadius: 2,
+                          spreadRadius: 0,
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: accentColor,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: baseColor.withValues(alpha: 0.2),
-                        blurRadius: 2,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        color: accentColor,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${friend.questionsSolved}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: accentColor,
+                          size: 12,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          '${friend.questionsSolved}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ] else ...[
+                  // Accuracy with metallic effect
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: accentColor,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: baseColor.withValues(alpha: 0.2),
+                          blurRadius: 2,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.precision_manufacturing_outlined,
+                          color: accentColor,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_getSafeAccuracy(friend.accuracy).toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
               ],
             ),
           ),

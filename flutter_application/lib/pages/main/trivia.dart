@@ -88,57 +88,32 @@ class _TriviaPageState extends State<TriviaPage>
     _animationController.dispose();
     _topicAnimationController.dispose();
 
+    if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
+      Future.microtask(() {
+        debugPrint("ending temporary session");
+        _triviaProvider.endTemporarySession(widget.topic);
+      });
+    }
     ObserverService.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      _triviaProvider.setTriviaActive(false,
-          temporarySession: widget.isTemporarySession);
-    } else if (state == AppLifecycleState.resumed) {
-      _triviaProvider.setTriviaActive(true);
-    }
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
-    ObserverService.routeObserver.subscribe(this, ModalRoute.of(context)!);
+    ObserverService.routeObserver
+        .subscribe(this, ModalRoute.of(context) as PageRoute);
 
     if (widget.isTemporarySession) {
-      _triviaProvider.isLoadingQuestions = true;
+      debugPrint("starting temp session");
       _triviaProvider.startTemporarySession(widget.topic);
     }
 
     Future.delayed(const Duration(seconds: 30), () {
-      if (_triviaProvider.isLoadingQuestions && mounted) {
-        debugPrint("Safety timeout triggered - forcing loading state to false");
-        _triviaProvider.forceLoadingComplete();
-      }
+      _triviaProvider.forceLoadingComplete();
     });
-  }
-
-  @override
-  void didPush() {
-    _triviaProvider.setTriviaActive(true,
-        temporarySession: widget.isTemporarySession);
-  }
-
-  @override
-  void didPop() {
-    _triviaProvider.setTriviaActive(false,
-        temporarySession: widget.isTemporarySession);
-    // End temporary session when navigating back
-    if (widget.isTemporarySession && _triviaProvider.isTemporarySession) {
-      // Use a microtask to ensure this runs after the current frame
-      Future.microtask(() {
-        _triviaProvider.endTemporarySession(widget.topic);
-      });
-    }
   }
 
   // ============================== QUESTION LOGIC ==============================

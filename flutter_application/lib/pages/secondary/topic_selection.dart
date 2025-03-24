@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/providers/trivia_provider.dart';
 import 'package:flutter_application/providers/user_provider.dart';
+import 'package:flutter_application/utils/text_formatter.dart';
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
   late AnimationController _animationController;
   bool _hasLoadedTopics = false;
   final ScrollController _scrollController = ScrollController();
+  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
   void dispose() {
     _animationController.dispose();
     _scrollController.dispose();
+    _isSyncing = false;
     super.dispose();
   }
 
@@ -58,7 +61,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
     final bool hasChanges =
         !const SetEquality().equals(currentTopics, tempTopics);
     final bool hasMinimumTopics = _tempSelectedTopics.isNotEmpty;
-    final bool isLoading = triviaProvider.isLoadingQuestions;
+    final bool isLoading = triviaProvider.isFetchingQuestions;
     return hasChanges && hasMinimumTopics && !isLoading;
   }
 
@@ -76,8 +79,14 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
   }
 
   Future<void> _saveSelection() async {
+    setState(() {
+      _isSyncing = true;
+    });
     await triviaProvider.syncTopics(_tempSelectedTopics);
-    if (mounted) Navigator.pop(context);
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      _isSyncing = false;
+      if (mounted) Navigator.pop(context);
+    });
   }
 
   @override
@@ -148,12 +157,12 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
           icon: const Icon(
             Icons.arrow_back_rounded,
             color: Colors.white,
-            size: 24,
+            size: 20,
           ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      centerTitle: true,
+      actionsPadding: const EdgeInsets.only(right: 8),
       actions: [
         if (_canSave())
           TextButton(
@@ -162,20 +171,28 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
               "Save",
               style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
           )
-        else if (triviaProvider.isFetchingQuestions)
-          const CircularProgressIndicator(
-            color: Colors.white,
-          )
+        else if (triviaProvider.isFetchingQuestions || _isSyncing)
+          const Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+          ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(4),
-        child: Container(
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(0),
+        child: Divider(
+          color: Colors.white12,
           height: 1,
-          color: Colors.white.withValues(alpha: 0.08),
         ),
       ),
     );
@@ -295,7 +312,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -510,7 +527,7 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      topic.replaceAll('_', ' ').toUpperCase(),
+                      TextFormatter.formatTitlePreservingCase(topic),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight:

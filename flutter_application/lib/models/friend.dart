@@ -6,6 +6,8 @@ class Friend {
   final String fullName;
   final String? avatarUrl; // Optional
   final int questionsSolved; // Track number of solved questions
+  final int totalEncounteredQuestions;
+  final double accuracy;
 
   Friend({
     required this.userId,
@@ -13,6 +15,8 @@ class Friend {
     required this.fullName,
     this.avatarUrl,
     this.questionsSolved = 0, // Default to 0
+    this.totalEncounteredQuestions = 0,
+    this.accuracy = 0.0,
   });
 
   // Factory constructor to create a Friend object from a Firestore document
@@ -24,6 +28,9 @@ class Friend {
       userName: data['userName'] ?? 'Unknown',
       avatarUrl: data['avatarUrl'],
       questionsSolved: data['questionsSolved'] ?? 0,
+      totalEncounteredQuestions: data['encounteredQuestions'].length ?? 0,
+      accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
+          .toDouble(),
     );
   }
 
@@ -35,6 +42,9 @@ class Friend {
       userName: data['userName'] ?? 'Unknown',
       avatarUrl: data['avatarUrl'],
       questionsSolved: data['questionsSolved'] ?? 0,
+      totalEncounteredQuestions: data['encounteredQuestions'].length ?? 0,
+      accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
+          .toDouble(),
     );
   }
 
@@ -46,6 +56,8 @@ class Friend {
       'fullName': fullName,
       'avatarUrl': avatarUrl,
       'questionsSolved': questionsSolved,
+      'totalEncounteredQuestions': totalEncounteredQuestions,
+      'accuracy': accuracy,
     };
   }
 }
