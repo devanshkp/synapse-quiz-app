@@ -54,7 +54,7 @@ class UserProfileHeader extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: appColor,
+                        color: Theme.of(context).secondaryHeaderColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(

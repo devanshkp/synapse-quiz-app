@@ -59,27 +59,33 @@ class _OtherProfilePageState extends State<OtherProfilePage>
   }
 
   Future<void> _loadUserProfile() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       // Use UserProvider to fetch the profile
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final profile =
           await userProvider.getUserProfileById(widget.friend.userId);
-
-      setState(() {
-        _userProfile = profile;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
-        floatingSnackBar(
-            context: context, message: 'Error loading user profile: $e');
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          debugPrint("Error loading profile: $e");
+          floatingSnackBar(
+              context: context, message: 'Couldn\'t load user\'s profile.');
+        }
       }
     }
   }
@@ -88,9 +94,11 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     if (_currentUserId == null) return;
 
     try {
-      setState(() {
-        _isLoadingFriendshipStatus = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingFriendshipStatus = true;
+        });
+      }
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -105,19 +113,20 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       final isPendingRequest = userProvider.outgoingFriendRequests
           .any((request) => request.userId == widget.friend.userId);
 
-      setState(() {
-        _isFriend = isFriend;
-        _isPendingRequest = isPendingRequest;
-        _isIncomingRequest = isIncomingRequest;
-        _isLoadingFriendshipStatus = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isFriend = isFriend;
+          _isPendingRequest = isPendingRequest;
+          _isIncomingRequest = isIncomingRequest;
+          _isLoadingFriendshipStatus = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingFriendshipStatus = false;
         });
-        floatingSnackBar(
-            context: context, message: 'Error checking friendship status: $e');
+        debugPrint("Error checking friendship status: $e");
       }
     }
   }
@@ -129,24 +138,24 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       final result =
           await _friendService.sendFriendRequest(widget.friend.userId);
 
-      if (result['success']) {
+      if (result['success'] && mounted) {
         setState(() {
           _isPendingRequest = true;
         });
-        if (mounted) {
-          floatingSnackBar(context: context, message: 'Friend request sent!');
-        }
       } else {
         if (mounted) {
           floatingSnackBar(
               context: context,
-              message: result['error'] ?? 'Failed to send friend request');
+              message: result['error'] ??
+                  'Couldn\'t send request. Please try again later');
         }
       }
     } catch (e) {
       if (mounted) {
+        debugPrint("Error sending friend request: $e");
         floatingSnackBar(
-            context: context, message: 'Error sending friend request: $e');
+            context: context,
+            message: 'Couldn\'t send request. Please try again later');
       }
     }
   }
@@ -157,24 +166,24 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     try {
       final result = await _friendService.removeFriend(widget.friend.userId);
 
-      if (result['success']) {
+      if (result['success'] && mounted) {
         setState(() {
           _isFriend = false;
         });
-        if (mounted) {
-          floatingSnackBar(context: context, message: 'Friend removed');
-        }
       } else {
         if (mounted) {
           floatingSnackBar(
               context: context,
-              message: result['error'] ?? 'Failed to remove friend');
+              message: result['error'] ??
+                  'Couldn\'t remove. Please try again later.');
         }
       }
     } catch (e) {
       if (mounted) {
+        debugPrint("Error removing friend: $e");
         floatingSnackBar(
-            context: context, message: 'Error removing friend: $e');
+            context: context,
+            message: 'Couldn\'t remove. Please try again later.');
       }
     }
   }
@@ -186,26 +195,24 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       final result =
           await _friendService.acceptFriendRequest(widget.friend.userId);
 
-      if (result['success']) {
+      if (result['success'] && mounted) {
         setState(() {
           _isIncomingRequest = false;
           _isFriend = true;
         });
-        if (mounted) {
-          floatingSnackBar(
-              context: context, message: 'Friend request accepted!');
-        }
       } else {
         if (mounted) {
           floatingSnackBar(
               context: context,
-              message: result['error'] ?? 'Failed to accept friend request');
+              message: result['error'] ??
+                  'Couldn\'t accept request. Please try again later.');
         }
       }
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
-            context: context, message: 'Error accepting friend request: $e');
+            context: context,
+            message: 'Couldn\'t accept request. Please try again later.');
       }
     }
   }
@@ -218,25 +225,20 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       final result =
           await _friendService.withdrawFriendRequest(widget.friend.userId);
 
-      if (result['success']) {
+      if (result['success'] && mounted) {
         setState(() {
           _isPendingRequest = false;
         });
-
-        if (mounted) {
-          floatingSnackBar(
-              context: context, message: 'Friend request canceled');
-        }
       } else {
         if (mounted) {
-          floatingSnackBar(
-              context: context, message: 'No pending request found');
+          debugPrint('No pending request found');
         }
       }
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
-            context: context, message: 'Error canceling friend request: $e');
+            context: context,
+            message: 'Couldn\'t withdraw  request. Please try again later.');
       }
     }
   }
@@ -248,31 +250,42 @@ class _OtherProfilePageState extends State<OtherProfilePage>
       final result =
           await _friendService.declineFriendRequest(widget.friend.userId);
 
-      if (result['success']) {
+      if (result['success'] && mounted) {
         setState(() {
           _isIncomingRequest = false;
         });
-        if (mounted) {
-          floatingSnackBar(
-              context: context, message: 'Friend request declined');
-        }
       } else {
         if (mounted) {
           floatingSnackBar(
               context: context,
-              message: result['error'] ?? 'Failed to decline friend request');
+              message: result['error'] ??
+                  'Couldn\'t decline. Please try again later.');
         }
       }
     } catch (e) {
       if (mounted) {
+        debugPrint("Error declining friend request: $e");
         floatingSnackBar(
-            context: context, message: 'Error declining friend request: $e');
+            context: context,
+            message: 'Couldn\'t decline. Please try again later.');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final double extraPadding;
+    if (screenWidth < 700) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.15;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .2;
+    } else {
+      extraPadding = screenWidth * .25;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       appBar: AppBar(
@@ -304,58 +317,62 @@ class _OtherProfilePageState extends State<OtherProfilePage>
                       style: TextStyle(color: Colors.white)))
               : SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      // Profile header section
-                      const SizedBox(height: 20),
-                      _buildUserHeader(),
-                      const SizedBox(height: 15),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? extraPadding : 0),
+                    child: Column(
+                      children: [
+                        // Profile header section
+                        const SizedBox(height: 20),
+                        _buildUserHeader(),
+                        const SizedBox(height: 15),
 
-                      // Friendship button
-                      (_isLoadingFriendshipStatus)
-                          ? _buildFriendshipButton(empty: true)
-                          : _buildFriendshipButton(),
-                      const SizedBox(height: 25),
+                        // Friendship button
+                        (_isLoadingFriendshipStatus)
+                            ? _buildFriendshipButton(empty: true)
+                            : _buildFriendshipButton(),
+                        const SizedBox(height: 25),
 
-                      // Main stats section
-                      _buildMainStats(),
-                      const SizedBox(height: 25),
+                        // Main stats section
+                        _buildMainStats(),
+                        const SizedBox(height: 25),
 
-                      // Tab bar
-                      CustomTabBar(
-                        controller: _tabController,
-                        tabs: const ['Stats', 'Badges', 'Topics'],
-                        horizontalPadding: 28,
-                        tabHeight: 40,
-                        indicatorPadding: const EdgeInsets.all(2),
-                      ),
-                      const SizedBox(height: 15),
+                        // Tab bar
+                        CustomTabBar(
+                          controller: _tabController,
+                          tabs: const ['Stats', 'Badges', 'Topics'],
+                          horizontalPadding: 28,
+                          tabHeight: 40,
+                          indicatorPadding: const EdgeInsets.all(2),
+                        ),
+                        const SizedBox(height: 15),
 
-                      // Tab content with responsive height
-                      ContentSizeTabBarView(
-                        controller: _tabController,
-                        children: [
-                          _userProfile != null
-                              ? StatsSection(userProfile: _userProfile!)
-                              : const Center(
-                                  child: Text('No stats available',
-                                      style: TextStyle(color: Colors.white))),
-                          _userProfile != null
-                              ? BadgesSection(userProfile: _userProfile!)
-                              : const Center(
-                                  child: Text('No badges available',
-                                      style: TextStyle(color: Colors.white))),
-                          _userProfile != null
-                              ? TopicsSection(userProfile: _userProfile!)
-                              : const Center(
-                                  child: Text('No topics available',
-                                      style: TextStyle(color: Colors.white))),
-                        ],
-                      ),
+                        // Tab content with responsive height
+                        ContentSizeTabBarView(
+                          controller: _tabController,
+                          children: [
+                            _userProfile != null
+                                ? StatsSection(userProfile: _userProfile!)
+                                : const Center(
+                                    child: Text('No stats available',
+                                        style: TextStyle(color: Colors.white))),
+                            _userProfile != null
+                                ? BadgesSection(userProfile: _userProfile!)
+                                : const Center(
+                                    child: Text('No badges available',
+                                        style: TextStyle(color: Colors.white))),
+                            _userProfile != null
+                                ? TopicsSection(userProfile: _userProfile!)
+                                : const Center(
+                                    child: Text('No topics available',
+                                        style: TextStyle(color: Colors.white))),
+                          ],
+                        ),
 
-                      // Bottom padding
-                      const SizedBox(height: 15),
-                    ],
+                        // Bottom padding
+                        const SizedBox(height: 15),
+                      ],
+                    ),
                   ),
                 ),
     );
@@ -540,7 +557,8 @@ class FriendshipButton extends StatelessWidget {
       icon: icon,
       gradient: gradient,
       textColor: Colors.white,
-      borderColor: Colors.white.withValues(alpha: 0.3),
+      borderColor: Colors.white.withValues(alpha: 0.2),
+      showBorder: true,
       onPressed: onTap ?? () {},
       width: width,
       height: 35,

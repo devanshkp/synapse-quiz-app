@@ -225,8 +225,9 @@ class TopicSelectionButton extends StatelessWidget {
     return SizedBox(
       height: 72,
       child: CustomHomeButton(
-        title: 'Topic Selection',
+        title: 'Edit Topics',
         titleFontSize: 16,
+        subtitle: "Select the topics you're interested in",
         iconPath: 'assets/icons/home/Edit.svg',
         iconSize: 15,
         onTap: () {

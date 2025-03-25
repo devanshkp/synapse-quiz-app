@@ -20,7 +20,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'algorithms',
       'iconName': 'algorithms.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'color': algorithmsColor,
       'bottomOffset': -10.0,
       'section': 'all'
@@ -28,7 +28,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'SWE_fundamentals',
       'iconName': 'SWE_fundamentals.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'color': sweFundColor,
       'bottomOffset': -10.0,
       'section': 'all'
@@ -36,21 +36,21 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'discrete_math',
       'iconName': 'discrete_math.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'color': discMathColor,
       'section': 'all'
     },
     {
       'title': 'computer_network',
       'iconName': 'computer_network.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'color': compNetworkColor,
       'section': 'all'
     },
     {
       'title': 'data_science',
       'iconName': 'data_science.png',
-      'iconSize': 68.0,
+      'iconRatio': 1.05,
       'color': dataSciColor,
       'bottomOffset': -10.0,
       'section': 'all'
@@ -58,7 +58,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'cloud_computing',
       'iconName': 'cloud_computing.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'bottomOffset': -5.0,
       'color': cloudCompColor,
       'section': 'all'
@@ -66,7 +66,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'artificial_intelligence',
       'iconName': 'artificial_intelligence.png',
-      'iconSize': 73.0,
+      'iconRatio': 1.125,
       'color': artificialIntelColor,
       'bottomOffset': -15.0,
       'section': 'all'
@@ -74,7 +74,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'cyber_security',
       'iconName': 'cyber_security.png',
-      'iconSize': 72.0,
+      'iconRatio': 1.12,
       'bottomOffset': -10.0,
       'color': cyberSecColor,
       'section': 'all'
@@ -82,7 +82,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'data_structures',
       'iconName': 'data_structures.png',
-      'iconSize': 68.0,
+      'iconRatio': 1.05,
       'color': dataStructColor,
       'bottomOffset': -5.0,
       'section': 'all'
@@ -90,7 +90,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'machine_learning',
       'iconName': 'machine_learning.png',
-      'iconSize': 70.0,
+      'iconRatio': 1.075,
       'bottomOffset': -10.0,
       'color': macLearningColor,
       'section': 'all'
@@ -98,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'database',
       'iconName': 'database.png',
-      'iconSize': 70.0,
+      'iconRatio': 1.075,
       'bottomOffset': -10.0,
       'color': databaseColor,
       'section': 'all'
@@ -106,7 +106,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'probability_&_statistics',
       'iconName': 'probability_&_statistics.png',
-      'iconSize': 65.0,
+      'iconRatio': 1,
       'color': probStatColor,
       'section': 'all'
     },
@@ -116,7 +116,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'machine_learning',
       'iconName': 'machine_learning.png',
-      'iconSize': 70.0,
+      'iconRatio': 1.075,
       'bottomOffset': -10.0,
       'color': macLearningColor,
       'section': 'recommended'
@@ -124,7 +124,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'data_structures',
       'iconName': 'data_structures.png',
-      'iconSize': 68.0,
+      'iconRatio': 1.05,
       'color': dataStructColor,
       'bottomOffset': -5.0,
       'section': 'recommended'
@@ -132,7 +132,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'cyber_security',
       'iconName': 'cyber_security.png',
-      'iconSize': 72.0,
+      'iconRatio': 1.12,
       'color': cyberSecColor,
       'bottomOffset': -10.0,
       'section': 'recommended'
@@ -140,7 +140,7 @@ class _SearchPageState extends State<SearchPage> {
     {
       'title': 'database',
       'iconName': 'database.png',
-      'iconSize': 70.0,
+      'iconRatio': 1.075,
       'bottomOffset': -10.0,
       'color': databaseColor,
       'section': 'recommended'
@@ -163,43 +163,57 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _filterTopics(String query) {
-    setState(() {
-      _searchQuery = query;
-      if (query.isEmpty) {
-        _filteredTopics = List.from(_allTopics);
-      } else {
-        // Normalize the query: lowercase and handle both spaces and underscores
-        final normalizedQuery = query.toLowerCase().trim();
+    if (mounted) {
+      setState(() {
+        _searchQuery = query;
+        if (query.isEmpty) {
+          _filteredTopics = List.from(_allTopics);
+        } else {
+          // Normalize the query: lowercase and handle both spaces and underscores
+          final normalizedQuery = query.toLowerCase().trim();
 
-        _filteredTopics = _allTopics.where((topic) {
-          // Get the topic title and normalize it
-          final topicTitle = topic['title'].toString().toLowerCase();
+          _filteredTopics = _allTopics.where((topic) {
+            // Get the topic title and normalize it
+            final topicTitle = topic['title'].toString().toLowerCase();
 
-          // Replace underscores with spaces for matching with user input containing spaces
-          final titleWithSpaces = topicTitle.replaceAll('_', ' ');
+            // Replace underscores with spaces for matching with user input containing spaces
+            final titleWithSpaces = topicTitle.replaceAll('_', ' ');
 
-          // Split into words for word-start matching
-          final words = titleWithSpaces.split(' ');
+            // Split into words for word-start matching
+            final words = titleWithSpaces.split(' ');
 
-          // Check if any word starts with the query
-          final wordStartMatch =
-              words.any((word) => word.startsWith(normalizedQuery));
+            // Check if any word starts with the query
+            final wordStartMatch =
+                words.any((word) => word.startsWith(normalizedQuery));
 
-          // Check if the whole title starts with the query (for multi-word queries)
-          final titleStartMatch = titleWithSpaces.startsWith(normalizedQuery);
+            // Check if the whole title starts with the query (for multi-word queries)
+            final titleStartMatch = titleWithSpaces.startsWith(normalizedQuery);
 
-          // Also check if the query with underscores matches
-          final queryWithUnderscores = normalizedQuery.replaceAll(' ', '_');
-          final underscoreMatch = topicTitle.startsWith(queryWithUnderscores);
+            // Also check if the query with underscores matches
+            final queryWithUnderscores = normalizedQuery.replaceAll(' ', '_');
+            final underscoreMatch = topicTitle.startsWith(queryWithUnderscores);
 
-          return wordStartMatch || titleStartMatch || underscoreMatch;
-        }).toList();
-      }
-    });
+            return wordStartMatch || titleStartMatch || underscoreMatch;
+          }).toList();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .125;
+    } else {
+      extraPadding = screenWidth * .15;
+    }
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
@@ -262,7 +276,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     // Show clear icon when there's text, otherwise show search icon
                     GestureDetector(
-                      onTap: _searchQuery.isNotEmpty
+                      onTap: _searchQuery.isNotEmpty && mounted
                           ? () {
                               // Clear the search field and reset results
                               setState(() {
@@ -284,179 +298,209 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: ListView(
-              children: [
-                const SizedBox(height: 30),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = isTablet ? 3 : 2;
+              final recommendedtopics = isTablet
+                  ? _recommendedTopics.sublist(0, 3)
+                  : _recommendedTopics;
 
-                // Show recommended section only if not searching
-                if (_searchQuery.isEmpty) ...[
-                  const Text(
-                    "Recommended",
+              // Calculate responsive sizes based on container width
+
+              final baseIconSize =
+                  constraints.maxWidth / (crossAxisCount * 3.5);
+              final iconSize = baseIconSize.clamp(40.0, 80.0); // Min 50, max 75
+
+              final baseFontSize = constraints.maxWidth / (crossAxisCount * 16);
+              final titleFontSize = baseFontSize.clamp(10.0, 15.0);
+
+              return ListView(
+                padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? extraPadding : 18),
+                children: [
+                  const SizedBox(height: 30),
+
+                  // Show recommended section only if not searching
+                  if (_searchQuery.isEmpty) ...[
+                    Text(
+                      "Recommended",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: titleFontSize * 1.1, // Slightly larger
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      itemCount: recommendedtopics.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.85,
+                      ),
+                      itemBuilder: (context, index) {
+                        final topic = recommendedtopics[index];
+                        return TopicButton(
+                          title: topic['title'],
+                          iconName: topic['iconName'],
+                          iconSize: topic['iconRatio'] * iconSize,
+                          color: topic['color'],
+                          titleFontSize: titleFontSize,
+                          buttonType: 'search',
+                          section: 'recommended',
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+
+                  // All topics or search results
+                  Text(
+                    _searchQuery.isEmpty ? "All Topics" : "Search Results",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 15,
+                      fontSize: titleFontSize * 1.1,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.85,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: _recommendedTopics
-                        .map((topic) => TopicButton(
-                              title: topic['title'],
-                              iconName: topic['iconName'],
-                              iconSize: topic['iconSize'],
-                              color: topic['color'],
-                              titleFontSize: 13,
-                              buttonType: "search",
-                              section: topic['section'],
-                              bottomOffset: topic['bottomOffset'] ?? 0,
-                            ))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 30),
-                ],
-
-                // All topics or search results
-                Text(
-                  _searchQuery.isEmpty ? "All Topics" : "Search Results",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _filteredTopics.isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text(
-                            "No topics found",
-                            style: TextStyle(color: Colors.white70),
+                  _filteredTopics.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(titleFontSize),
+                            child: Text(
+                              "No topics found",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: titleFontSize,
+                              ),
+                            ),
                           ),
-                        ),
-                      )
-                    : _searchQuery.isEmpty
-                        // Grid view for all topics (when not searching)
-                        ? GridView.count(
-                            crossAxisCount: 2,
-                            childAspectRatio: 1.85,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 16,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            children: _filteredTopics
-                                .map((topic) => TopicButton(
-                                      title: topic['title'],
-                                      iconName: topic['iconName'],
-                                      iconSize: topic['iconSize'],
-                                      color: topic['color'],
-                                      titleFontSize: 13,
-                                      buttonType: "search",
-                                      section: topic['section'],
-                                      bottomOffset: topic['bottomOffset'] ?? 0,
-                                    ))
-                                .toList(),
-                          )
-                        // List view for search results (one topic per line)
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _filteredTopics.length,
-                            itemBuilder: (context, index) {
-                              final topic = _filteredTopics[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        topic['color'].withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 8),
-                                    leading: Container(
-                                      width: 50,
-                                      height: 50,
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: topic['color']
-                                            .withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Image.asset(
-                                        'assets/images/topics/${topic['iconName']}',
-                                        fit: BoxFit.contain,
-                                      ),
+                        )
+                      : _searchQuery.isEmpty
+                          ? GridView.builder(
+                              shrinkWrap: true,
+                              itemCount: _allTopics.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 1.85,
+                              ),
+                              itemBuilder: (context, index) {
+                                final topic = _allTopics[index];
+                                return TopicButton(
+                                  title: topic['title'],
+                                  iconName: topic['iconName'],
+                                  iconSize: topic['iconRatio'] * iconSize,
+                                  color: topic['color'],
+                                  titleFontSize: titleFontSize,
+                                  buttonType: 'search',
+                                  section: 'all',
+                                );
+                              },
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _filteredTopics.length,
+                              itemBuilder: (context, index) {
+                                final topic = _filteredTopics[index];
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: titleFontSize * 0.75),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: topic['color'].withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
-                                    title: Text(
-                                      TextFormatter.formatTitlePreservingCase(
-                                          topic['title'].toString()),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: titleFontSize,
+                                        vertical: titleFontSize * 0.5,
                                       ),
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: Colors.white54,
-                                      size: 16,
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        PageRouteBuilder(
-                                          pageBuilder: (context, animation,
-                                                  secondaryAnimation) =>
-                                              TopicDetailsPage(
-                                            topicName: topic['title'],
-                                            iconName: topic['iconName'],
-                                            topicColor: topic['color'],
-                                            buttonType: "search",
-                                          ),
-                                          transitionsBuilder: (context,
-                                              animation,
-                                              secondaryAnimation,
-                                              child) {
-                                            const begin = Offset(1.0, 0.0);
-                                            const end = Offset.zero;
-                                            const curve = Curves.easeInOutCubic;
-
-                                            var tween = Tween(
-                                                    begin: begin, end: end)
-                                                .chain(
-                                                    CurveTween(curve: curve));
-                                            var offsetAnimation =
-                                                animation.drive(tween);
-
-                                            return SlideTransition(
-                                              position: offsetAnimation,
-                                              child: child,
-                                            );
-                                          },
-                                          transitionDuration:
-                                              const Duration(milliseconds: 300),
+                                      leading: Container(
+                                        width: iconSize * 1.2,
+                                        height: iconSize * 1.2,
+                                        padding:
+                                            EdgeInsets.all(titleFontSize * 0.3),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              topic['color'].withOpacity(0.3),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
-                                      );
-                                    },
+                                        child: Image.asset(
+                                          'assets/images/topics/${topic['iconName']}',
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        TextFormatter.formatTitlePreservingCase(
+                                            topic['title'].toString()),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: titleFontSize,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      trailing: Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.white54,
+                                        size: titleFontSize * 0.8,
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation,
+                                                    secondaryAnimation) =>
+                                                TopicDetailsPage(
+                                              topicName: topic['title'],
+                                              iconName: topic['iconName'],
+                                              topicColor: topic['color'],
+                                              buttonType: "search",
+                                            ),
+                                            transitionsBuilder: (context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child) {
+                                              const begin = Offset(1.0, 0.0);
+                                              const end = Offset.zero;
+                                              const curve =
+                                                  Curves.easeInOutCubic;
+
+                                              var tween = Tween(
+                                                      begin: begin, end: end)
+                                                  .chain(
+                                                      CurveTween(curve: curve));
+                                              var offsetAnimation =
+                                                  animation.drive(tween);
+
+                                              return SlideTransition(
+                                                position: offsetAnimation,
+                                                child: child,
+                                              );
+                                            },
+                                            transitionDuration: const Duration(
+                                                milliseconds: 300),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                const SizedBox(height: 15),
-              ],
-            ),
+                                );
+                              },
+                            ),
+                  const SizedBox(height: 15),
+                ],
+              );
+            },
           ),
         ),
       ),

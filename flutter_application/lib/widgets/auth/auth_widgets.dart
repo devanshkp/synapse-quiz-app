@@ -121,9 +121,11 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                   size: 19,
                 ),
                 onPressed: () {
-                  setState(() {
-                    _passwordVisible = !_passwordVisible;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _passwordVisible = !_passwordVisible;
+                    });
+                  }
                 },
               )
             : null,
@@ -204,7 +206,9 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   void _updateFormValidity() {
     final isValid = _formKey.currentState?.validate() ?? false;
 
-    if (_isFormValid != isValid && _emailController.text.isNotEmpty) {
+    if (_isFormValid != isValid &&
+        _emailController.text.isNotEmpty &&
+        mounted) {
       setState(() {
         _isFormValid = isValid;
       });

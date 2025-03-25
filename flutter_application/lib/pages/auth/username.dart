@@ -36,7 +36,7 @@ class _UsernamePageState extends State<UsernamePage> {
 
   void _updateFormValidity() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (_isFormValid != isValid) {
+    if (_isFormValid != isValid && mounted) {
       setState(() {
         _isFormValid = isValid;
       });
@@ -44,9 +44,11 @@ class _UsernamePageState extends State<UsernamePage> {
   }
 
   void _setErrorMessage(String errorMessage) {
-    setState(() {
-      _errorMessage = errorMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _errorMessage = errorMessage;
+      });
+    }
   }
 
   Future<void> _handleSetUsername() async {
@@ -66,6 +68,18 @@ class _UsernamePageState extends State<UsernamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.125;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       body: SafeArea(
@@ -87,7 +101,8 @@ class _UsernamePageState extends State<UsernamePage> {
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onChanged: _updateFormValidity,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? extraPadding : 25.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,

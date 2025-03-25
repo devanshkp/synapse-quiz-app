@@ -8,11 +8,107 @@ import 'package:provider/provider.dart';
 import '../../constants.dart';
 import 'package:flutter_application/pages/main/search.dart';
 
+const List<Map<String, dynamic>> allTopics = [
+  // Your existing topics
+  {
+    'title': 'probability_&_statistics',
+    'iconName': 'probability_&_statistics.png',
+    'iconRatio': 1,
+    'color': probStatColor,
+    'rightOffset': -4,
+  },
+  {
+    'title': 'cloud_computing',
+    'iconName': 'cloud_computing.png',
+    'iconRatio': 1,
+    'color': cloudCompColor,
+  },
+  {
+    'title': 'artificial_intelligence',
+    'iconName': 'artificial_intelligence.png',
+    'iconRatio': 1.125,
+    'color': artificialIntelColor,
+    'rightOffset': -12,
+    'bottomOffset': -15,
+  },
+  {
+    'title': 'machine_learning',
+    'iconName': 'machine_learning.png',
+    'iconRatio': 1,
+    'color': macLearningColor,
+    'rightOffset': -8,
+  },
+  {
+    'title': 'data_structures',
+    'iconName': 'data_structures.png',
+    'iconRatio': 1,
+    'color': dataStructColor,
+    'rightOffset': -8,
+  },
+  {
+    'title': 'cyber_security',
+    'iconName': 'cyber_security.png',
+    'iconRatio': 1.075,
+    'color': cyberSecColor,
+  },
+  {
+    'title': 'algorithms',
+    'iconName': 'algorithms.png',
+    'iconRatio': 1,
+    'color': algorithmsColor,
+    'rightOffset': -2,
+  },
+  {
+    'title': 'database',
+    'iconName': 'database.png',
+    'iconRatio': 1.05,
+    'color': databaseColor,
+  },
+  {
+    'title': 'SWE_fundamentals',
+    'iconName': 'SWE_fundamentals.png',
+    'iconRatio': 1,
+    'color': sweFundColor,
+    'rightOffset': -7,
+  },
+  {
+    'title': 'data_science',
+    'iconName': 'data_science.png',
+    'iconRatio': 1.05,
+    'color': dataSciColor,
+    'bottomOffset': -10.0,
+  },
+  {
+    'title': 'discrete_math',
+    'iconName': 'discrete_math.png',
+    'iconRatio': 1,
+    'color': discMathColor,
+  },
+  {
+    'title': 'computer_network',
+    'iconName': 'computer_network.png',
+    'iconRatio': 1,
+    'color': compNetworkColor,
+  },
+];
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .125;
+    } else {
+      extraPadding = screenWidth * .15;
+    }
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     // List of widgets to be displayed
@@ -29,14 +125,15 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20, left: 18, right: 18),
-          child: ListView.builder(
-            itemCount: sections.length,
-            itemBuilder: (context, index) {
-              return sections[index];
-            },
-          ),
+        child: ListView.builder(
+          padding: EdgeInsets.only(
+              top: 20,
+              left: isTablet ? extraPadding : 18,
+              right: isTablet ? extraPadding : 18),
+          itemCount: sections.length,
+          itemBuilder: (context, index) {
+            return sections[index];
+          },
         ),
       ),
     );
@@ -93,7 +190,7 @@ class TopPortion extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => debugPrint("$questionCount"),
                   child: Image.asset(
-                    'assets/images/logos/synapse_no_bg.png',
+                    'assets/icons/logos/app_foreground.png',
                     height: 15,
                     width: 15,
                   ),
@@ -177,112 +274,44 @@ class BottomPortion extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 3,
-            crossAxisSpacing: 11,
-            mainAxisSpacing: 11,
-            childAspectRatio: 1,
-            children: const [
-              TopicButton(
-                title: 'probability_&_statistics',
-                iconName: 'probability_&_statistics.png',
-                iconSize: 65,
-                color: probStatColor,
-                rightOffset: -4,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'cloud_computing',
-                iconName: 'cloud_computing.png',
-                iconSize: 65,
-                color: cloudCompColor,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'artificial_intelligence',
-                iconName: 'artificial_intelligence.png',
-                iconSize: 73,
-                color: artificialIntelColor,
-                bottomOffset: -15,
-                rightOffset: -12,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'machine_learning',
-                iconName: 'machine_learning.png',
-                iconSize: 65,
-                color: macLearningColor,
-                rightOffset: -8,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'data_structures',
-                iconName: 'data_structures.png',
-                iconSize: 65,
-                color: dataStructColor,
-                rightOffset: -8,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'cyber_security',
-                iconName: 'cyber_security.png',
-                iconSize: 70,
-                color: cyberSecColor,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'algorithms',
-                iconName: 'algorithms.png',
-                iconSize: 65,
-                color: algorithmsColor,
-                rightOffset: -2,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'database',
-                iconName: 'database.png',
-                iconSize: 68,
-                color: databaseColor,
-                borderRadius: 14,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-              TopicButton(
-                title: 'SWE_fundamentals',
-                iconName: 'SWE_fundamentals.png',
-                iconSize: 65,
-                color: sweFundColor,
-                borderRadius: 14,
-                rightOffset: -7,
-                titleFontSize: 11,
-                buttonType: 'home',
-                section: 'grid',
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isTablet = constraints.maxWidth >= 600;
+              final crossAxisCount = isTablet ? 4 : 3;
+              final topics = isTablet ? allTopics : allTopics.sublist(0, 9);
+
+              // Calculate responsive sizes based on container width
+              final baseIconSize = constraints.maxWidth / (crossAxisCount * 2);
+              final iconSize = baseIconSize.clamp(40.0, 80.0); // Min 50, max 75
+
+              final baseFontSize = constraints.maxWidth / (crossAxisCount * 11);
+              final titleFontSize = baseFontSize.clamp(10.0, 14.0);
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: topics.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 11,
+                  mainAxisSpacing: 11,
+                  childAspectRatio: 1,
+                ),
+                itemBuilder: (context, index) {
+                  final topic = topics[index];
+                  return TopicButton(
+                    title: topic['title'],
+                    iconName: topic['iconName'],
+                    iconSize: topic['iconRatio'] * iconSize,
+                    color: topic['color'],
+                    borderRadius: 14,
+                    titleFontSize: titleFontSize,
+                    buttonType: 'home',
+                    section: 'grid',
+                  );
+                },
+              );
+            },
           ),
           const SizedBox(height: 15),
         ],
@@ -296,9 +325,6 @@ class DailyTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: backgroundPageColor),
-    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 4, bottom: 4, left: 4, right: 15),

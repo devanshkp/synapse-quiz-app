@@ -38,17 +38,21 @@ class _AuthProviderState extends State<AuthProvider> {
   // Check initial connectivity status
   Future<void> _checkInitialConnectivity() async {
     final connectivityResult = await ConnectivityService.checkConnectivity();
-    setState(() {
-      _isOffline = connectivityResult.contains(ConnectivityResult.none);
-    });
+    if (mounted) {
+      setState(() {
+        _isOffline = connectivityResult.contains(ConnectivityResult.none);
+      });
+    }
   }
 
   // Listen to connectivity changes
   void _listenToConnectivityChanges() {
     ConnectivityService.connectivityStream.listen((results) {
-      setState(() {
-        _isOffline = results.contains(ConnectivityResult.none);
-      });
+      if (mounted) {
+        setState(() {
+          _isOffline = results.contains(ConnectivityResult.none);
+        });
+      }
     });
   }
 
@@ -136,7 +140,7 @@ class _AuthProviderState extends State<AuthProvider> {
               if (_showSplashScreen) {
                 return const SplashScreen();
               } else {
-                return const BottomNavBar();
+                return const ResponsiveNavBar();
               }
             },
           );

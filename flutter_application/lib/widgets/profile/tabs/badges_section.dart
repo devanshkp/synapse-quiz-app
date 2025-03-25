@@ -94,145 +94,157 @@ class _BadgesSectionState extends State<BadgesSection> {
             children: [
               // Grid of badges
               Container(
-                padding: const EdgeInsets.all(15),
+                padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
                 decoration: BoxDecoration(
                   border:
                       Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   gradient: profileCardGradient,
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.8,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                  ),
-                  itemCount: 6, // Number of badges
-                  itemBuilder: (context, index) {
-                    // Define badge data
-                    final badges = [
-                      {
-                        'name': 'First Steps',
-                        'icon': Icons.emoji_events,
-                        'color': const Color(0xFFFFD700),
-                        'unlocked': true,
-                        'description': 'Solved your first question'
-                      },
-                      {
-                        'name': 'Streak Master',
-                        'icon': Icons.local_fire_department,
-                        'color': const Color(0xFFFF7675),
-                        'unlocked': userProfile.maxStreak >= 7,
-                        'description': 'Maintained a 7-day streak'
-                      },
-                      {
-                        'name': 'Topic Explorer',
-                        'icon': Icons.explore,
-                        'color': const Color(0xFF6C5CE7),
-                        'unlocked':
-                            userProfile.topicQuestionsSolved.length >= 5,
-                        'description': 'Explored 5 different topics'
-                      },
-                      {
-                        'name': 'Quiz Wizard',
-                        'icon': Icons.psychology,
-                        'color': const Color(0xFF00B894),
-                        'unlocked': userProfile.questionsSolved >= 100,
-                        'description': 'Solved 100 questions'
-                      },
-                      {
-                        'name': 'Social Butterfly',
-                        'icon': Icons.people,
-                        'color': const Color(0xFF0984E3),
-                        'unlocked': friendCount >= 10,
-                        'description': 'Added 10 friends'
-                      },
-                      {
-                        'name': 'Perfect Score',
-                        'icon': Icons.star,
-                        'color': const Color(0xFFFD79A8),
-                        'unlocked': hasPerfectScore,
-                        'description': perfectTopic.isNotEmpty
-                            ? 'Solved all questions in $perfectTopic'
-                            : 'Solve all questions in any topic'
-                      },
-                    ];
+                child: LayoutBuilder(builder: (contex, constraints) {
+                  final availableWidth = constraints.maxWidth;
+                  final rawBadgeSize = (availableWidth / 3) - 20;
+                  final badgeSize = rawBadgeSize.clamp(70, 120).toDouble();
+                  final badgeTitleSize =
+                      (badgeSize * 0.1).clamp(10.5, 18).toDouble();
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.8,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 15,
+                    ),
+                    itemCount: 6, // Number of badges
+                    itemBuilder: (context, index) {
+                      // Define badge data
+                      final badges = [
+                        {
+                          'name': 'First Steps',
+                          'icon': Icons.emoji_events,
+                          'color': const Color(0xFFFFD700),
+                          'unlocked': true,
+                          'description': 'Solved your first question'
+                        },
+                        {
+                          'name': 'Streak Master',
+                          'icon': Icons.local_fire_department,
+                          'color': const Color(0xFFFF7675),
+                          'unlocked': userProfile.maxStreak >= 7,
+                          'description': 'Maintained a 7-day streak'
+                        },
+                        {
+                          'name': 'Topic Explorer',
+                          'icon': Icons.explore,
+                          'color': const Color(0xFF6C5CE7),
+                          'unlocked':
+                              userProfile.topicQuestionsSolved.length >= 5,
+                          'description': 'Explored 5 different topics'
+                        },
+                        {
+                          'name': 'Quiz Wizard',
+                          'icon': Icons.psychology,
+                          'color': const Color(0xFF00B894),
+                          'unlocked': userProfile.questionsSolved >= 100,
+                          'description': 'Solved 100 questions'
+                        },
+                        {
+                          'name': 'Social Butterfly',
+                          'icon': Icons.people,
+                          'color': const Color(0xFF0984E3),
+                          'unlocked': friendCount >= 10,
+                          'description': 'Added 10 friends'
+                        },
+                        {
+                          'name': 'Perfect Score',
+                          'icon': Icons.star,
+                          'color': const Color(0xFFFD79A8),
+                          'unlocked': hasPerfectScore,
+                          'description': perfectTopic.isNotEmpty
+                              ? 'Solved all questions in $perfectTopic'
+                              : 'Solve all questions in any topic'
+                        },
+                      ];
 
-                    final badge = badges[index];
-                    final bool unlocked = badge['unlocked'] as bool;
+                      final badge = badges[index];
+                      final bool unlocked = badge['unlocked'] as bool;
 
-                    return GestureDetector(
-                      onTap: () {
-                        // Show badge details
-                        showDialog(
-                          context: context,
-                          builder: (context) => CustomAlertDialog(
-                            title: badge['name'] as String,
-                            content: badge['description'] as String,
-                            confirmationButtonText: '',
-                            cancelButtonText: 'Close',
-                            isConfirmationButtonEnabled: false,
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          // Badge icon with container
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: unlocked
-                                  ? Colors.black.withValues(alpha: 0.3)
-                                  : Colors.black.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: unlocked
-                                    ? (badge['color'] as Color)
-                                    : Colors.grey.withValues(alpha: 0.3),
-                                width: 2,
+                      return GestureDetector(
+                        onTap: () {
+                          // Show badge details
+                          showDialog(
+                            context: context,
+                            builder: (context) => CustomAlertDialog(
+                              title: badge['name'] as String,
+                              content: badge['description'] as String,
+                              confirmationButtonText: '',
+                              cancelButtonText: 'Close',
+                              isConfirmationButtonEnabled: false,
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            // Badge icon with container
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Container(
+                                width: badgeSize,
+                                height: badgeSize,
+                                decoration: BoxDecoration(
+                                  color: unlocked
+                                      ? Colors.black.withValues(alpha: 0.3)
+                                      : Colors.black.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: unlocked
+                                        ? (badge['color'] as Color)
+                                        : Colors.grey.withValues(alpha: 0.3),
+                                    width: 2,
+                                  ),
+                                  boxShadow: unlocked
+                                      ? [
+                                          BoxShadow(
+                                            color: (badge['color'] as Color)
+                                                .withValues(alpha: 0.3),
+                                            blurRadius: 10,
+                                            spreadRadius: 1,
+                                          ),
+                                        ]
+                                      : [],
+                                ),
+                                child: Icon(
+                                  badge['icon'] as IconData,
+                                  color: unlocked
+                                      ? badge['color'] as Color
+                                      : Colors.grey.withValues(alpha: 0.5),
+                                  size: badgeSize * 0.5,
+                                ),
                               ),
-                              boxShadow: unlocked
-                                  ? [
-                                      BoxShadow(
-                                        color: (badge['color'] as Color)
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 10,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : [],
                             ),
-                            child: Icon(
-                              badge['icon'] as IconData,
-                              color: unlocked
-                                  ? badge['color'] as Color
-                                  : Colors.grey.withValues(alpha: 0.5),
-                              size: 40,
+                            // Badge name
+                            Text(
+                              badge['name'] as String,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: unlocked ? Colors.white : Colors.white54,
+                                fontSize: badgeTitleSize,
+                                fontWeight: unlocked
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Badge name
-                          Text(
-                            badge['name'] as String,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: unlocked ? Colors.white : Colors.white54,
-                              fontSize: 11,
-                              fontWeight: unlocked
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }),
               ),
 
               const SizedBox(height: 30),

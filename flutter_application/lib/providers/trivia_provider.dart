@@ -44,10 +44,12 @@ class TriviaProvider extends ChangeNotifier {
   bool _isLoadingQuestions = true;
   bool _isLoadingTopics = true;
   bool _disposed = false;
+  bool _timerActive = false;
 
   // Cancelable Operations
   CancelableOperation<void>? _fetchQuestionsOperation;
   CancelableOperation<void>? _fetchQuestionsFromFirebaseOperation;
+  Completer<void>? _tempSessionCompleter;
 
   // Debounce timer for fetching questons
   Timer? _fetchQuestionsDebounceTimer;
@@ -75,6 +77,8 @@ class TriviaProvider extends ChangeNotifier {
   List<String> get displayedTopics => _displayedTopics;
   Map<String, int> get topicCounts => _topicCounts;
 
+  bool get isStartingSession =>
+      _tempSessionCompleter != null && !_tempSessionCompleter!.isCompleted;
   bool get isTemporarySession => _isTemporarySession;
   bool get isLoadingQuestions => _isLoadingQuestions;
   bool get isLoadingTopics => _isLoadingTopics;
@@ -151,7 +155,7 @@ class TriviaProvider extends ChangeNotifier {
     _isLoadingQuestions = true;
     _isLoadingTopics = true;
 
-    _timeNotifier.value = totalTime;
+    safeUpdateValueNotifier(_timeNotifier, totalTime);
     _timer?.cancel();
     _answered = false;
     _selectedAnswer = '';
@@ -168,76 +172,69 @@ class TriviaProvider extends ChangeNotifier {
 
   /// Starts a temporary trivia session with a specific topic
   Future<void> startTemporarySession(String topic) async {
-    if (_isTemporarySession) return;
+    if (_isTemporarySession || isStartingSession) return;
 
-    debugPrint("Starting temporary session for topic: $topic");
-
-    // Make sure any existing timer is canceled
-    stopTimer();
-
-    _isLoadingQuestions = true;
+    _tempSessionCompleter = Completer<void>();
     _isTemporarySession = true;
-    safeNotifyListeners();
+    try {
+      debugPrint("Starting temporary session for topic: $topic");
 
-    // Cache current state
-    _cachedQuestions = List.from(_questions);
-    _cachedSelectedTopics = List.from(_selectedTopics);
+      // Make sure any existing timer is canceled
+      stopTimer();
+      _answered = false;
+      _selectedAnswer = '';
 
-    _questions = _questions.where((q) => q['topic'] == topic).toList();
-    _questions.removeWhere((q) => _encounteredQuestions
-        .any((encountered) => encountered['questionId'] == q['questionId']));
-    _selectedTopics = [topic];
+      // Cache current state
+      _cachedQuestions = List.from(_questions);
+      _cachedSelectedTopics = List.from(_selectedTopics);
 
-    debugPrint("Selected topics set to: $_selectedTopics");
+      _questions = _questions.where((q) => q['topic'] == topic).toList();
+      removeEncounteredQuestions();
 
-    // Add cached questions for this topic
-    retrieveCachedQuestionsForTopic(topic);
+      debugPrint("Selected topics set to: $_selectedTopics");
 
-    debugPrint(
-        "After retrieving cached questions: ${_questions.length} questions, all for topic $topic");
+      safeUpdateValueNotifier(_timeNotifier, totalTime);
 
-    for (var q in _questions) {
-      if (q['topic'] != topic) {
-        debugPrint("WARNING: Found question with wrong topic: ${q['topic']}");
+      // Fetch questions if not enough
+      if (_questions.length < minQuestions) {
+        await safeFetchQuestions(
+            temporarySession: true, topics: _selectedTopics);
       }
-    }
 
-    _answered = false;
-    _selectedAnswer = '';
-    _timeNotifier.value = totalTime;
+      if (_questions.isNotEmpty) {
+        startQuestionTimer(resume: false);
+      }
 
-    // Fetch questions for this topic if there are less than minQuestions
-    if (_questions.length < minQuestions) {
-      await safeFetchQuestions(temporarySession: true, topics: _selectedTopics);
-    } else {
-      _isLoadingQuestions = false;
+      _tempSessionCompleter?.complete();
+    } catch (e) {
+      _tempSessionCompleter?.completeError(e);
+      rethrow;
+    } finally {
+      safeNotifyListeners();
     }
-
-    if (_questions.isNotEmpty) {
-      startQuestionTimer(resume: false);
-    }
-    safeNotifyListeners();
   }
 
   /// Ends the temporary topic session and restores the original state
   void endTemporarySession(String topic) async {
     if (!_isTemporarySession) return;
 
-    stopTimer();
+    try {
+      // Wait for any pending start operation to complete
+      if (_tempSessionCompleter != null &&
+          !_tempSessionCompleter!.isCompleted) {
+        await _tempSessionCompleter!.future;
+      }
 
-    Future.microtask(() {
-      // Restore original state
-      _isLoadingQuestions = false;
-      _selectedTopics = List.from(_cachedSelectedTopics);
+      stopTimer();
 
-      cacheQuestionsForTopic(topic);
-      _questions = List.from(_cachedQuestions);
-
-      // Ensure no duplicates from encounteredQuestions remain in _questions
-      _questions.removeWhere((q) => _encounteredQuestions
-          .any((encountered) => encountered['questionId'] == q['questionId']));
+      if (_cachedQuestions.isNotEmpty && _cachedSelectedTopics.isNotEmpty) {
+        _selectedTopics = List.from(_cachedSelectedTopics);
+        cacheQuestionsForTopic(topic);
+        _questions = List.from(_cachedQuestions);
+      }
 
       preserveAndShuffleQuestions();
+      removeEncounteredQuestions();
 
       // Reset session state
       _cachedQuestions = [];
@@ -246,9 +243,9 @@ class TriviaProvider extends ChangeNotifier {
       _selectedAnswer = '';
 
       _isTemporarySession = false;
-
+    } finally {
       safeNotifyListeners();
-    });
+    }
   }
 
   // ============================== TRIVIA STATISTICS FUNCTIONS ==============================
@@ -338,6 +335,7 @@ class TriviaProvider extends ChangeNotifier {
   // Explicitly stop the timer and reset its state
   void stopTimer() {
     if (_timer != null) {
+      _timerActive = false;
       _timer!.cancel();
       _timer = null;
       debugPrint("Timer explicitly stopped at ${_timeNotifier.value}");
@@ -345,7 +343,7 @@ class TriviaProvider extends ChangeNotifier {
   }
 
   void startQuestionTimer({bool resume = false}) {
-    if (_questions.isEmpty || _isLoadingQuestions) return;
+    if (_questions.isEmpty || _isLoadingQuestions || isTimerRunning) return;
 
     // Always cancel any existing timer first
     stopTimer();
@@ -353,18 +351,21 @@ class TriviaProvider extends ChangeNotifier {
     debugPrint("TIMER STARTED (resume: $resume)");
 
     if (!resume) _lastSavedTime = totalTime;
-    _timeNotifier.value = _lastSavedTime;
+    safeUpdateValueNotifier(_timeNotifier, _lastSavedTime);
 
-    Future.microtask(() {
-      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-        if (_timeNotifier.value > 0) {
-          _timeNotifier.value -= 0.1;
-        } else {
-          timer.cancel();
-          _timer = null;
-          handleTimeout();
-        }
-      });
+    _timerActive = true;
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!_timerActive) {
+        timer.cancel();
+        return;
+      }
+      final newTime = (_timeNotifier.value - 0.1).clamp(0, totalTime);
+      safeUpdateValueNotifier(_timeNotifier, newTime);
+
+      if (newTime <= 0) {
+        stopTimer();
+        handleTimeout();
+      }
     });
   }
 
@@ -476,25 +477,15 @@ class TriviaProvider extends ChangeNotifier {
       final topicsDoc =
           await _firestore.collection(metadataCollection).doc('topics').get();
 
-      if (!topicsDoc.exists) {
-        return refreshTopicsMetadata();
-      }
-
       final data = topicsDoc.data();
-      if (data == null || !data.containsKey('list')) {
-        return refreshTopicsMetadata();
-      }
 
-      final List<String> topics = List<String>.from(data['list']);
-      if (topics.isEmpty) {
-        return refreshTopicsMetadata();
-      }
+      final List<String> topics = List<String>.from(data!['list']);
 
       debugPrint('Successfully fetched ${topics.length} topics from metadata.');
       return topics;
     } catch (e) {
       debugPrint('Error fetching topics from metadata: $e');
-      return refreshTopicsMetadata();
+      throw Exception("Failed to topics metadata");
     }
   }
 
@@ -504,20 +495,10 @@ class TriviaProvider extends ChangeNotifier {
       final topicsDoc =
           await _firestore.collection(metadataCollection).doc('topics').get();
 
-      if (!topicsDoc.exists) {
-        await refreshTopicsMetadata();
-        return fetchTopicCounts();
-      }
-
       final data = topicsDoc.data();
-      if (data == null || !data.containsKey('counts')) {
-        await refreshTopicsMetadata();
-        return fetchTopicCounts();
-      }
 
-      final Map<String, dynamic> rawCounts = data['counts'];
+      final Map<String, dynamic> rawCounts = data!['counts'];
 
-      // Convert from dynamic to int
       rawCounts.forEach((key, value) {
         topicCounts[key] = value is int ? value : 0;
       });
@@ -690,6 +671,11 @@ class TriviaProvider extends ChangeNotifier {
   Future<void> removeDuplicateQuestions() async {
     final ids = <dynamic>{};
     _questions.retainWhere((x) => ids.add(x['questionId']));
+  }
+
+  Future<void> removeEncounteredQuestions() async {
+    _questions.removeWhere((q) => _encounteredQuestions
+        .any((encountered) => encountered['questionId'] == q['questionId']));
   }
 
   Future<void> filterQuestionsBySelectedTopics() async {
@@ -1171,6 +1157,25 @@ class TriviaProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error in safeNotifyListeners: $e');
+    }
+  }
+
+  void safeUpdateValueNotifier<T>(ValueNotifier<T> notifier, T newValue) {
+    if (_disposed) return;
+
+    try {
+      // Check if we're in a build phase
+      if (WidgetsBinding.instance.buildOwner?.debugBuilding ?? false) {
+        // Schedule the update for the next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_disposed) notifier.value = newValue;
+        });
+        return;
+      }
+
+      notifier.value = newValue;
+    } catch (e) {
+      debugPrint('Error in safeUpdateValueNotifier: $e');
     }
   }
 

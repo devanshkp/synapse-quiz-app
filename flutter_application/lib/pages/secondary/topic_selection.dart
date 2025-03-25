@@ -68,20 +68,23 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
   void _toggleTopic(String topic) {
     final unformattedTopic =
         triviaProvider.allTopics[triviaProvider.displayedTopics.indexOf(topic)];
-
-    setState(() {
-      if (_tempSelectedTopics.contains(unformattedTopic)) {
-        _tempSelectedTopics.remove(unformattedTopic);
-      } else {
-        _tempSelectedTopics.add(unformattedTopic);
-      }
-    });
+    if (mounted) {
+      setState(() {
+        if (_tempSelectedTopics.contains(unformattedTopic)) {
+          _tempSelectedTopics.remove(unformattedTopic);
+        } else {
+          _tempSelectedTopics.add(unformattedTopic);
+        }
+      });
+    }
   }
 
   Future<void> _saveSelection() async {
-    setState(() {
-      _isSyncing = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isSyncing = true;
+      });
+    }
     await triviaProvider.syncTopics(_tempSelectedTopics);
     Future.delayed(const Duration(milliseconds: 2500), () {
       _isSyncing = false;
@@ -91,8 +94,19 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final bool isSmallScreen = screenSize.width < 360;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isSmallScreen = screenWidth < 360;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .125;
+    } else {
+      extraPadding = screenWidth * .15;
+    }
 
     return Scaffold(
       backgroundColor: backgroundPageColor,
@@ -106,39 +120,46 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
             _hasLoadedTopics = true;
           }
 
-          return SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: _buildHeader(),
+          return PopScope(
+            canPop: !(triviaProvider.isFetchingQuestions || _isSyncing),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? extraPadding : 0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: CustomScrollView(
+                        controller: _scrollController,
+                        physics: const BouncingScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: _buildHeader(),
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                              child: _buildSelectionButtons(),
+                            ),
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                              child: _buildSelectionStats(),
+                            ),
+                          ),
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            sliver: _buildTopicsGrid(isLoading, isSmallScreen),
+                          ),
+                          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        ],
                       ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 16),
-                          child: _buildSelectionButtons(),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                          child: _buildSelectionStats(),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        sliver: _buildTopicsGrid(isLoading, isSmallScreen),
-                      ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
@@ -151,16 +172,22 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
       scrolledUnderElevation: 0,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: Container(
-        margin: const EdgeInsets.only(left: 8),
-        child: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+      leading: Consumer<TriviaProvider>(
+        builder: (context, triviaProvider, _) {
+          return triviaProvider.isFetchingQuestions || _isSyncing
+              ? const SizedBox.shrink()
+              : Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                );
+        },
       ),
       actionsPadding: const EdgeInsets.only(right: 8),
       actions: [
@@ -243,12 +270,14 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
             icon: Icons.check_circle_outline_rounded,
             color: Colors.green,
             onTap: () {
-              setState(() {
-                if (!Set.of(_tempSelectedTopics)
-                    .containsAll(triviaProvider.allTopics)) {
-                  _tempSelectedTopics = List.from(triviaProvider.allTopics);
-                }
-              });
+              if (mounted) {
+                setState(() {
+                  if (!Set.of(_tempSelectedTopics)
+                      .containsAll(triviaProvider.allTopics)) {
+                    _tempSelectedTopics = List.from(triviaProvider.allTopics);
+                  }
+                });
+              }
             },
           ),
         ),
@@ -259,9 +288,11 @@ class TopicSelectionPageState extends State<TopicSelectionPage>
             icon: Icons.cancel_outlined,
             color: Colors.redAccent,
             onTap: () {
-              setState(() {
-                _tempSelectedTopics.clear();
-              });
+              if (mounted) {
+                setState(() {
+                  _tempSelectedTopics.clear();
+                });
+              }
             },
           ),
         ),

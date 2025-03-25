@@ -38,15 +38,19 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   void setErrorMessage(String errorMessage) {
-    setState(() {
-      _errorMessage = errorMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _errorMessage = errorMessage;
+      });
+    }
   }
 
   void setAlertMessage(String alertMessage) {
-    setState(() {
-      _alertMessage = alertMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _alertMessage = alertMessage;
+      });
+    }
   }
 
   void _startEmailVerificationCheck() {
@@ -60,9 +64,11 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
   Future<void> _checkEmailVerified() async {
     try {
       final isVerified = await _authService.checkEmailVerified();
-      setState(() {
-        _isEmailVerified = isVerified;
-      });
+      if (mounted) {
+        setState(() {
+          _isEmailVerified = isVerified;
+        });
+      }
 
       if (_isEmailVerified) {
         _checkEmailTimer?.cancel();
@@ -74,20 +80,24 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   void _startResendTimer() {
-    setState(() {
-      _canResendEmail = false;
-      _resendTimer = 60;
-    });
+    if (mounted) {
+      setState(() {
+        _canResendEmail = false;
+        _resendTimer = 60;
+      });
+    }
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_resendTimer > 0) {
-          _resendTimer--;
-        } else {
-          _canResendEmail = true;
-          timer.cancel();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_resendTimer > 0) {
+            _resendTimer--;
+          } else {
+            _canResendEmail = true;
+            timer.cancel();
+          }
+        });
+      }
     });
   }
 
@@ -110,10 +120,11 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
 
   Future<void> _manualCheckEmailVerified() async {
     if (_isCheckingEmail) return;
-
-    setState(() {
-      _isCheckingEmail = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isCheckingEmail = true;
+      });
+    }
 
     try {
       await _checkEmailVerified();
@@ -123,14 +134,28 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
         setErrorMessage('Email not verified yet. Please check your inbox.');
       }
     } finally {
-      setState(() {
-        _isCheckingEmail = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.125;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     final user = _auth.currentUser;
     final email = user?.email ?? 'your email';
 
@@ -138,7 +163,8 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
       backgroundColor: backgroundPageColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          padding:
+              EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 25.0),
           child: Stack(
             children: [
               if (_errorMessage.isNotEmpty || _alertMessage.isNotEmpty)
@@ -280,7 +306,7 @@ class EmailVerificationPageState extends State<EmailVerificationPage> {
                     onPressed: () async {
                       // Use the AuthService's signOut method for proper cleanup
                       if (mounted) {
-                        await _authService.signOut(context);
+                        await FirebaseAuth.instance.signOut();
                       }
                     },
                     child: Text(

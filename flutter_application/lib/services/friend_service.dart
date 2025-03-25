@@ -83,38 +83,33 @@ class FriendService {
 
   Future<Map<String, dynamic>> searchUsers(String query) async {
     try {
-      // Get current user's ID
       final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        return {'friends': [], 'error': 'Not authenticated'};
-      }
+      if (currentUser == null) return {'friends': [], 'error': ''};
 
-      final result = await FirebaseFirestore.instance
-          .collection('users')
-          .where('userName', isEqualTo: query)
-          .get();
+      final cleanedQuery = query.trim().toLowerCase();
+      if (cleanedQuery.isEmpty) return {'friends': [], 'error': ''};
 
-      if (result.docs.isEmpty) {
-        return {'friends': [], 'error': 'User $query not found'};
-      }
+      final results =
+          await FirebaseFirestore.instance.collection('users').get();
 
-      // Filter out the current user from the results
-      final filteredDocs =
-          result.docs.where((doc) => doc.id != currentUser.uid).toList();
+      final filteredDocs = results.docs.where((doc) {
+        if (doc.id == currentUser.uid) return false;
 
-      if (filteredDocs.isEmpty) {
-        return {
-          'friends': [],
-          'error': 'No other users found with this username'
-        };
-      }
+        final userName = doc['userName']?.toString().toLowerCase() ?? '';
+        final fullName = doc['fullName']?.toString().toLowerCase() ?? '';
+
+        // Check if either starts with the query OR has word starting with query
+        return userName.startsWith(cleanedQuery) ||
+            fullName.startsWith(cleanedQuery) ||
+            fullName.split(' ').any((word) => word.startsWith(cleanedQuery));
+      }).toList();
 
       return {
         'friends': filteredDocs.map((doc) => Friend.fromDocument(doc)).toList(),
         'error': null,
       };
     } catch (e) {
-      return {'friends': [], 'error': 'Error: ${e.toString()}'};
+      return {'friends': [], 'error': ''};
     }
   }
 

@@ -908,9 +908,11 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   }
 
   void _validateInput() {
-    setState(() {
-      _isConfirmEnabled = _confirmController.text == 'Delete Account';
-    });
+    if (mounted) {
+      setState(() {
+        _isConfirmEnabled = _confirmController.text == 'Delete Account';
+      });
+    }
   }
 
   @override
@@ -1005,7 +1007,7 @@ class LoadingStateButton extends StatefulWidget {
     this.backgroundColor = Colors.white,
     this.textColor = Colors.black,
     this.isEnabled = true,
-      this.showBorder = false,
+    this.showBorder = false,
     this.borderColor = Colors.transparent,
     this.width = double.infinity,
   });
@@ -1024,9 +1026,11 @@ class _LoadingStateButtonState extends State<LoadingStateButton> {
     return ElevatedButton(
       onPressed: isButtonEnabled
           ? () async {
-              setState(() {
-                _isLoading = true;
-              });
+              if (mounted) {
+                setState(() {
+                  _isLoading = true;
+                });
+              }
 
               try {
                 await widget.onPressed();

@@ -45,16 +45,28 @@ class LeaderboardPageState extends State<LeaderboardPage>
   }
 
   void _changeSort(SortOption option) {
-    setState(() {
-      _sortOption = option;
-    });
+    if (mounted) {
+      setState(() {
+        _sortOption = option;
+      });
+    }
   }
 
-  double _getSafeAccuracy(double accuracy) {
+  double getSafeAccuracy(double accuracy) {
     return accuracy.isNaN ? 0.0 : accuracy;
   }
 
-  String _getSortText() {
+  String formattedAccuracy0(double accuracy) {
+    final String formattedAccuracy = accuracy.toStringAsFixed(2);
+    // Remove trailing zeros after decimal point
+    return formattedAccuracy.endsWith('.00')
+        ? formattedAccuracy.substring(0, formattedAccuracy.length - 3)
+        : formattedAccuracy
+            .replaceAll(RegExp(r'0+$'), '')
+            .replaceAll(RegExp(r'\.$'), '');
+  }
+
+  String getSortText() {
     switch (_sortOption) {
       case SortOption.questionsSolved:
         return 'Questions solved';
@@ -65,63 +77,92 @@ class LeaderboardPageState extends State<LeaderboardPage>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .125;
+    } else {
+      extraPadding = screenWidth * .15;
+    }
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 15),
-          // Tab bar with gradient background
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.black.withValues(alpha: 0.3),
-                  Colors.black.withValues(alpha: 0.1),
-                ],
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildHeader(),
+            const SizedBox(height: 15),
+            // Tab bar with gradient background
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 0),
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.3),
+                      Colors.black.withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
+                ),
+                child: CustomTabBar(
+                  controller: _tabController,
+                  tabs: const ['Friends', 'Global'],
+                  horizontalPadding: 4,
+                  tabHeight: 40,
+                  indicatorPadding: const EdgeInsets.all(2),
+                ),
               ),
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
+            ),
+            // Content area
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: (_tabController.index == 0)
+                    ? () => userProvider.fetchFriendsList()
+                    : () => Future.value(),
+                backgroundColor: const Color.fromARGB(255, 58, 58, 58),
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ContentSizeTabBarView(
+                    controller: _tabController,
+                    children: [
+                      buildFriendsLeaderboard(isTablet, extraPadding),
+                      buildGlobalLeaderboard(),
+                    ],
+                  ),
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                )
-              ],
             ),
-            child: CustomTabBar(
-              controller: _tabController,
-              tabs: const ['Friends', 'Global'],
-              horizontalPadding: 4,
-              tabHeight: 40,
-              indicatorPadding: const EdgeInsets.all(2),
-            ),
-          ),
-          // Content area
-          Expanded(
-            child: ContentSizeTabBarView(
-              controller: _tabController,
-              children: [
-                _buildFriendsLeaderboard(),
-                _buildGlobalLeaderboard(),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget buildHeader() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -134,82 +175,80 @@ class LeaderboardPageState extends State<LeaderboardPage>
           ),
         ],
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Main header content with icon and text
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Trophy icon
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.emoji_events,
-                      color: Color(0xFFE6C770),
-                      size: 24,
-                    ),
+      child: Column(
+        children: [
+          // Main header content with icon and text
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Trophy icon
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 16),
-                  // Title
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Leaderboard',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'See who\'s on top!',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+                  child: const Icon(
+                    Icons.emoji_events,
+                    color: Color(0xFFE6C770),
+                    size: 24,
                   ),
-                ],
-              ),
-            ),
-
-            // Bottom divider line
-            Container(
-              width: double.infinity,
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.transparent,
-                    Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                    Theme.of(context).primaryColor.withValues(alpha: 0.4),
-                    Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
                 ),
+                const SizedBox(width: 16),
+                // Title
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Leaderboard',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'See who\'s on top!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom divider line
+          Container(
+            width: double.infinity,
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Colors.transparent,
+                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.4),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildGlobalLeaderboard() {
+  Widget buildGlobalLeaderboard() {
     return const SizedBox(
       height: 300,
       width: double.infinity,
@@ -226,7 +265,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  Widget _buildFriendsLeaderboard() {
+  Widget buildFriendsLeaderboard(bool isTablet, extraPadding) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final friends = List<Friend>.from(userProvider.friends);
@@ -270,14 +309,14 @@ class LeaderboardPageState extends State<LeaderboardPage>
               b.friend.questionsSolved.compareTo(a.friend.questionsSolved));
         } else {
           leaderboardEntries.sort((a, b) {
-            final accuracyA = _getSafeAccuracy(a.friend.accuracy);
-            final accuracyB = _getSafeAccuracy(b.friend.accuracy);
+            final accuracyA = getSafeAccuracy(a.friend.accuracy);
+            final accuracyB = getSafeAccuracy(b.friend.accuracy);
             return accuracyB.compareTo(accuracyA);
           });
         }
 
         if (leaderboardEntries.isEmpty) {
-          return _buildEmptyState();
+          return buildEmptyState();
         }
 
         // Assign ranks
@@ -294,25 +333,21 @@ class LeaderboardPageState extends State<LeaderboardPage>
             ? leaderboardEntries.sublist(3)
             : <LeaderboardEntry>[];
 
-        return RefreshIndicator(
-          onRefresh: () => userProvider.fetchFriendsList(),
-          backgroundColor: const Color.fromARGB(255, 58, 58, 58),
-          color: Colors.white,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                _buildTopRankings(topEntries),
-                _buildOtherPlayers(remainingEntries),
-              ],
-            ),
+        return Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 0),
+          child: Column(
+            children: [
+              buildTopRankings(topEntries),
+              buildOtherPlayers(remainingEntries),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildTopRankings(List<LeaderboardEntry> topEntries) {
+  Widget buildTopRankings(List<LeaderboardEntry> topEntries) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -425,7 +460,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                     children: [
                       const SizedBox(width: 4),
                       Text(
-                        _getSortText(),
+                        getSortText(),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.7),
@@ -456,7 +491,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                 Column(
                   children: [
                     for (int i = 0; i < topEntries.length && i < 3; i++)
-                      _buildRankCard(topEntries[i], i + 1, _sortOption),
+                      buildRankCard(topEntries[i], i + 1, _sortOption),
                   ],
                 ),
             ],
@@ -466,7 +501,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  Widget _buildOtherPlayers(List<LeaderboardEntry> entries) {
+  Widget buildOtherPlayers(List<LeaderboardEntry> entries) {
     if (entries.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -497,14 +532,14 @@ class LeaderboardPageState extends State<LeaderboardPage>
           itemBuilder: (context, index) {
             final entry = entries[index];
             final rank = entry.rank;
-            return _buildRankCard(entry, rank, _sortOption);
+            return buildRankCard(entry, rank, _sortOption);
           },
         ),
       ],
     );
   }
 
-  Widget _buildRankCard(
+  Widget buildRankCard(
       LeaderboardEntry entry, int rank, SortOption sortOption) {
     final friend = entry.friend;
     final isCurrentUser = entry.isCurrentUser;
@@ -799,7 +834,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${_getSafeAccuracy(friend.accuracy).toStringAsFixed(2)}%',
+                          '${formattedAccuracy0(getSafeAccuracy(friend.accuracy))}%',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -818,7 +853,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget buildEmptyState() {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(24),

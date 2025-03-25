@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/login.dart';
 import 'package:flutter_application/pages/auth/registration.dart';
@@ -39,10 +38,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
     return RestartService(
       child: MultiProvider(
         providers: [
@@ -66,7 +65,8 @@ class MyApp extends StatelessWidget {
             ),
             fontFamily: 'Poppins',
             scaffoldBackgroundColor: backgroundPageColor,
-            primaryColor: lightPurpleAccent,
+            primaryColor: appColor,
+            secondaryHeaderColor: appColor,
             splashFactory: NoSplash.splashFactory,
             highlightColor: Colors.transparent,
           ),
@@ -88,14 +88,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class BottomNavBar extends StatefulWidget {
-  const BottomNavBar({super.key});
+class ResponsiveNavBar extends StatefulWidget {
+  const ResponsiveNavBar({super.key});
 
   @override
-  BottomNavBarState createState() => BottomNavBarState();
+  ResponsiveNavBarState createState() => ResponsiveNavBarState();
 }
 
-class BottomNavBarState extends State<BottomNavBar> {
+class ResponsiveNavBarState extends State<ResponsiveNavBar> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -142,62 +142,127 @@ class BottomNavBarState extends State<BottomNavBar> {
       triviaProvider.setTriviaActive(true);
     }
 
-    setState(() {
-      _currentIndex = index;
-    });
+    if (mounted) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-          decoration: const BoxDecoration(
-            color: backgroundPageColor,
-            image: DecorationImage(
-              image: AssetImage('assets/images/shapes.png'),
-              opacity: 0.2,
-              repeat: ImageRepeat.repeat,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isTablet = constraints.maxWidth > 600;
+        bool isWideScreen = constraints.maxWidth >= 900;
+
+        if (isTablet) {
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  groupAlignment: 0,
+                  backgroundColor: navbarColor,
+                  selectedIndex: _currentIndex,
+                  minExtendedWidth: 200,
+                  extended: isWideScreen,
+                  selectedIconTheme:
+                      const IconThemeData(color: Colors.white, size: 30),
+                  unselectedIconTheme:
+                      const IconThemeData(color: Colors.white70, size: 26),
+                  labelType: NavigationRailLabelType.none,
+                  indicatorColor: Colors.transparent,
+                  onDestinationSelected: _onTap,
+                  destinations: List.generate(5, (index) {
+                    return NavigationRailDestination(
+                        icon: Icon(_icons[index]['outline']!.icon,
+                            color: Colors.white70),
+                        selectedIcon: Icon(_icons[index]['filled']!.icon,
+                            color: Colors.white),
+                        label: Text(_getNavItemLabel(index),
+                            style: const TextStyle(color: Colors.white)));
+                  }),
+                ),
+
+                // Main Content Area
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: backgroundPageColor,
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/shapes.png'),
+                        opacity: 0.2,
+                        repeat: ImageRepeat.repeat,
+                      ),
+                    ),
+                    child: _screens[_currentIndex],
+                  ),
+                ),
+              ],
             ),
-          ),
-          child: _screens[_currentIndex]),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 15,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: navbarColor,
-          elevation: 0,
-          currentIndex: _currentIndex,
-          onTap: _onTap,
-          items: List.generate(5, (index) {
-            return BottomNavigationBarItem(
-              icon: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Icon(_icons[index]['outline']!.icon,
-                    size: 26, color: Colors.white70),
-              ),
-              activeIcon: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Icon(
-                  _icons[index]['filled']!.icon,
-                  size: 30,
-                  color: Colors.white,
+          );
+        } else {
+          // Mobile Layout with Bottom Navigation Bar (original implementation)
+          return Scaffold(
+            body: Container(
+              decoration: const BoxDecoration(
+                color: backgroundPageColor,
+                image: DecorationImage(
+                  image: AssetImage('assets/images/shapes.png'),
+                  opacity: 0.2,
+                  repeat: ImageRepeat.repeat,
                 ),
               ),
-              label: '',
-            );
-          }),
-          showUnselectedLabels: false,
-          showSelectedLabels: false,
-          type: BottomNavigationBarType.fixed,
-        ),
-      ),
+              child: _screens[_currentIndex],
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              backgroundColor: navbarColor,
+              elevation: 0,
+              currentIndex: _currentIndex,
+              onTap: _onTap,
+              items: List.generate(5, (index) {
+                return BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Icon(_icons[index]['outline']!.icon,
+                        size: 26, color: Colors.white70),
+                  ),
+                  activeIcon: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Icon(
+                      _icons[index]['filled']!.icon,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ),
+                  label: '',
+                );
+              }),
+              showUnselectedLabels: false,
+              showSelectedLabels: false,
+              type: BottomNavigationBarType.fixed,
+            ),
+          );
+        }
+      },
     );
+  }
+
+  // Helper method to get labels for NavigationRail
+  String _getNavItemLabel(int index) {
+    switch (index) {
+      case 0:
+        return 'Home';
+      case 1:
+        return 'Search';
+      case 2:
+        return 'Trivia';
+      case 3:
+        return 'Leaderboard';
+      case 4:
+        return 'Profile';
+      default:
+        return '';
+    }
   }
 }

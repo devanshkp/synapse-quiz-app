@@ -10,6 +10,18 @@ class LandingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.125;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       body: Container(
@@ -30,7 +42,8 @@ class LandingPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? extraPadding : 25.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -76,7 +89,7 @@ class LandingPage extends StatelessWidget {
 
                             // The actual logo
                             Image.asset(
-                              'assets/images/logos/synapse_no_bg.png',
+                              'assets/icons/logos/app_foreground.png',
                               height: 30,
                               width: 30,
                             ),

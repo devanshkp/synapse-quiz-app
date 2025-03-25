@@ -30,7 +30,7 @@ class Friend {
       questionsSolved: data['questionsSolved'] ?? 0,
       totalEncounteredQuestions: data['encounteredQuestions'].length ?? 0,
       accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
-          .toDouble(),
+          .toDouble() * 100,
     );
   }
 
@@ -44,7 +44,7 @@ class Friend {
       questionsSolved: data['questionsSolved'] ?? 0,
       totalEncounteredQuestions: data['encounteredQuestions'].length ?? 0,
       accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
-          .toDouble(),
+          .toDouble() * 100,
     );
   }
 

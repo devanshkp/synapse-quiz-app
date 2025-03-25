@@ -61,7 +61,8 @@ class LoginPageState extends State<LoginPage> {
 
     if (_isFormValid != isValid &&
         _passwordController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty) {
+        _emailController.text.isNotEmpty &&
+        mounted) {
       setState(() {
         _isFormValid = isValid;
       });
@@ -72,18 +73,22 @@ class LoginPageState extends State<LoginPage> {
     if (_alertMessage.isNotEmpty) {
       _setAlertMessage('');
     }
-    setState(() {
-      _errorMessage = errorMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _errorMessage = errorMessage;
+      });
+    }
   }
 
   void _setAlertMessage(String alertMessage) {
     if (_errorMessage.isNotEmpty) {
       _setErrorMessage('');
     }
-    setState(() {
-      _alertMessage = alertMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _alertMessage = alertMessage;
+      });
+    }
   }
 
   Future<void> _handleSignIn() async {
@@ -124,6 +129,18 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.125;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       appBar: AppBar(
@@ -137,7 +154,7 @@ class LoginPageState extends State<LoginPage> {
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
             child: Image.asset(
-              'assets/images/logos/synapse_no_bg.png',
+              'assets/icons/logos/app_foreground.png',
               height: 15,
               width: 15,
             ),
@@ -153,7 +170,8 @@ class LoginPageState extends State<LoginPage> {
                     MediaQuery.of(context).padding.top),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? extraPadding : 25.0),
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,

@@ -33,7 +33,7 @@ class ProfileNavigator {
       if (context.mounted) {
         floatingSnackBar(
           context: context,
-          message: 'Error loading profile: $e',
+          message: 'Couldn\'t load user\'s profile.',
         );
       }
     }

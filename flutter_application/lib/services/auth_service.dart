@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/services/restart_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -318,7 +319,6 @@ class AuthService {
       await FirebaseAuth.instance.signOut();
 
       if (context.mounted) {
-        debugPrint("restarting in sign out");
         RestartService.restartApp(context);
       }
 
@@ -338,8 +338,23 @@ class AuthService {
       await user.delete();
 
       if (context.mounted) {
-        debugPrint("restarting in delete");
         RestartService.restartApp(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        if (context.mounted) {
+          floatingSnackBar(
+              message:
+                  'Re-authentication required. Please re-login and try deleting again.',
+              context: context);
+        }
+      } else {
+        debugPrint('Error deleting account: ${e.toString()}');
+        if (context.mounted) {
+          floatingSnackBar(
+              message: 'Error deleting account, please try again later.',
+              context: context);
+        }
       }
     } catch (e) {
       debugPrint('Error deleting account: $e');

@@ -108,9 +108,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _originalLastName = _lastNameController.text;
 
       // Explicitly set _hasChanges to false after loading data
-      setState(() {
-        _hasChanges = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasChanges = false;
+        });
+      }
 
       // Validate the form and update button state
       Future.microtask(() {
@@ -267,7 +269,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate() || !_hasChanges) return;
+    if (!_formKey.currentState!.validate() || !_hasChanges || !mounted) return;
 
     setState(() {
       _isLoading = true;
@@ -316,7 +318,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final hasImageChanges = _imageFile != null;
     final hasChanges = hasTextChanges || hasImageChanges;
 
-    if (_isFormValid != isValid || _hasChanges != hasChanges) {
+    if ((_isFormValid != isValid || _hasChanges != hasChanges) && mounted) {
       setState(() {
         _isFormValid = isValid;
         _hasChanges = hasChanges;
@@ -344,6 +346,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       appBar: _buildAppBar(),
@@ -356,7 +370,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.symmetric(
+                vertical: 24.0, horizontal: isTablet ? extraPadding : 24),
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.disabled,
@@ -393,7 +408,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              if (_imageFile != null) {
+                              if (_imageFile != null && mounted) {
                                 // If an image is selected, clear it
                                 setState(() {
                                   _imageFile = null;

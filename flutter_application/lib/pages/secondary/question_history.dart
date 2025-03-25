@@ -30,6 +30,18 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.05;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       appBar: _buildAppBar(),
       backgroundColor: backgroundPageColor,
@@ -72,7 +84,9 @@ class QuestionHistoryPageState extends State<QuestionHistoryPage>
                 (triviaProvider.hasMoreEncounteredQuestions ? 1 : 0);
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: isTablet
+                  ? EdgeInsets.symmetric(horizontal: extraPadding, vertical: 16)
+                  : const EdgeInsets.all(16),
               itemCount: itemCount,
               itemBuilder: (context, index) {
                 // First item is the header
@@ -224,9 +238,11 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
       ),
       child: InkWell(
         onTap: () {
-          setState(() {
-            _isExpanded = !_isExpanded;
-          });
+          if (mounted) {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

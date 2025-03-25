@@ -69,9 +69,13 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
 
 flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/icons/app_logo.png"
+  remove_alpha_ios: true
+  android: "adaptive_icon"
+  min_sdk_android: 24
+  image_path: "assets/icons/logos/app_logo.png"
+  adaptive_icon_foreground: "assets/icons/logos/app_foreground.png"
+  apative_icon_backgrond: "assets/icons/logos/app_background.png"
+  apative_icon_monochrome: "assets/icons/logos/app_logo_monochrome.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -87,11 +91,11 @@ flutter:
   assets:
     - assets/images/
     - assets/images/topics/
-    - assets/images/logos/
     - assets/icons/
     - assets/icons/auth/
     - assets/icons/navbar/
     - assets/icons/home/
+    - assets/icons/logos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

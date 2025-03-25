@@ -69,7 +69,7 @@ class UserProfile {
           Map<String, int>.from(data['topicQuestionsSolved'] ?? {}),
       joinDate: joinDate,
       accuracy: (data['questionsSolved'] / data['encounteredQuestions'].length)
-          .toDouble(),
+          .toDouble() * 100,
     );
   }
 

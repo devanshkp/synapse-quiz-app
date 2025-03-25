@@ -116,6 +116,16 @@ class _TriviaPageState extends State<TriviaPage>
     });
   }
 
+  @override
+  void didPush() {
+    if (widget.quickPlay) _triviaProvider.setTriviaActive(true);
+  }
+
+  @override
+  void didPop() {
+    if (widget.quickPlay) _triviaProvider.setTriviaActive(false);
+  }
+
   // ============================== QUESTION LOGIC ==============================
 
   void handleNextQuestion() {
@@ -144,23 +154,26 @@ class _TriviaPageState extends State<TriviaPage>
   Widget build(BuildContext context) {
     return Consumer<TriviaProvider>(
       builder: (context, triviaProvider, child) {
-        // First check: Are we still loading topics? Show loading screen if true
+        if (triviaProvider.isStartingSession) {
+          return _buildLoadingScreen(message: "Starting session...");
+        }
+        // Second check: Are we still loading topics? Show loading screen if true
         if (triviaProvider.isLoadingTopics) {
           return _buildLoadingScreen(message: "Loading topics...");
         }
 
-        // Second check: No topics selected? Show empty state
+        // Third check: No topics selected? Show empty state
         if (triviaProvider.selectedTopics.isEmpty) {
           return _buildEmptyState(topicsEmpty: true);
         }
 
-        // Third check: Are we loading questions?
+        // Fourth check: Are we loading questions?
         if (triviaProvider.isLoadingQuestions ||
             triviaProvider.isFetchingQuestions) {
           return _buildLoadingScreen(message: "Loading questions...");
         }
 
-        // Fourth check: No questions available for the selected topics
+        // Fifth check: No questions available for the selected topics
         if (triviaProvider.questions.isEmpty) {
           return _buildEmptyState();
         }
@@ -172,20 +185,25 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   Widget _buildLoadingScreen({String message = "Loading questions..."}) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: cardGradient),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CustomCircularProgressIndicator(),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                style: const TextStyle(color: Colors.white70),
+    return PopScope(
+      canPop: false,
+      child: AbsorbPointer(
+        child: Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(gradient: cardGradient),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CustomCircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  Text(
+                    message,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -227,6 +245,16 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   Widget _buildTriviaPage(TriviaProvider triviaProvider) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double drawerOpenRatio;
+    if (screenWidth < 800) {
+      drawerOpenRatio = .5;
+    } else if (screenWidth < 1000) {
+      drawerOpenRatio = .4;
+    } else {
+      drawerOpenRatio = .35;
+    }
     return Scaffold(
       body: SafeArea(
         child: Transform.translate(
@@ -240,7 +268,7 @@ class _TriviaPageState extends State<TriviaPage>
             ),
             controller: _advancedDrawerController,
             animationDuration: const Duration(milliseconds: 200),
-            openRatio: .65,
+            openRatio: isTablet ? drawerOpenRatio : .65,
             initialDrawerScale: .95,
             backdropColor: drawerColor,
             openScale: 1,
@@ -292,6 +320,11 @@ class _TriviaPageState extends State<TriviaPage>
 
   Widget _buildQuestionPage(TriviaProvider triviaProvider) {
     final question = triviaProvider.currentQuestion;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final needsScrolling = MediaQuery.sizeOf(context).height <= 700;
+    final double extraPadding =
+        (screenWidth < 1000) ? screenWidth * .1 : screenWidth * .2;
 
     return Stack(
       children: [
@@ -306,37 +339,74 @@ class _TriviaPageState extends State<TriviaPage>
                   opacity: _animationController.value,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    child: Stack(
-                      children: [
-                        // Topics counter in top right
-                        if (!widget.isTemporarySession) ...[
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: buildTopicsCounter(triviaProvider),
+                    child: needsScrolling
+                        ? SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: _buildQuestionContent(
+                              triviaProvider,
+                              question,
+                              isTablet,
+                              extraPadding,
+                              useFixedSpacing: true,
+                            ),
+                          )
+                        : _buildQuestionContent(
+                            triviaProvider,
+                            question,
+                            isTablet,
+                            extraPadding,
+                            useFixedSpacing: false,
                           ),
-                        ],
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Spacer(),
-                            _buildQuestionHeader(triviaProvider, question),
-                            const Spacer(),
-                            _buildQuestionCard(question),
-                            const Spacer(),
-                            buildOptions(triviaProvider, question),
-                            const Spacer(flex: 3),
-                            buildFooter(triviaProvider),
-                            const SizedBox(height: 7.5),
-                          ],
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
             );
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionContent(
+    TriviaProvider triviaProvider,
+    Map<String, dynamic> question,
+    bool isTablet,
+    double extraPadding, {
+    required bool useFixedSpacing,
+  }) {
+    return Stack(
+      children: [
+        if (!widget.isTemporarySession) ...[
+          Positioned(
+            top: 0,
+            right: 0,
+            child: buildTopicsCounter(triviaProvider),
+          ),
+        ],
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (useFixedSpacing) const SizedBox(height: 20) else const Spacer(),
+            _buildQuestionHeader(triviaProvider, question),
+            if (useFixedSpacing) const SizedBox(height: 20) else const Spacer(),
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 0),
+              child: _buildQuestionCard(question),
+            ),
+            if (useFixedSpacing) const SizedBox(height: 20) else const Spacer(),
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 0),
+              child: buildOptions(triviaProvider, question),
+            ),
+            if (useFixedSpacing)
+              const SizedBox(height: 20)
+            else
+              const Spacer(flex: 3),
+            buildFooter(triviaProvider),
+            const SizedBox(height: 7.5),
+          ],
         ),
       ],
     );

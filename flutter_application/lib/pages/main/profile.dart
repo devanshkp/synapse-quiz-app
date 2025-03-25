@@ -45,6 +45,19 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final double extraPadding;
+    if (screenWidth < 700) {
+      extraPadding = screenWidth * 0.1;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.15;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .2;
+    } else {
+      extraPadding = screenWidth * .25;
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       key: _scaffoldKey,
@@ -57,55 +70,61 @@ class _ProfilePageState extends State<ProfilePage>
       endDrawer: const SettingsDrawer(),
       body: RefreshIndicator(
         onRefresh: () async {
-          setState(() {});
+          if (mounted) {
+            setState(() {});
+          }
         },
         color: Colors.white,
         backgroundColor: const Color(0xFF2C2C2C),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Consumer<UserProvider>(
-                builder: (context, userProvider, child) {
-                  return UserProfileHeader(scaffoldKey: _scaffoldKey);
-                },
-              ),
-              const SizedBox(height: 25),
+          child: Padding(
+            padding:
+                EdgeInsets.symmetric(horizontal: isTablet ? extraPadding : 0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                Consumer<UserProvider>(
+                  builder: (context, userProvider, child) {
+                    return UserProfileHeader(scaffoldKey: _scaffoldKey);
+                  },
+                ),
+                const SizedBox(height: 25),
 
-              // Main stats section
-              MainStats(
-                userProfile: userProvider.userProfile!,
-                totalQuestions:
-                    Provider.of<TriviaProvider>(context, listen: false)
-                        .totalQuestions,
-              ),
+                // Main stats section
+                MainStats(
+                  userProfile: userProvider.userProfile!,
+                  totalQuestions:
+                      Provider.of<TriviaProvider>(context, listen: false)
+                          .totalQuestions,
+                ),
 
-              const SizedBox(height: 25),
+                const SizedBox(height: 25),
 
-              // Tab bar
-              CustomTabBar(
-                controller: _tabController,
-                tabs: const ['Stats', 'Badges', 'Topics'],
-                horizontalPadding: 28,
-                tabHeight: 40,
-                indicatorPadding: const EdgeInsets.all(2),
-              ),
-              const SizedBox(height: 15),
+                // Tab bar
+                CustomTabBar(
+                  controller: _tabController,
+                  tabs: const ['Stats', 'Badges', 'Topics'],
+                  horizontalPadding: 28,
+                  tabHeight: 40,
+                  indicatorPadding: const EdgeInsets.all(2),
+                ),
+                const SizedBox(height: 15),
 
-              // Tab content
-              ContentSizeTabBarView(
-                controller: _tabController,
-                children: [
-                  StatsSection(userProfile: userProvider.userProfile!),
-                  BadgesSection(userProfile: userProvider.userProfile!),
-                  TopicsSection(userProfile: userProvider.userProfile!),
-                ],
-              ),
+                // Tab content
+                ContentSizeTabBarView(
+                  controller: _tabController,
+                  children: [
+                    StatsSection(userProfile: userProvider.userProfile!),
+                    BadgesSection(userProfile: userProvider.userProfile!),
+                    TopicsSection(userProfile: userProvider.userProfile!),
+                  ],
+                ),
 
-              // Bottom padding
-              const SizedBox(height: 15),
-            ],
+                // Bottom padding
+                const SizedBox(height: 15),
+              ],
+            ),
           ),
         ),
       ),

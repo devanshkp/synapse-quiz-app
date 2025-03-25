@@ -30,7 +30,8 @@ class RegistrationPageState extends State<RegistrationPage> {
         _fullNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
-        _confirmPasswordController.text.isNotEmpty) {
+        _confirmPasswordController.text.isNotEmpty &&
+        mounted) {
       setState(() {
         _formValid = isValid;
       });
@@ -92,9 +93,11 @@ class RegistrationPageState extends State<RegistrationPage> {
   }
 
   void _setErrorMessage(String errorMessage) {
-    setState(() {
-      _errorMessage = errorMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _errorMessage = errorMessage;
+      });
+    }
   }
 
   Future<void> _registerUser() async {
@@ -134,6 +137,18 @@ class RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    double extraPadding = 0;
+    if (screenWidth < 800) {
+      extraPadding = screenWidth * 0.075;
+    } else if (screenWidth < 850) {
+      extraPadding = screenWidth * 0.125;
+    } else if (screenWidth < 1000) {
+      extraPadding = screenWidth * .15;
+    } else {
+      extraPadding = screenWidth * .2;
+    }
     return Scaffold(
       backgroundColor: backgroundPageColor,
       appBar: AppBar(
@@ -147,201 +162,194 @@ class RegistrationPageState extends State<RegistrationPage> {
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
             child: Image.asset(
-              'assets/images/logos/synapse_no_bg.png',
+              'assets/icons/logos/app_foreground.png',
               height: 15,
               width: 15,
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height -
-                (AppBar().preferredSize.height +
-                    MediaQuery.of(context).padding.top),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              onChanged: _updateFormValidity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(flex: 1),
-                  // Header with gradient
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [
-                        Colors.white,
-                        Colors.white.withValues(alpha: 0.85),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
-                    child: const Text(
-                      "Create Account",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Join our community and start your learning journey!',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  if (_errorMessage.isNotEmpty) ...[
-                    AlertBanner(
-                      message: _errorMessage,
-                      onDismiss: () => _setErrorMessage(''),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // FULLNAME
-                  CustomTextFormField(
-                    controller: _fullNameController,
-                    labelText: 'Full Name',
-                    validator: _validateName,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // EMAIL
-                  CustomTextFormField(
-                    controller: _emailController,
-                    labelText: 'Email Address',
-                    validator: _validateEmail,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // PASSWORD
-                  CustomTextFormField(
-                    controller: _passwordController,
-                    labelText: 'Password',
-                    validator: _validatePassword,
-                    isPasswordField: true,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // CONFIRM PASSWORD
-                  CustomTextFormField(
-                    controller: _confirmPasswordController,
-                    labelText: 'Confirm Password',
-                    validator: _validateConfirmPassword,
-                    isPasswordField: true,
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Register button with solid color instead of gradient and glow
-                  LoadingStateButton(
-                    label: 'Next',
-                    onPressed: () async {
-                      await _registerUser();
-                    },
-                    isEnabled: _formValid,
-                    backgroundColor: _formValid
-                        ? purpleAccent
-                        : darkPurpleAccent.withValues(alpha: 0.5),
-                    textColor: Colors.white,
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  const HorizontalDividerWithText(
-                    text: 'OR',
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Social Sign-In Buttons with improved styling
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ThirdPartySignInButton(
-                      title: 'Continue with Google',
-                      svgPicture: SvgPicture.asset(
-                        'assets/icons/auth/google_logo.svg',
-                        width: 24,
-                        height: 24,
-                      ),
-                      onPressed: () => _handleSignInWithGoogle(),
-                      backgroundColor: Colors.white,
-                      textColor: Colors.black87,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ThirdPartySignInButton(
-                      title: 'Continue with GitHub',
-                      svgPicture: SvgPicture.asset(
-                        'assets/icons/auth/github_logo.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? extraPadding : 25.0),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: _updateFormValidity,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 25),
+                      // Header with gradient
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            Colors.white,
+                            Colors.white.withValues(alpha: 0.85),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds),
+                        child: const Text(
+                          "Create Account",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
+                          ),
                         ),
                       ),
-                      onPressed: () => _handleSignInWithGithub(),
-                      backgroundColor: githubColor,
-                      textColor: Colors.white,
-                    ),
-                  ),
-
-                  const Spacer(flex: 3),
-
-                  // Improved redirect text
-                  Center(
-                    child: AuthRedirectText(
-                      regularText: 'Already have an account?',
-                      highlightedText: 'Login',
-                      onTap: () => Navigator.pushReplacementNamed(
-                        context,
-                        '/login',
+                      const SizedBox(height: 16),
+                      Text(
+                        'Join our community and start your learning journey!',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 16,
+                          height: 1.4,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 30),
+
+                      if (_errorMessage.isNotEmpty) ...[
+                        AlertBanner(
+                          message: _errorMessage,
+                          onDismiss: () => _setErrorMessage(''),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      // FULLNAME
+                      CustomTextFormField(
+                        controller: _fullNameController,
+                        labelText: 'Full Name',
+                        validator: _validateName,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // EMAIL
+                      CustomTextFormField(
+                        controller: _emailController,
+                        labelText: 'Email Address',
+                        validator: _validateEmail,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // PASSWORD
+                      CustomTextFormField(
+                        controller: _passwordController,
+                        labelText: 'Password',
+                        validator: _validatePassword,
+                        isPasswordField: true,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // CONFIRM PASSWORD
+                      CustomTextFormField(
+                        controller: _confirmPasswordController,
+                        labelText: 'Confirm Password',
+                        validator: _validateConfirmPassword,
+                        isPasswordField: true,
+                      ),
+                      const SizedBox(height: 30),
+
+                      // Register button with solid color instead of gradient and glow
+                      LoadingStateButton(
+                        label: 'Next',
+                        onPressed: () async {
+                          await _registerUser();
+                        },
+                        isEnabled: _formValid,
+                        backgroundColor: _formValid
+                            ? purpleAccent
+                            : darkPurpleAccent.withValues(alpha: 0.5),
+                        textColor: Colors.white,
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      const HorizontalDividerWithText(
+                        text: 'OR',
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Social Sign-In Buttons with improved styling
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ThirdPartySignInButton(
+                          title: 'Continue with Google',
+                          svgPicture: SvgPicture.asset(
+                            'assets/icons/auth/google_logo.svg',
+                            width: 24,
+                            height: 24,
+                          ),
+                          onPressed: () => _handleSignInWithGoogle(),
+                          backgroundColor: Colors.white,
+                          textColor: Colors.black87,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ThirdPartySignInButton(
+                          title: 'Continue with GitHub',
+                          svgPicture: SvgPicture.asset(
+                            'assets/icons/auth/github_logo.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          onPressed: () => _handleSignInWithGithub(),
+                          backgroundColor: githubColor,
+                          textColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 40.0),
+            child: AuthRedirectText(
+              regularText: 'Already have an account?',
+              highlightedText: 'Login',
+              onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+            ),
+          ),
+        ],
       ),
     );
   }

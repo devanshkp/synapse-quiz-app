@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/constants.dart';
@@ -18,11 +20,19 @@ class FriendsDrawer extends StatefulWidget {
 class _FriendsDrawerState extends State<FriendsDrawer> {
   final FriendService _friendService = FriendService();
   List<Friend> _searchResults = [];
+  Timer? _searchDebounce;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _initializeFriends();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 
   void _initializeFriends() async {
@@ -37,9 +47,22 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final double drawerWidth;
+    if (screenWidth < 700) {
+      drawerWidth = screenWidth * 0.8;
+    } else if (screenWidth < 850) {
+      drawerWidth = screenWidth * 0.65;
+    } else if (screenWidth < 1000) {
+      drawerWidth = screenWidth * .6;
+    } else {
+      drawerWidth = screenWidth * .4;
+    }
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Container(
+          width: isTablet ? drawerWidth : screenWidth,
           color: const Color.fromARGB(255, 20, 20, 20),
           child: SafeArea(
             child: Column(
@@ -137,12 +160,29 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             borderRadius: BorderRadius.circular(15),
           ),
           child: TextField(
+            controller: _searchController,
             style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search or add friend...',
               hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.5)),
-              suffixIcon: Icon(Icons.search,
-                  color: Colors.black.withValues(alpha: 0.5), size: 20),
+              suffixIcon: IconButton(
+                  onPressed: _searchController.text.isEmpty
+                      ? () => {}
+                      : () => {
+                            if (mounted)
+                              {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchResults = [];
+                                })
+                              }
+                          },
+                  icon: Icon(
+                      _searchController.text.isEmpty
+                          ? Icons.search
+                          : Icons.clear,
+                      color: Colors.black.withValues(alpha: 0.5),
+                      size: 20)),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -150,12 +190,17 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
               ),
             ),
             onChanged: (query) {
-              if (query.isEmpty) {
+              // Cancel any pending searches
+              _searchDebounce?.cancel();
+
+              if (query.isEmpty && mounted) {
                 setState(() {
                   _searchResults = [];
                 });
               } else if (query.length >= 2) {
-                _searchUsers(query);
+                _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                  _searchUsers(query);
+                });
               }
             },
           ),
@@ -172,14 +217,29 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   }
 
   Widget _buildSearchResults() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _searchResults.length,
-      itemExtent: 80, // Fixed height for better performance
-      itemBuilder: (context, index) {
-        final friend = _searchResults[index];
-        return _buildSearchResultCard(friend);
-      },
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: _buildSectionHeader('Search Results', _searchResults.length,
+                withCount: false),
+          ),
+          const SizedBox(height: 12),
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final friend = _searchResults[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: _buildUserCard(friend, isSearchResult: true),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -260,7 +320,18 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     );
   }
 
-  Widget _buildUserCard(Friend friend) {
+  Widget _buildUserCard(Friend friend, {bool isSearchResult = false}) {
+    UserProvider userProvider;
+    var isFriend = false, isRequested = false, isIncoming = false;
+    if (isSearchResult) {
+      userProvider = Provider.of<UserProvider>(context, listen: false);
+      isFriend = userProvider.friends.any((f) => f.userId == friend.userId);
+      isRequested = userProvider.outgoingFriendRequests
+          .any((fr) => fr.userId == friend.userId);
+      isIncoming = userProvider.incomingFriendRequests
+          .any((fr) => fr.userId == friend.userId);
+    }
+
     return Card(
       elevation: 8,
       shadowColor: Colors.black45,
@@ -304,71 +375,18 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                   fontSize: 12,
                 ),
               ),
-              trailing: IconButton(
-                icon: Icon(Icons.more_vert,
-                    color: Colors.white.withValues(alpha: 0.5)),
-                onPressed: () => _showFriendOptions(friend.userId),
-              ),
+              contentPadding: const EdgeInsets.only(left: 15),
+              hoverColor: Colors.white.withValues(alpha: 0.1),
+              trailing: isSearchResult
+                  ? _buildSearchResultCardTrailing(
+                      friend.userId, isFriend, isRequested, isIncoming)
+                  : IconButton(
+                      icon: Icon(Icons.more_vert,
+                          color: Colors.white.withValues(alpha: 0.5)),
+                      onPressed: () => _showFriendOptions(friend.userId),
+                    ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchResultCard(Friend friend) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final isFriend = userProvider.friends.any((f) => f.userId == friend.userId);
-    final isRequested = userProvider.outgoingFriendRequests
-        .any((fr) => fr.userId == friend.userId);
-    final isIncoming = userProvider.incomingFriendRequests
-        .any((fr) => fr.userId == friend.userId);
-    return Card(
-      elevation: 8,
-      shadowColor: Colors.black45,
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Container(
-        height: 72,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withValues(alpha: 0.085),
-              Colors.white.withValues(alpha: 0.05),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: ListTile(
-          leading: GestureDetector(
-            onTap: () => _navigateToUserProfile(friend),
-            child: AvatarImage(
-              avatarUrl: friend.avatarUrl,
-              avatarRadius: 20,
-            ),
-          ),
-          title: Text(
-            friend.fullName,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          subtitle: Text(
-            friend.userName,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 12,
-            ),
-          ),
-          trailing: _buildSearchResultCardTrailing(
-              friend.userId, isFriend, isRequested, isIncoming),
         ),
       ),
     );
@@ -384,49 +402,46 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       );
     } else if (isRequested) {
       // User has a pending outgoing request
-      return GestureDetector(
-        onTap: () async {
-          try {
-            final result = await _friendService.withdrawFriendRequest(userId);
+      return Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: GestureDetector(
+          onTap: () async {
+            try {
+              final result = await _friendService.withdrawFriendRequest(userId);
 
-            if (!result['success']) {
+              if (!result['success']) {
+                if (mounted) {
+                  floatingSnackBar(
+                    message: result['error'] ??
+                        'Couldn\'t withdraw request. Please try again later.',
+                    context: context,
+                  );
+                }
+                return;
+              }
+
               if (mounted) {
+                setState(() {
+                  _searchResults = List.from(_searchResults);
+                });
+              }
+            } catch (e) {
+              if (mounted) {
+                debugPrint("Error withdrawing friend request: $e");
                 floatingSnackBar(
                   message:
-                      result['error'] ?? 'Failed to withdraw friend request',
+                      'Couldn\'t withdraw request. Please try again later.',
                   context: context,
                 );
               }
-              return;
             }
-
-            if (mounted) {
-              // Show success message
-              floatingSnackBar(
-                message: 'Friend request withdrawn',
-                context: context,
-              );
-
-              // Force rebuild of the widget to refresh the UI
-              setState(() {
-                // This will trigger a rebuild of the FutureBuilder
-                _searchResults = List.from(_searchResults);
-              });
-            }
-          } catch (e) {
-            if (mounted) {
-              floatingSnackBar(
-                message: 'Error withdrawing friend request: $e',
-                context: context,
-              );
-            }
-          }
-        },
-        child: Text(
-          'Requested',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: 12,
+          },
+          child: Text(
+            'Requested',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
           ),
         ),
       );
@@ -440,7 +455,8 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             if (!result['success']) {
               if (mounted) {
                 floatingSnackBar(
-                  message: result['error'] ?? 'Failed to accept friend request',
+                  message: result['error'] ??
+                      'Couldn\'t accept request. Please try again later.',
                   context: context,
                 );
               }
@@ -448,23 +464,14 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
             }
 
             if (mounted) {
-              // Show success message
-              floatingSnackBar(
-                message: 'Friend request accepted',
-                context: context,
-              );
-
-              // Force rebuild of the widget to refresh the UI
               setState(() {
-                // This will trigger a rebuild of the FutureBuilder
                 _searchResults = List.from(_searchResults);
               });
             }
           } catch (e) {
             if (mounted) {
               floatingSnackBar(
-                message:
-                    'Error accepting friend request. Please try again later.',
+                message: 'Couldn\'t accept request. Please try again later.',
                 context: context,
               );
             }
@@ -480,16 +487,19 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       );
     } else {
       // No friend request exists
-      return IconButton(
-        icon:
-            Icon(Icons.person_add, color: Colors.white.withValues(alpha: 0.5)),
-        onPressed: () => _sendFriendRequest(userId),
+      return Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: IconButton(
+          icon: Icon(Icons.person_add,
+              color: Colors.white.withValues(alpha: 0.5)),
+          onPressed: () => _sendFriendRequest(userId),
+        ),
       );
     }
   }
 
   Widget _buildSectionHeader(String title, int count,
-      {bool isRequest = false}) {
+      {bool isRequest = false, bool withCount = true}) {
     return Row(
       children: [
         Text(
@@ -502,36 +512,38 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: isRequest
-                ? Colors.blue.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            count.toString(),
-            style: TextStyle(
-              color: isRequest ? Colors.blue[100] : Colors.white54,
-              fontSize: 12,
+        if (withCount) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: isRequest
+                  ? Colors.blue.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-        ),
-        if (isRequest && count > 0)
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
+            child: Text(
+              count.toString(),
+              style: TextStyle(
+                color: isRequest ? Colors.blue[100] : Colors.white54,
+                fontSize: 12,
               ),
             ),
           ),
+          if (isRequest && count > 0)
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ),
+        ]
       ],
     );
   }
@@ -916,26 +928,28 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   }
 
   Future<void> _searchUsers(String query) async {
-    // Debounce the search to avoid too many requests
-    Future.delayed(const Duration(milliseconds: 300), () async {
-      if (!mounted) return;
+    if (!mounted || query.isEmpty) {
+      return;
+    }
 
+    try {
       final result = await _friendService.searchUsers(query);
 
       if (mounted) {
         setState(() {
           _searchResults = List<Friend>.from(result['friends'] ?? []);
-
-          if (result['error'] != null &&
-              result['error'] != 'User $query not found') {
-            floatingSnackBar(
-              message: result['error'],
-              context: context,
-            );
-          }
         });
+
+        if (result['error'] != null && result['error'].isNotEmpty) {
+          floatingSnackBar(
+            message: result['error'],
+            context: context,
+          );
+        }
       }
-    });
+    } catch (e) {
+      debugPrint("error");
+    }
   }
 
   Future<void> _sendFriendRequest(String receiverId) async {
@@ -949,9 +963,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       return;
     }
 
-    if (!mounted) return;
-    // Update the UI state here to reflect the "Requested" state
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _acceptFriendRequest(String senderId) async {
@@ -969,16 +983,10 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       }
 
       if (!mounted) return;
-
-      // Show success message
-      floatingSnackBar(
-        message: 'Friend request accepted!',
-        context: context,
-      );
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
-          message: 'Error accepting friend request. Please try again later.',
+          message: 'Couldn\'t accept request. Please try again later.',
           context: context,
         );
       }
@@ -1003,7 +1011,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
     } catch (e) {
       if (mounted) {
         floatingSnackBar(
-          message: 'Error declining friend request: $e',
+          message: 'Couldn\'t decline request. Please try again later.',
           context: context,
         );
       }
@@ -1020,13 +1028,5 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       );
       return;
     }
-
-    if (!mounted) return;
-
-    // Show success message
-    floatingSnackBar(
-      message: 'Friend removed successfully',
-      context: context,
-    );
   }
 }

@@ -52,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/images/logos/synapse_no_bg.png',
+                    'assets/icons/logos/app_foreground.png',
                     width: 150,
                     height: 150,
                   ),

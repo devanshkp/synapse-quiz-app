@@ -188,7 +188,7 @@ class OfflineTips extends StatelessWidget {
             title: "Restart device",
             description: "Try restarting your device",
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(

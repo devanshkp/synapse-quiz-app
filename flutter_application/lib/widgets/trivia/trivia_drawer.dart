@@ -21,7 +21,9 @@ class TriviaDrawer extends StatefulWidget {
 
 class TriviaDrawerState extends State<TriviaDrawer> {
   void updateContent() {
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

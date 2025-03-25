@@ -176,10 +176,8 @@ class _StatsSectionState extends State<StatsSection> {
   Widget _buildAccuracy() {
     // Calculate solve rate percentage
     final totalEncountered = widget.userProfile.encounteredQuestions.length;
-    final accuracy = totalEncountered > 0
-        ? (widget.userProfile.questionsSolved / totalEncountered * 100)
-            .clamp(0, 100)
-        : 0.0;
+    final accuracy =
+        widget.userProfile.accuracy.isNaN ? 0.0 : widget.userProfile.accuracy;
     // Format accuracy to show up to 2 decimal places
     final String formattedAccuracy = accuracy.toStringAsFixed(2);
     // Remove trailing zeros after decimal point

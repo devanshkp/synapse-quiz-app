@@ -18,7 +18,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   final AuthService _authService = AuthService();
   late UserProvider userProvider;
   late TriviaProvider triviaProvider;
-  final String packageVersion = '0.9.0';
+  final String packageVersion = '1.0';
 
   @override
   void initState() {
@@ -29,12 +29,25 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTablet = screenWidth >= 600;
+    final double drawerWidth;
+    if (screenWidth < 700) {
+      drawerWidth = screenWidth * 0.8;
+    } else if (screenWidth < 850) {
+      drawerWidth = screenWidth * 0.65;
+    } else if (screenWidth < 1000) {
+      drawerWidth = screenWidth * .6;
+    } else {
+      drawerWidth = screenWidth * .4;
+    }
     return Container(
       color: const Color.fromARGB(255, 20, 20, 20),
+      width: isTablet ? drawerWidth : screenWidth,
       child: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -60,7 +73,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
       child: Column(
@@ -99,7 +112,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
               width: 60,
               height: 3,
               decoration: BoxDecoration(
-                color: purpleAccent,
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -212,7 +225,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/images/logos/synapse_no_bg.png',
+            'assets/icons/logos/app_foreground.png',
             height: 15,
             width: 15,
             color: Colors.white.withValues(alpha: 0.5),
