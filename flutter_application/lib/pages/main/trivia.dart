@@ -148,6 +148,12 @@ class _TriviaPageState extends State<TriviaPage>
     });
   }
 
+  bool _hasValidExplanation(Map<String, dynamic> question) {
+    return question['explanation'] != null &&
+        question['explanation'].toString().isNotEmpty &&
+        question['explanation'] != 'None.';
+  }
+
   // ============================== WIDGETS BUILDING ==============================
 
   @override
@@ -168,8 +174,7 @@ class _TriviaPageState extends State<TriviaPage>
         }
 
         // Fourth check: Are we loading questions?
-        if (triviaProvider.isLoadingQuestions ||
-            triviaProvider.isFetchingQuestions) {
+        if (triviaProvider.isLoadingQuestions) {
           return _buildLoadingScreen(message: "Loading questions...");
         }
 
@@ -247,14 +252,13 @@ class _TriviaPageState extends State<TriviaPage>
   Widget _buildTriviaPage(TriviaProvider triviaProvider) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isTablet = screenWidth >= 600;
-    double drawerOpenRatio;
-    if (screenWidth < 800) {
-      drawerOpenRatio = .5;
-    } else if (screenWidth < 1000) {
-      drawerOpenRatio = .4;
-    } else {
-      drawerOpenRatio = .35;
-    }
+    double drawerOpenRatio = isTablet
+        ? (screenWidth < 800 ? .5 : (screenWidth < 1000 ? .4 : .35))
+        : .65;
+
+    bool hasExplanation = _hasValidExplanation(triviaProvider.currentQuestion);
+    bool shouldEnableDrawer = !triviaProvider.answered || hasExplanation;
+
     return Scaffold(
       body: SafeArea(
         child: Transform.translate(
@@ -268,8 +272,8 @@ class _TriviaPageState extends State<TriviaPage>
             ),
             controller: _advancedDrawerController,
             animationDuration: const Duration(milliseconds: 200),
-            openRatio: isTablet ? drawerOpenRatio : .65,
-            initialDrawerScale: .95,
+            openRatio: shouldEnableDrawer ? drawerOpenRatio : 0.0,
+            initialDrawerScale: .9,
             backdropColor: drawerColor,
             openScale: 1,
             child: Stack(
@@ -669,21 +673,34 @@ class _TriviaPageState extends State<TriviaPage>
   }
 
   Widget buildFooter(TriviaProvider triviaProvider) {
+    final hasExplanation = _hasValidExplanation(triviaProvider.currentQuestion);
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            triviaProvider.answered
-                ? "Swipe right for explanation"
-                : "Swipe right for hint",
-            style: const TextStyle(
-              color: Colors.white70,
-              fontStyle: FontStyle.italic,
-              fontSize: 11,
+        if (triviaProvider.answered && hasExplanation) ...[
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              "Swipe right for explanation",
+              style: TextStyle(
+                color: Colors.white70,
+                fontStyle: FontStyle.italic,
+                fontSize: 11,
+              ),
             ),
           ),
-        ),
+        ] else if (!triviaProvider.answered) ...[
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              "Swipe right for hint",
+              style: TextStyle(
+                color: Colors.white70,
+                fontStyle: FontStyle.italic,
+                fontSize: 11,
+              ),
+            ),
+          ),
+        ],
         BottomButtons(
           answered: triviaProvider.answered,
           onNextQuestion: handleNextQuestion,

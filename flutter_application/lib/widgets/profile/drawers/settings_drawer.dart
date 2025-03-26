@@ -18,7 +18,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   final AuthService _authService = AuthService();
   late UserProvider userProvider;
   late TriviaProvider triviaProvider;
-  final String packageVersion = '1.0';
+  final String packageVersion = '1.0.0';
 
   @override
   void initState() {

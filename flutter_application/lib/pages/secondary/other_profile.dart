@@ -386,7 +386,10 @@ class _OtherProfilePageState extends State<OtherProfilePage>
         content: 'Are you sure you want to remove this friend?',
         confirmationButtonText: 'Remove',
         cancelButtonText: 'Cancel',
-        onPressed: () => _removeFriend(),
+        onPressed: () {
+          _removeFriend();
+          Navigator.pop(context);
+        },
       ),
     );
   }

@@ -879,7 +879,10 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
         content: 'Are you sure you want to remove this friend?',
         confirmationButtonText: 'Remove',
         cancelButtonText: 'Cancel',
-        onPressed: () => _removeFriend(friendId),
+        onPressed: () {
+          _removeFriend(friendId);
+          Navigator.pop(context);
+        },
       ),
     );
   }

@@ -77,14 +77,14 @@ class CustomHomeButton extends StatelessWidget {
           child: Container(
             padding: textPadding,
             height: double.infinity,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -105,46 +105,69 @@ class CustomHomeButton extends StatelessWidget {
                           ),
                         ),
                         if (subtitle != null && subtitle!.isNotEmpty)
-                          Text(
-                            subtitle!,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: subtitleFontSize,
-                              fontWeight: FontWeight.normal,
-                              letterSpacing: 0.1,
+                          Flexible(
+                            fit: FlexFit.loose,
+                            child: Visibility(
+                              visible: _shouldShowSubtitle(context),
+                              child: Text(
+                                subtitle!,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: subtitleFontSize,
+                                  fontWeight: FontWeight.normal,
+                                  letterSpacing: 0.1,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: iconPadding,
-                  child: ShaderMask(
-                    shaderCallback: (Rect bounds) {
-                      return const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.white, Colors.white70],
-                      ).createShader(bounds);
-                    },
-                    child: SvgPicture.asset(
-                      iconPath,
-                      width: iconSize,
-                      colorFilter:
-                          const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                      height: iconSize,
+                  Padding(
+                    padding: iconPadding,
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.white, Colors.white70],
+                        ).createShader(bounds);
+                      },
+                      child: SvgPicture.asset(
+                        iconPath,
+                        width: iconSize,
+                        colorFilter: const ColorFilter.mode(
+                            Colors.white, BlendMode.srcIn),
+                        height: iconSize,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  bool _shouldShowSubtitle(BuildContext context) {
+    // Use MediaQuery to get text scale factor
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+
+    // Calculate approximate required height
+    final titleHeight = titleFontSize * 1.2 * textScaleFactor;
+    final subtitleHeight = subtitleFontSize * 1.2 * 2 * textScaleFactor;
+    final paddingHeight = textPadding.vertical;
+
+    // Get the button's height constraints
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null || !renderBox.hasSize) return true;
+
+    final availableHeight = renderBox.size.height - paddingHeight;
+    return availableHeight >= (titleHeight + subtitleHeight + 8);
   }
 }
 
@@ -217,8 +240,13 @@ class QuickPlayButton extends StatelessWidget {
 
 class TopicSelectionButton extends StatelessWidget {
   final UserProvider userProvider;
+  final double titleFontSize, subtitleFontSize;
 
-  const TopicSelectionButton({super.key, required this.userProvider});
+  const TopicSelectionButton(
+      {super.key,
+      required this.userProvider,
+      this.titleFontSize = 16,
+      this.subtitleFontSize = 9});
 
   @override
   Widget build(BuildContext context) {
@@ -226,8 +254,9 @@ class TopicSelectionButton extends StatelessWidget {
       height: 72,
       child: CustomHomeButton(
         title: 'Edit Topics',
-        titleFontSize: 16,
+        titleFontSize: titleFontSize,
         subtitle: "Select the topics you're interested in",
+        subtitleFontSize: subtitleFontSize,
         iconPath: 'assets/icons/home/Edit.svg',
         iconSize: 15,
         onTap: () {
@@ -262,7 +291,9 @@ class TopicSelectionButton extends StatelessWidget {
 }
 
 class QuestionHistoryButton extends StatelessWidget {
-  const QuestionHistoryButton({super.key});
+  final double titleFontSize, subtitleFontSize;
+  const QuestionHistoryButton(
+      {super.key, this.titleFontSize = 16, this.subtitleFontSize = 9});
 
   @override
   Widget build(BuildContext context) {
@@ -270,9 +301,9 @@ class QuestionHistoryButton extends StatelessWidget {
       height: 72,
       child: CustomHomeButton(
         title: 'Question History',
-        titleFontSize: 16,
+        titleFontSize: titleFontSize,
         subtitle: 'Explore your most recently encountered questions.',
-        subtitleFontSize: 9,
+        subtitleFontSize: subtitleFontSize,
         iconPath: 'assets/icons/home/History.svg',
         iconSize: 25,
         textPadding: const EdgeInsets.only(left: 15, right: 7, bottom: 3),

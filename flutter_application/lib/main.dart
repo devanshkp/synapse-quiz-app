@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application/pages/auth/email_verification.dart';
 import 'package:flutter_application/pages/auth/login.dart';
 import 'package:flutter_application/pages/auth/registration.dart';
@@ -33,15 +34,51 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  bool _isPhone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _setOrientations();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    _setOrientations();
+  }
+
+  void _setOrientations() {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final width = view.physicalSize.width / view.devicePixelRatio;
+    final newIsPhone = width < 600;
+
+    if (newIsPhone != _isPhone) {
+      _isPhone = newIsPhone;
+      SystemChrome.setPreferredOrientations(
+        _isPhone
+            ? [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
+            : DeviceOrientation.values,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.portraitUp,
-    //   DeviceOrientation.portraitDown,
-    // ]);
     return RestartService(
       child: MultiProvider(
         providers: [
@@ -98,38 +135,34 @@ class ResponsiveNavBar extends StatefulWidget {
 class ResponsiveNavBarState extends State<ResponsiveNavBar> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomePage(),
-    const SearchPage(),
-    const TriviaPage(),
-    const LeaderboardPage(),
-    const ProfilePage(),
+  static const List<Widget> _screens = [
+    HomePage(),
+    SearchPage(),
+    TriviaPage(),
+    LeaderboardPage(),
+    ProfilePage(),
   ];
 
-  final List<Map<String, Icon>> _icons = [
+  static const List<Map<String, Icon>> _icons = [
+    {'filled': Icon(Icons.home_rounded), 'outline': Icon(Icons.home_outlined)},
     {
-      'filled': const Icon(Icons.home_rounded),
-      'outline': const Icon(Icons.home_outlined)
+      'filled': Icon(Icons.search_rounded),
+      'outline': Icon(Icons.search_outlined)
     },
     {
-      'filled': const Icon(Icons.search_rounded),
-      'outline': const Icon(Icons.search_outlined)
+      'filled': Icon(Icons.keyboard_double_arrow_down_sharp),
+      'outline': Icon(Icons.keyboard_double_arrow_down_outlined)
     },
     {
-      'filled': const Icon(Icons.keyboard_double_arrow_down_sharp),
-      'outline': const Icon(Icons.keyboard_double_arrow_down_outlined)
+      'filled': Icon(Icons.leaderboard),
+      'outline': Icon(Icons.leaderboard_outlined)
     },
-    {
-      'filled': const Icon(Icons.leaderboard),
-      'outline': const Icon(Icons.leaderboard_outlined)
-    },
-    {
-      'filled': const Icon(Icons.person),
-      'outline': const Icon(Icons.person_outline)
-    },
+    {'filled': Icon(Icons.person), 'outline': Icon(Icons.person_outline)},
   ];
 
   void _onTap(int index) {
+    if (_currentIndex == index) return;
+
     final triviaProvider = Provider.of<TriviaProvider>(context, listen: false);
 
     if (_currentIndex == 2 && index != 2) {
@@ -164,8 +197,7 @@ class ResponsiveNavBarState extends State<ResponsiveNavBar> {
                   groupAlignment: 0,
                   backgroundColor: navbarColor,
                   selectedIndex: _currentIndex,
-                  minExtendedWidth: 200,
-                  extended: isWideScreen,
+                  minWidth: isWideScreen ? 100 : 75,
                   selectedIconTheme:
                       const IconThemeData(color: Colors.white, size: 30),
                   unselectedIconTheme:

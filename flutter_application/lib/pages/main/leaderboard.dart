@@ -4,6 +4,7 @@ import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/providers/user_provider.dart';
 import 'package:flutter_application/utils/profile_navigator.dart';
+
 import 'package:flutter_application/widgets/shared_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';

@@ -225,6 +225,9 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
         TextFormatter.formatTitlePreservingCase(widget.question['topic']);
     final correctAnswerIndex = _getCorrectIndex();
     final options = widget.question['options'] as List<dynamic>;
+    final hasExplanation = widget.question['explanation'] != null &&
+        widget.question['explanation'].toString().isNotEmpty &&
+        widget.question['explanation'] != 'None.';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -363,8 +366,8 @@ class _QuestionHistoryCardState extends State<QuestionHistoryCard> {
                   );
                 }),
 
-                // Explanation (if available)
-                if (widget.question['explanation'] != null) ...[
+                // Explanation (if available) 
+                if (hasExplanation) ...[
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16),

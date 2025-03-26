@@ -14,8 +14,12 @@ class TextFormatter {
     }
 
     // Ensure the style includes Poppins font family
-    final TextStyle baseStyle =
-        (style ?? const TextStyle()).copyWith(fontFamily: 'Poppins');
+    final TextStyle baseStyle = (style ?? const TextStyle()).copyWith(
+        fontFamily: 'NotoSansMath',
+        fontFeatures: <FontFeature>[
+          const FontFeature.subscripts(),
+          const FontFeature.superscripts()
+        ]);
 
     // If there are no subscripts or superscripts, return regular text
     if (!text.contains('_{') && !text.contains('^{')) {
@@ -48,7 +52,6 @@ class TextFormatter {
     );
   }
 
-  /// Recursively parses text to handle nested subscripts and superscripts
   static List<InlineSpan> _parseText(String text, TextStyle style) {
     List<InlineSpan> spans = [];
     int currentIndex = 0;
@@ -105,20 +108,27 @@ class TextFormatter {
         // Extract the content inside the braces
         String scriptContent = text.substring(nextIndex + 2, closeIndex - 1);
 
-        // Recursively parse the content for nested scripts
-        List<InlineSpan> nestedSpans = _parseText(
-            scriptContent,
-            style.copyWith(
-              fontSize: (style.fontSize ?? 14) * 0.7,
-            ));
+        // Determine the appropriate font features and vertical positioning
+        TextStyle scriptStyle = style.copyWith(
+          fontSize: style.fontSize,
+          fontFamily: '',
 
-        // Create a TextSpan for the subscript/superscript instead of WidgetSpan
+          fontFeatures: <FontFeature>[
+            isSubscript
+                ? const FontFeature.subscripts()
+                : const FontFeature.superscripts()
+          ],
+          // Fine-tune vertical positioning if font features don't perfectly align
+          height: isSubscript ? 1.5 : 0.8,
+          textBaseline: TextBaseline.alphabetic,
+        );
+
+        // Recursively parse the content for nested scripts
+        List<InlineSpan> nestedSpans = _parseText(scriptContent, scriptStyle);
+
+        // Create a TextSpan for the subscript/superscript
         spans.add(TextSpan(
-          style: style.copyWith(
-            fontSize: (style.fontSize ?? 14) * 0.7,
-            height: isSubscript ? 1.7 : 0.7, // Adjust vertical position
-            textBaseline: TextBaseline.alphabetic,
-          ),
+          style: scriptStyle,
           children: nestedSpans,
         ));
 

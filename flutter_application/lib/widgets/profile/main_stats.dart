@@ -28,39 +28,41 @@ class MainStats extends StatelessWidget {
             .replaceAll(RegExp(r'0+$'), '')
             .replaceAll(RegExp(r'\.$'), '');
 
-    return Container(
-      height: 100,
-      margin: const EdgeInsets.symmetric(horizontal: 27.5),
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      decoration: BoxDecoration(
-        gradient: buttonGradient,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildMainStatCard(
-            'ACCURACY',
-            '$displayAccuracy%',
-            Icons.gps_fixed,
-            globalRankColor,
-          ),
-          const CustomVerticalDivider(),
-          _buildMainStatCard(
-            'STREAK',
-            '${userProfile.currentStreak} ${userProfile.currentStreak == 1 ? 'day' : 'days'}', // Display "day" or "days"
-            Icons.whatshot,
-            currentStreakColor,
-          ),
-          const CustomVerticalDivider(),
-          _buildMainStatCard(
-            'SOLVED',
-            '${userProfile.questionsSolved}/$totalQuestions',
-            Icons.check_circle,
-            solvedQuestionsColor,
-          ),
-        ],
+    return IntrinsicHeight(
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
+        margin: const EdgeInsets.symmetric(horizontal: 27.5),
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          gradient: buttonGradient,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildMainStatCard(
+              'ACCURACY',
+              '$displayAccuracy%',
+              Icons.gps_fixed,
+              globalRankColor,
+            ),
+            const CustomVerticalDivider(),
+            _buildMainStatCard(
+              'STREAK',
+              '${userProfile.currentStreak} ${userProfile.currentStreak == 1 ? 'day' : 'days'}', // Display "day" or "days"
+              Icons.whatshot,
+              currentStreakColor,
+            ),
+            const CustomVerticalDivider(),
+            _buildMainStatCard(
+              'SOLVED',
+              '${userProfile.questionsSolved}/$totalQuestions',
+              Icons.check_circle,
+              solvedQuestionsColor,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -69,7 +71,7 @@ class MainStats extends StatelessWidget {
   Widget _buildMainStatCard(
       String title, String value, IconData icon, Color color) {
     return SizedBox(
-      width: 80, // Fixed width for each stat card
+      width: 80,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -103,10 +105,13 @@ class MainStats extends StatelessWidget {
                 color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           const SizedBox(height: 2.5),
           Text(
             title,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: const TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
           ),

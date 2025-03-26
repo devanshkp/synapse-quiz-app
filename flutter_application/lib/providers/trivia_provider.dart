@@ -188,6 +188,7 @@ class TriviaProvider extends ChangeNotifier {
       _cachedQuestions = List.from(_questions);
       _cachedSelectedTopics = List.from(_selectedTopics);
 
+      _selectedTopics = [topic];
       _questions = _questions.where((q) => q['topic'] == topic).toList();
       removeEncounteredQuestions();
 
@@ -425,13 +426,18 @@ class TriviaProvider extends ChangeNotifier {
     // Update selected topics
     _selectedTopics = newTopics;
 
-    // Pass both isTopicAdded flag and the list of added topics
+    // Check if current question's topic is being removed and question is answered
+    if (removedTopics.contains(currentQuestion['topic']) && _answered) {
+      _answered = false;
+      _selectedAnswer = '';
+    }
+
+    // Pass the list of added topics
     await updateUserSelectedTopics(
-        topicAdded: isTopicAdded, addedTopics: isTopicAdded ? addedTopics : []);
+        addedTopics: isTopicAdded ? addedTopics : []);
   }
 
   Future<void> updateUserSelectedTopics({
-    bool topicAdded = true,
     List<String>? addedTopics,
   }) async {
     // Update Firestore immediately
@@ -450,7 +456,7 @@ class TriviaProvider extends ChangeNotifier {
     await filterQuestionsBySelectedTopics();
 
     // Only schedule fetchQuestions if we're adding topics and have topics to add
-    if (topicAdded && addedTopics != null && addedTopics.isNotEmpty) {
+    if (addedTopics != null && addedTopics.isNotEmpty) {
       debugPrint(
           "Fetching questions for newly added topics: ${addedTopics.join(', ')}");
       safeFetchQuestions(topics: addedTopics);
@@ -910,6 +916,7 @@ class TriviaProvider extends ChangeNotifier {
     userRef.update({'questionsSolved': 0});
     userRef.update({'solvedTodayCount': 0});
     userRef.update({'topicQuestionsSolved': {}});
+    _encounteredQuestions.clear();
 
     userProvider.updateUserProfile(
       encounteredQuestions: [],
@@ -1270,9 +1277,8 @@ class TriviaProvider extends ChangeNotifier {
 
   // Add this method to add newly encountered questions to the history
   void addToEncounteredQuestions(Map<String, dynamic> question) {
-    // Only add if it's not already at the top of the list
-    if (_encounteredQuestions.isEmpty ||
-        _encounteredQuestions.first['questionId'] != question['questionId']) {
+    if (!_encounteredQuestions
+        .any((q) => q['questionId'] == question['questionId'])) {
       _encounteredQuestions.insert(0, question);
       safeNotifyListeners();
     }

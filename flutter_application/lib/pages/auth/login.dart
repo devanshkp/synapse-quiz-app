@@ -39,23 +39,6 @@ class LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-
-    final regex = RegExp(r'^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).*$');
-    if (!regex.hasMatch(value)) {
-      return 'Password must contain at least one number and one special character';
-    }
-
-    return null;
-  }
-
   void _updateFormValidity() {
     final isValid = _formKey.currentState?.validate() ?? false;
 
@@ -241,7 +224,6 @@ class LoginPageState extends State<LoginPage> {
                   CustomTextFormField(
                     controller: _passwordController,
                     labelText: 'Password',
-                    validator: _validatePassword,
                     isPasswordField: true,
                   ),
 

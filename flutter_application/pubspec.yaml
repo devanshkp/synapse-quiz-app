@@ -118,6 +118,11 @@ flutter:
           weight: 400
         - asset: fonts/Poppins-SemiBold.ttf
           weight: 600
+    - family: NotoSansMath
+      fonts:
+        - asset: fonts/NotoSansMath-Regular.ttf
+          weight: 400
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

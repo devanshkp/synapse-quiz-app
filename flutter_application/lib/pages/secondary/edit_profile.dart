@@ -288,8 +288,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       // Create the full name by combining first and last name
-      final fullName =
-          '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
+      String fullName;
+      if (_lastNameController.text.trim().isEmpty) {
+        fullName = _firstNameController.text.trim();
+      } else {
+        fullName =
+            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
+      }
 
       // Update the user profile in Firestore
       await userProvider.updateUserProfileInFirestore(

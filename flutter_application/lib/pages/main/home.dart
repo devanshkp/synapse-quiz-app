@@ -107,7 +107,7 @@ class HomePage extends StatelessWidget {
     } else if (screenWidth < 1000) {
       extraPadding = screenWidth * .125;
     } else {
-      extraPadding = screenWidth * .15;
+      extraPadding = screenWidth * .175;
     }
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -116,6 +116,7 @@ class HomePage extends StatelessWidget {
       const TopPortion(),
       MiddlePortion(
         userProvider: userProvider,
+        isTablet: isTablet,
       ),
       BottomPortion(
         userProvider: userProvider,
@@ -206,8 +207,10 @@ class TopPortion extends StatelessWidget {
 
 class MiddlePortion extends StatelessWidget {
   final UserProvider userProvider;
+  final bool isTablet;
 
-  const MiddlePortion({super.key, required this.userProvider});
+  const MiddlePortion(
+      {super.key, required this.userProvider, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
@@ -224,12 +227,19 @@ class MiddlePortion extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: TopicSelectionButton(userProvider: userProvider),
+              child: TopicSelectionButton(
+                userProvider: userProvider,
+                titleFontSize: isTablet ? 17.5 : 16,
+                subtitleFontSize: isTablet ? 10.5 : 9,
+              ),
             ),
             const SizedBox(width: 15), // Space between the two columns
-            const Expanded(
+            Expanded(
               flex: 4,
-              child: QuestionHistoryButton(),
+              child: QuestionHistoryButton(
+                titleFontSize: isTablet ? 17.5 : 16,
+                subtitleFontSize: isTablet ? 10.5 : 9,
+              ),
             ),
           ],
         ),
@@ -276,7 +286,7 @@ class BottomPortion extends StatelessWidget {
           const SizedBox(height: 15),
           LayoutBuilder(
             builder: (context, constraints) {
-              final isTablet = constraints.maxWidth >= 600;
+              final isTablet = MediaQuery.sizeOf(context).width >= 600;
               final crossAxisCount = isTablet ? 4 : 3;
               final topics = isTablet ? allTopics : allTopics.sublist(0, 9);
 
