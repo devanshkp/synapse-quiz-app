@@ -46,12 +46,12 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 ## 📱 Screenshots
 
 <div align="center">
-  <img src="assets/screenshots/Home.png" alt="Home Screen" width="200">
-  <img src="assets/screenshots/Search.png" alt="Topicst Screen" width="200">
-  <img src="assets/screenshots/Trivia.png" alt="Trivia Screen" width="200">
-  <img src="assets/screenshots/Profile.png" alt="Profile Screen" width="200">
-  <img src="assets/screenshots/Leaderboard.png" alt="Leaderboard Screen" width="200">
-  <img src="assets/screenshots/Recents.png" alt="Recent Questions Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Home.png" alt="Home Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Search.png" alt="Topicst Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Trivia.png" alt="Trivia Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Profile.png" alt="Profile Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Leaderboard.png" alt="Leaderboard Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Recents.png" alt="Recent Questions Screen" width="200">
 </div>
 
 ## 🎬 Demo Video
@@ -60,9 +60,9 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 ## 📲 Download
 
-Get Synapse on the Google Play Store!
+Get Synapse on the Google Play Store! (Publishing at the moment)
 
-[Insert Play Store Download Link Here]
+APK: [link](APKs/) (arm64 release for most modern devices)
 
 **Note:** Currently, Synapse is available for Android devices. An iOS build is coming soon!
 
