@@ -41,7 +41,7 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 - **State Management**: Provider
 - **Architecture**: Service-based architecture
 - **AI Integration**: Google's Gemini API for intelligent hints
-- **Data Sourcing**: Scraped questions from https://sanfoundry.com/
+- **Data Sourcing**: Scraped questions from [https://sanfoundry.com/](https://sanfoundry.com/)
 
 ## 📱 Screenshots
 
@@ -52,44 +52,24 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
   <img src="screenshots/leaderboard.png" alt="Leaderboard Screen" width="200">
 </div>
 
+## 🎬 Demo Video
+
+[Include a link to your demo video here]
+
+## 📲 Download
+
+Get Synapse on the Google Play Store!
+
+[Insert Play Store Download Link Here]
+
+**Note:** Currently, Synapse is available for Android devices. An iOS build is coming soon!
+
 ## 📋 Prerequisites
 
 - Flutter SDK (2.10.0 or higher)
 - Dart SDK (2.16.0 or higher)
 - Firebase account
 - Gemini API key (for hint generation)
-
-## 🚀 Getting Started
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/quiz-app.git
-   cd quiz-app
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   flutter pub get
-   ```
-
-3. **Configure Firebase**
-
-   - Create a new Firebase project
-   - Add an Android/iOS app in the Firebase console
-   - Download and add the `google-services.json`/`GoogleService-Info.plist` to the appropriate directory
-   - Enable Authentication, Firestore, and Storage in the Firebase console
-
-4. **Set up Gemini API**
-
-   - Obtain an API key from Google's Gemini platform
-   - Add your API key to the appropriate configuration file
-
-5. **Run the app**
-   ```bash
-   flutter run
-   ```
 
 ## 🏗️ Project Structure
 

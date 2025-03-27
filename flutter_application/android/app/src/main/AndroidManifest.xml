@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    package="com.devansh.synapse"
     <!-- internet permission -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- read media images permission -->
@@ -45,6 +46,13 @@
               android:name="io.flutter.embedding.android.EnableImpeller"
               android:value="false" 
         />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <meta-data
+            android:name="firebase_remote_config_settings"
+            android:value="defaults_map" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

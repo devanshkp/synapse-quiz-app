@@ -104,7 +104,7 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 width: 60,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
+                  color: Theme.of(context).secondaryHeaderColor.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Regular colors
-const Color appColor = Color.fromARGB(255, 116, 70, 200);
+const Color appColor = Color(0xFF31177b);
 const Color warningRed = Color.fromARGB(255, 181, 56, 47);
 const Color safeGreen = Color.fromARGB(255, 84, 183, 102);
 

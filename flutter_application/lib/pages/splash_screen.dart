@@ -41,8 +41,8 @@ class _SplashScreenState extends State<SplashScreen>
                 center: Alignment.center,
                 radius: 1.0 + (_animation.value * 0.3),
                 colors: const [
-                  Color(0xFF2A2159),
-                  Color(0xFF1A1238),
+                  Color(0xFF31177b),
+                  Color(0xFF180936),
                 ],
                 stops: const [0.1, 1.0],
               ),

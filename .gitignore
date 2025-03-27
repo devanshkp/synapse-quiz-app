@@ -16,3 +16,4 @@ server_functions/
 # Ignore VS Code settings (optional)
 .vscode/
 flutter_application/devtools_options.yaml
+flutter_application/android/app/google-services.json
