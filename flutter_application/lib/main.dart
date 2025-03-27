@@ -318,7 +318,7 @@ class ResponsiveNavBarState extends State<ResponsiveNavBar> {
       case 1:
         return 'Search';
       case 2:
-        return 'Trivia';
+        return 'Quiz';
       case 3:
         return 'Leaderboard';
       case 4:

@@ -398,7 +398,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                         Icon(
                           Icons.check_circle_outline,
                           color: _sortOption == SortOption.questionsSolved
-                              ? Theme.of(context).primaryColor
+                              ? Theme.of(context).secondaryHeaderColor
                               : Colors.white70,
                           size: 16,
                         ),
@@ -407,7 +407,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                           'Questions solved',
                           style: TextStyle(
                             color: _sortOption == SortOption.questionsSolved
-                                ? Theme.of(context).primaryColor
+                                ? Theme.of(context).secondaryHeaderColor
                                 : Colors.white,
                             fontWeight:
                                 _sortOption == SortOption.questionsSolved
@@ -425,7 +425,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                         Icon(
                           Icons.percent,
                           color: _sortOption == SortOption.accuracy
-                              ? Theme.of(context).primaryColor
+                              ? Theme.of(context).secondaryHeaderColor
                               : Colors.white70,
                           size: 16,
                         ),
@@ -434,7 +434,7 @@ class LeaderboardPageState extends State<LeaderboardPage>
                           'Accuracy',
                           style: TextStyle(
                             color: _sortOption == SortOption.accuracy
-                                ? Theme.of(context).primaryColor
+                                ? Theme.of(context).secondaryHeaderColor
                                 : Colors.white,
                             fontWeight: _sortOption == SortOption.accuracy
                                 ? FontWeight.bold
