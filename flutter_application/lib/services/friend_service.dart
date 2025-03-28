@@ -146,6 +146,19 @@ class FriendService {
         return {'success': false, 'error': 'Friend request already sent!'};
       }
 
+      // Check if an opposite request exists (receiver -> sender)
+      final oppositeRequest = await FirebaseFirestore.instance
+          .collection('friend_requests')
+          .where('senderId', isEqualTo: receiverId)
+          .where('receiverId', isEqualTo: currentUserId)
+          .get();
+
+      if (oppositeRequest.docs.isNotEmpty) {
+        // Accept the existing request instead of sending a new one.
+        await acceptFriendRequest(receiverId);
+        return {'success': true, 'message': 'Friend request accepted!'};
+      }
+
       // Send the friend request
       await FirebaseFirestore.instance.collection('friend_requests').add({
         'senderId': currentUserId,

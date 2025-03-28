@@ -30,7 +30,6 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     with SingleTickerProviderStateMixin {
   final FriendService _friendService = FriendService();
   UserProfile? _userProfile;
-  bool _isLoadingFriendshipStatus = true;
   bool _isLoading = true;
   bool _isFriend = false;
   bool _isPendingRequest = false;
@@ -49,7 +48,6 @@ class _OtherProfilePageState extends State<OtherProfilePage>
     } else {
       _loadUserProfile();
     }
-    _checkFriendshipStatus();
   }
 
   @override
@@ -86,47 +84,6 @@ class _OtherProfilePageState extends State<OtherProfilePage>
           floatingSnackBar(
               context: context, message: 'Couldn\'t load user\'s profile.');
         }
-      }
-    }
-  }
-
-  Future<void> _checkFriendshipStatus() async {
-    if (_currentUserId == null) return;
-
-    try {
-      if (mounted) {
-        setState(() {
-          _isLoadingFriendshipStatus = true;
-        });
-      }
-
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      // Check if they are already friends
-      final isFriend = userProvider.friends
-          .any((friend) => friend.userId == widget.friend.userId);
-
-      // Check if there's a pending incoming request
-      final isIncomingRequest = userProvider.incomingFriendRequests
-          .any((request) => request.userId == widget.friend.userId);
-
-      final isPendingRequest = userProvider.outgoingFriendRequests
-          .any((request) => request.userId == widget.friend.userId);
-
-      if (mounted) {
-        setState(() {
-          _isFriend = isFriend;
-          _isPendingRequest = isPendingRequest;
-          _isIncomingRequest = isIncomingRequest;
-          _isLoadingFriendshipStatus = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingFriendshipStatus = false;
-        });
-        debugPrint("Error checking friendship status: $e");
       }
     }
   }
@@ -315,66 +272,97 @@ class _OtherProfilePageState extends State<OtherProfilePage>
               ? const Center(
                   child: Text('User profile not found',
                       style: TextStyle(color: Colors.white)))
-              : SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? extraPadding : 0),
-                    child: Column(
-                      children: [
-                        // Profile header section
-                        const SizedBox(height: 20),
-                        _buildUserHeader(),
-                        const SizedBox(height: 15),
-
-                        // Friendship button
-                        (_isLoadingFriendshipStatus)
-                            ? _buildFriendshipButton(empty: true)
-                            : _buildFriendshipButton(),
-                        const SizedBox(height: 25),
-
-                        // Main stats section
-                        _buildMainStats(),
-                        const SizedBox(height: 25),
-
-                        // Tab bar
-                        CustomTabBar(
-                          controller: _tabController,
-                          tabs: const ['Stats', 'Badges', 'Topics'],
-                          horizontalPadding: 28,
-                          tabHeight: 40,
-                          indicatorPadding: const EdgeInsets.all(2),
-                        ),
-                        const SizedBox(height: 15),
-
-                        // Tab content with responsive height
-                        ContentSizeTabBarView(
-                          controller: _tabController,
-                          children: [
-                            _userProfile != null
-                                ? StatsSection(userProfile: _userProfile!)
-                                : const Center(
-                                    child: Text('No stats available',
-                                        style: TextStyle(color: Colors.white))),
-                            _userProfile != null
-                                ? BadgesSection(userProfile: _userProfile!)
-                                : const Center(
-                                    child: Text('No badges available',
-                                        style: TextStyle(color: Colors.white))),
-                            _userProfile != null
-                                ? TopicsSection(userProfile: _userProfile!)
-                                : const Center(
-                                    child: Text('No topics available',
-                                        style: TextStyle(color: Colors.white))),
-                          ],
-                        ),
-
-                        // Bottom padding
-                        const SizedBox(height: 15),
-                      ],
+              : Consumer<UserProvider>(builder: (context, userProvider, child) {
+                  return Selector<
+                      UserProvider,
+                      ({
+                        List<Friend> friends,
+                        List<Friend> incomingRequests,
+                        List<Friend> outgoingRequests,
+                      })>(
+                    selector: (_, provider) => (
+                      friends: provider.friends,
+                      incomingRequests: provider.incomingFriendRequests,
+                      outgoingRequests: provider.outgoingFriendRequests,
                     ),
-                  ),
-                ),
+                    builder: (context, data, child) {
+                      final isFriend = data.friends.any(
+                          (friend) => friend.userId == widget.friend.userId);
+                      final isIncomingRequest = data.incomingRequests.any(
+                          (request) => request.userId == widget.friend.userId);
+                      final isPendingRequest = data.outgoingRequests.any(
+                          (request) => request.userId == widget.friend.userId);
+
+                      _isFriend = isFriend;
+                      _isPendingRequest = isPendingRequest;
+                      _isIncomingRequest = isIncomingRequest;
+
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? extraPadding : 0),
+                          child: Column(
+                            children: [
+                              // Profile header section
+                              const SizedBox(height: 20),
+                              _buildUserHeader(),
+                              const SizedBox(height: 15),
+
+                              // Friendship button
+                              _buildFriendshipButton(),
+                              const SizedBox(height: 25),
+
+                              // Main stats section
+                              _buildMainStats(),
+                              const SizedBox(height: 25),
+
+                              // Tab bar
+                              CustomTabBar(
+                                controller: _tabController,
+                                tabs: const ['Stats', 'Badges', 'Topics'],
+                                horizontalPadding: 28,
+                                tabHeight: 40,
+                                indicatorPadding: const EdgeInsets.all(2),
+                              ),
+                              const SizedBox(height: 15),
+
+                              // Tab content with responsive height
+                              ContentSizeTabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _userProfile != null
+                                      ? StatsSection(userProfile: _userProfile!)
+                                      : const Center(
+                                          child: Text('No stats available',
+                                              style: TextStyle(
+                                                  color: Colors.white))),
+                                  _userProfile != null
+                                      ? BadgesSection(
+                                          userProfile: _userProfile!)
+                                      : const Center(
+                                          child: Text('No badges available',
+                                              style: TextStyle(
+                                                  color: Colors.white))),
+                                  _userProfile != null
+                                      ? TopicsSection(
+                                          userProfile: _userProfile!)
+                                      : const Center(
+                                          child: Text('No topics available',
+                                              style: TextStyle(
+                                                  color: Colors.white))),
+                                ],
+                              ),
+
+                              // Bottom padding
+                              const SizedBox(height: 15),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
     );
   }
 

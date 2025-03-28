@@ -104,7 +104,9 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
                 width: 60,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).secondaryHeaderColor.withValues(alpha: 0.7),
+                  color: Theme.of(context)
+                      .secondaryHeaderColor
+                      .withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
@@ -447,41 +449,44 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
       );
     } else if (isIncoming) {
       // User has a pending incoming request
-      return GestureDetector(
-        onTap: () async {
-          try {
-            final result = await _friendService.acceptFriendRequest(userId);
+      return Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: GestureDetector(
+          onTap: () async {
+            try {
+              final result = await _friendService.acceptFriendRequest(userId);
 
-            if (!result['success']) {
+              if (!result['success']) {
+                if (mounted) {
+                  floatingSnackBar(
+                    message: result['error'] ??
+                        'Couldn\'t accept request. Please try again later.',
+                    context: context,
+                  );
+                }
+                return;
+              }
+
+              if (mounted) {
+                setState(() {
+                  _searchResults = List.from(_searchResults);
+                });
+              }
+            } catch (e) {
               if (mounted) {
                 floatingSnackBar(
-                  message: result['error'] ??
-                      'Couldn\'t accept request. Please try again later.',
+                  message: 'Couldn\'t accept request. Please try again later.',
                   context: context,
                 );
               }
-              return;
             }
-
-            if (mounted) {
-              setState(() {
-                _searchResults = List.from(_searchResults);
-              });
-            }
-          } catch (e) {
-            if (mounted) {
-              floatingSnackBar(
-                message: 'Couldn\'t accept request. Please try again later.',
-                context: context,
-              );
-            }
-          }
-        },
-        child: const Text(
-          'Accept',
-          style: TextStyle(
-            color: Colors.green,
-            fontSize: 12,
+          },
+          child: const Text(
+            'Accept',
+            style: TextStyle(
+              color: Colors.green,
+              fontSize: 12,
+            ),
           ),
         ),
       );

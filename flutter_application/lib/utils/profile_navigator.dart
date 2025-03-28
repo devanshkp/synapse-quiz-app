@@ -24,7 +24,7 @@ class ProfileNavigator {
           slideTransitionRoute(
             OtherProfilePage(
               friend: friend,
-              preloadedProfile: profile, // Pass the preloaded profile
+              preloadedProfile: profile,
             ),
           ),
         );
