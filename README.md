@@ -40,8 +40,9 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 - **Backend**: Firebase (Authentication, Firestore, Storage)
 - **State Management**: Provider
 - **Architecture**: Service-based architecture
+- **Data Scraping**: Python, Selenium, bs4
+- **Data Sourcing**: Questions from [https://sanfoundry.com/](https://sanfoundry.com/)
 - **AI Integration**: Google's Gemini API for intelligent hints
-- **Data Sourcing**: Scraped questions from [https://sanfoundry.com/](https://sanfoundry.com/)
 
 ## 📱 Screenshots
 
@@ -60,11 +61,14 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 ## 📲 Download
 
-Get Synapse on the Google Play Store! (Publishing at the moment)
+**Android:**
 
-APK: [link](APKs/) (arm64 release for most modern devices)
+* **Google Play Store (Closed Testing):** The app is currently in closed beta. To join the testing program, please contact me!
+* **Direct APK:** [link](APKs/) (arm64 For most modern Android devices)
 
-**Note:** Currently, Synapse is available for Android devices. An iOS build is coming soon!
+**iOS:**
+
+* Coming soon!
 
 ## 📋 Prerequisites
 
@@ -108,13 +112,7 @@ The application follows a service-based architecture with Provider for state man
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome, feel free to reach out to start collaborating!
 
 ## 📄 License
 
