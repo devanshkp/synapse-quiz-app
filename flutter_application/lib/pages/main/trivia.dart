@@ -260,49 +260,48 @@ class _TriviaPageState extends State<TriviaPage>
     bool shouldEnableDrawer = !triviaProvider.answered || hasExplanation;
 
     return Scaffold(
-      body: SafeArea(
-        child: Transform.translate(
-          offset: Offset(0, _drawerOffset),
-          child: AdvancedDrawer(
-            drawer: TriviaDrawer(
-              key: _drawerKey,
-              question: triviaProvider.currentQuestion,
-              isAnswered: triviaProvider.answered,
-              onNextQuestion: handleNextQuestion,
-            ),
-            controller: _advancedDrawerController,
-            animationDuration: const Duration(milliseconds: 200),
-            openRatio: shouldEnableDrawer ? drawerOpenRatio : 0.0,
-            initialDrawerScale: .9,
-            backdropColor: drawerColor,
-            openScale: 1,
-            child: Stack(
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: cardGradient,
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/shapes.png'),
-                      opacity: 0.25,
-                      repeat: ImageRepeat.repeat,
-                    ),
+      backgroundColor: Colors.transparent,
+      body: Transform.translate(
+        offset: Offset(0, _drawerOffset),
+        child: AdvancedDrawer(
+          drawer: TriviaDrawer(
+            key: _drawerKey,
+            question: triviaProvider.currentQuestion,
+            isAnswered: triviaProvider.answered,
+            onNextQuestion: handleNextQuestion,
+          ),
+          controller: _advancedDrawerController,
+          animationDuration: const Duration(milliseconds: 200),
+          openRatio: shouldEnableDrawer ? drawerOpenRatio : 0.0,
+          initialDrawerScale: .9,
+          backdropColor: drawerColor,
+          openScale: 1,
+          child: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: cardGradient,
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/shapes.png'),
+                    opacity: 0.25,
+                    repeat: ImageRepeat.repeat,
                   ),
-                  child: _buildQuestionPageView(triviaProvider),
                 ),
-                if (widget.quickPlay || widget.isTemporarySession)
-                  Positioned(
-                    top: 20,
-                    left: 10,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded,
-                          color: Colors.white),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
+                child: _buildQuestionPageView(triviaProvider),
+              ),
+              if (widget.quickPlay || widget.isTemporarySession)
+                Positioned(
+                  top: 20,
+                  left: 10,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded,
+                        color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
@@ -342,7 +341,7 @@ class _TriviaPageState extends State<TriviaPage>
                 child: Opacity(
                   opacity: _animationController.value,
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
                     child: needsScrolling
                         ? SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),

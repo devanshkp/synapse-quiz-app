@@ -1,5 +1,6 @@
 import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/models/friend.dart';
 import 'package:flutter_application/providers/user_provider.dart';
@@ -29,6 +30,8 @@ class LeaderboardPageState extends State<LeaderboardPage>
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(statusBarColor: backgroundPageColor));
     _tabController = TabController(length: 2, vsync: this);
     // Initialize friends list if empty
     final userProvider = Provider.of<UserProvider>(context, listen: false);

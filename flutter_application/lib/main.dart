@@ -53,9 +53,9 @@ void main() async {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-
+    
     await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.debug,
+      androidProvider: (kReleaseMode) ? AndroidProvider.playIntegrity : AndroidProvider.debug,
     );
 
     runApp(const MyApp());
