@@ -2,7 +2,7 @@
 
 A modern, feature-rich quiz application built with Flutter and Firebase, offering a comprehensive quiz experience with friend leaderboards, custom generated hints, progress tracking, and more.
 
-<img src="flutter_application/assets/icons/logos/app_logo.png" alt="Synapse Logo" width="150">
+<img src="flutter_application/assets/icons/logos/app_banner.png" alt="Synapse Logo" width="500">
 
 ## ✨ Features
 
@@ -46,12 +46,12 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 ## 📱 Screenshots
 
 <div align="center">
-  <img src="flutter_application/assets/screenshots/Home.png" alt="Home Screen" width="200">
-  <img src="flutter_application/assets/screenshots/Search.png" alt="Topicst Screen" width="200">
-  <img src="flutter_application/assets/screenshots/Trivia.png" alt="Trivia Screen" width="200">
-  <img src="flutter_application/assets/screenshots/Profile.png" alt="Profile Screen" width="200">
-  <img src="flutter_application/assets/screenshots/Leaderboard.png" alt="Leaderboard Screen" width="200">
-  <img src="flutter_application/assets/screenshots/Recents.png" alt="Recent Questions Screen" width="200">
+  <img src="flutter_application/assets/screenshots/Home.png" alt="Home Screen" width="250">
+  <img src="flutter_application/assets/screenshots/Search.png" alt="Topicst Screen" width="250">
+  <img src="flutter_application/assets/screenshots/Trivia.png" alt="Trivia Screen" width="250">
+  <img src="flutter_application/assets/screenshots/Profile.png" alt="Profile Screen" width="250">
+  <img src="flutter_application/assets/screenshots/Leaderboard.png" alt="Leaderboard Screen" width="250">
+  <img src="flutter_application/assets/screenshots/Recents.png" alt="Recent Questions Screen" width="250">
 </div>
 
 ## 🎬 Demo Video
