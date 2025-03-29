@@ -234,7 +234,7 @@ class _TopicDetailsPageState extends State<TopicDetailsPage>
                 children: [
                   // App Bar
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                    padding: const EdgeInsets.fromLTRB(12, 6, 18, 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

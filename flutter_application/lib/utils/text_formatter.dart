@@ -13,7 +13,7 @@ class TextFormatter {
       return Text('', style: style, textAlign: textAlign);
     }
 
-    // Ensure the style includes Poppins font family
+    // Base font style
     final TextStyle baseStyle = (style ?? const TextStyle()).copyWith(
         fontFamily: 'NotoSansMath',
         fontFeatures: <FontFeature>[

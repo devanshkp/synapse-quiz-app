@@ -50,16 +50,25 @@ void main() async {
     };
 
     PlatformDispatcher.instance.onError = (error, stack) {
+      // Print to debug console
+      debugPrint('PLATFORM ERROR: $error');
+      debugPrint('STACK TRACE: $stack');
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-    
+
     await FirebaseAppCheck.instance.activate(
-      androidProvider: (kReleaseMode) ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+      androidProvider: (kReleaseMode)
+          ? AndroidProvider.playIntegrity
+          : AndroidProvider.debug,
     );
 
     runApp(const MyApp());
   }, (error, stack) {
+    // Print to debug console
+    debugPrint('ZONED ERROR: $error');
+    debugPrint('STACK TRACE: $stack');
+
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
   });
 }
@@ -221,6 +230,7 @@ class ResponsiveNavBarState extends State<ResponsiveNavBar> {
 
         if (isTablet) {
           return Scaffold(
+            resizeToAvoidBottomInset: false,
             body: Row(
               children: [
                 NavigationRail(
@@ -246,6 +256,11 @@ class ResponsiveNavBarState extends State<ResponsiveNavBar> {
                   }),
                 ),
 
+                VerticalDivider(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                  thickness: 1,
+                ),
                 // Main Content Area
                 Expanded(
                   child: Container(

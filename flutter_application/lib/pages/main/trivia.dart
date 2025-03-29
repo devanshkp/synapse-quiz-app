@@ -291,7 +291,7 @@ class _TriviaPageState extends State<TriviaPage>
               ),
               if (widget.quickPlay || widget.isTemporarySession)
                 Positioned(
-                  top: 20,
+                  top: 40,
                   left: 10,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back_rounded,
@@ -341,7 +341,13 @@ class _TriviaPageState extends State<TriviaPage>
                 child: Opacity(
                   opacity: _animationController.value,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                    padding: EdgeInsets.fromLTRB(
+                        20,
+                        50,
+                        20,
+                        widget.quickPlay || widget.isTemporarySession
+                            ? 35
+                            : 15),
                     child: needsScrolling
                         ? SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),

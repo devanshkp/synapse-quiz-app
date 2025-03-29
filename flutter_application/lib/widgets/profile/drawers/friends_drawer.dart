@@ -219,28 +219,32 @@ class _FriendsDrawerState extends State<FriendsDrawer> {
   }
 
   Widget _buildSearchResults() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: _buildSectionHeader('Search Results', _searchResults.length,
-                withCount: false),
-          ),
-          const SizedBox(height: 12),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              final friend = _searchResults[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: _buildUserCard(friend, isSearchResult: true),
-              );
-            },
-          ),
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: _buildSectionHeader(
+                  'Search Results', _searchResults.length,
+                  withCount: false),
+            ),
+            const SizedBox(height: 12),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                final friend = _searchResults[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _buildUserCard(friend, isSearchResult: true),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
