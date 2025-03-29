@@ -6,13 +6,13 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 ## ✨ Features
 
-### 🔐 User Authentication & Profile Management
+### User Authentication & Profile Management
 
 - Secure email/password authentication
 - Customizable user profiles with avatars
 - User statistics tracking
 
-### 🧩 Quiz Experience
+### Quiz Experience
 
 - Diverse question categories from Computer Science
 - Real-time question delivery and progress tracking
@@ -23,12 +23,12 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
   - Users' encountered questions are tracked to ensure no repeated questions are shown (can be reset)
   - Ability to review previously encountered questions for revision
 
-### 👥 Social Features
+### Social Features
 
 - Friend system with user discovery
 - Real-time leaderboards
 
-### 🎨 UI/UX
+### UI/UX
 
 - Modern, intuitive interface with smooth animations
 - Dark mode design with gradient accents
@@ -57,25 +57,19 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 ## 🎬 Demo Video
 
-[Include a link to your demo video here]
+* Mobile View: [https://youtube.com/shorts/kAqLwVWDZAs?feature=share](https://youtube.com/shorts/kAqLwVWDZAs?feature=share)
+* Tablet View: [https://youtu.be/JBgfspfbi3A](https://youtu.be/JBgfspfbi3A)
 
 ## 📲 Download
 
 **Android:**
 
-* **Google Play Store (Closed Testing):** The app is currently in closed beta. To join the testing program, please contact me!
-* **Direct APK:** [link](APKs/) (arm64 For most modern Android devices)
+* **Google Play Store (Closed Testing), Join Group:** [https://groups.google.com/u/1/g/synapse-testers](https://groups.google.com/u/1/g/synapse-testers)
+* **Direct APK:** [APKs/](APKs/) (arm64 For most modern Android devices)
 
 **iOS:**
 
-* Coming soon!
-
-## 📋 Prerequisites
-
-- Flutter SDK (2.10.0 or higher)
-- Dart SDK (2.16.0 or higher)
-- Firebase account
-- Gemini API key (for hint generation)
+Coming soon!
 
 ## 🏗️ Project Structure
 
