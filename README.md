@@ -4,7 +4,7 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 <img src="flutter_application/assets/icons/logos/app_banner.png" alt="Synapse Logo" width="500">
 
-## ✨ Features
+## Features
 
 ### User Authentication & Profile Management
 
@@ -34,17 +34,16 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 - Dark mode design with gradient accents
 - Responsive layout for various device sizes
 
-## 🛠️ Technologies Used
+## Tech Stack
 
-- **Frontend**: Flutter
-- **Backend**: Firebase (Authentication, Firestore, Storage)
+- **Frontend and Backend**: Flutter, Firebase
 - **State Management**: Provider
 - **Architecture**: Service-based architecture
 - **Data Scraping**: Python, Selenium, bs4
-- **Data Sourcing**: Questions from [https://sanfoundry.com/](https://sanfoundry.com/)
-- **AI Integration**: Google's Gemini API for intelligent hints
+- **AI Integration**: Google's Gemini API for contextual hints
+- Sourced Questions from [https://sanfoundry.com/](https://sanfoundry.com/)
 
-## 📱 Screenshots
+## Screenshots
 
 <div align="center">
   <img src="flutter_application/assets/screenshots/Home.png" alt="Home Screen" width="250">
@@ -55,12 +54,12 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
   <img src="flutter_application/assets/screenshots/Recents.png" alt="Recent Questions Screen" width="250">
 </div>
 
-## 🎬 Demo Video
+## Demo
 
-* Mobile View: [https://youtube.com/shorts/kAqLwVWDZAs?feature=share](https://youtube.com/shorts/kAqLwVWDZAs?feature=share)
-* Tablet View: [https://youtu.be/JBgfspfbi3A](https://youtu.be/JBgfspfbi3A)
+* Mobile: [https://youtube.com/shorts/kAqLwVWDZAs?feature=share](https://youtube.com/shorts/kAqLwVWDZAs?feature=share)
+* Tablet: [https://youtu.be/JBgfspfbi3A](https://youtu.be/JBgfspfbi3A)
 
-## 📲 Download
+## How to Download
 
 **Android:**
 
@@ -71,7 +70,7 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 Coming soon!
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 lib/
@@ -95,7 +94,7 @@ lib/
     └── shared_widgets.dart    # Common widgets used across the app
 ```
 
-## 📊 Architecture
+## Architecture
 
 The application follows a service-based architecture with Provider for state management:
 
@@ -104,11 +103,11 @@ The application follows a service-based architecture with Provider for state man
 - **Pages**: Define the application's screens and navigation
 - **Widgets**: Encapsulate UI components for reusability
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome, feel free to reach out to start collaborating!
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
