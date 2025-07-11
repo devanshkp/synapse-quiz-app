@@ -63,7 +63,7 @@ A modern, feature-rich quiz application built with Flutter and Firebase, offerin
 
 **Android:**
 
-* **Google Play Store (Closed Testing), Join Group:** [https://groups.google.com/u/1/g/synapse-testers](https://groups.google.com/u/1/g/synapse-testers)
+* **Google Play Store (Closed Testing), Join Group:** [https://groups.google.com/u/1/g/synapse-testers](https://groups.google.com/g/synapse-testers)
 * **Direct APK:** [APKs/](APKs/) (arm64 For most modern Android devices)
 
 **iOS:**
